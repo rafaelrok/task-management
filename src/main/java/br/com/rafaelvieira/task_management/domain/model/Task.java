@@ -1,5 +1,7 @@
 package br.com.rafaelvieira.task_management.domain.model;
 
+import br.com.rafaelvieira.task_management.domain.enums.Priority;
+import br.com.rafaelvieira.task_management.domain.enums.TaskStatus;
 import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -97,11 +99,4 @@ public class Task {
         return status == TaskStatus.DONE;
     }
 
-    public enum TaskStatus {
-        TODO, IN_PROGRESS, DONE, CANCELLED
-    }
-
-    public enum Priority {
-        LOW, MEDIUM, HIGH, URGENT
-    }
 }
