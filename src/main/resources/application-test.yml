@@ -1,10 +1,156 @@
+# ========================================
+# Task Management Test Configuration
+# Author: Rafael Vieira (rafaelrok)
+# Date: 2025-11-04
+# ========================================
+
 spring:
+  application:
+    name: task-management-test
+  
+  # ========== Test Database Configuration (Testcontainers) ==========
   datasource:
-    url: jdbc:postgresql://localhost:5433/testdb
+    # Estas configurações serão sobrescritas pelo Testcontainers
+    # Mas mantemos valores padrão para testes sem containers
+    url: jdbc:tc:postgresql:16-alpine:///testdb
     username: test
     password: test
-
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+    hikari:
+      pool-name: TaskManagementTestHikariPool
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 20000
+      idle-timeout: 180000
+      max-lifetime: 600000
+      auto-commit: true
+      leak-detection-threshold: 30000
+  
+  # ========== JPA Test Configuration ==========
   jpa:
     hibernate:
-      ddl-auto: create-drop
-    show-sql: false
+      ddl-auto: create-drop  # Recria o schema a cada teste
+    show-sql: false  # Desabilitado para não poluir logs de teste
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 20
+          time_zone: UTC
+        order_inserts: true
+        order_updates: true
+        generate_statistics: false
+        # Otimizações para testes
+        hbm2ddl:
+          auto: create-drop
+        temp:
+          use_jdbc_metadata_defaults: false
+        connection:
+          provider_disables_autocommit: false
+  
+  # ========== Jackson Test Configuration ==========
+  jackson:
+    serialization:
+      indent-output: false  # Desabilitado para testes mais rápidos
+    deserialization:
+      fail-on-unknown-properties: false
+    default-property-inclusion: non_null
+    time-zone: UTC
+  
+  # ========== Cache Configuration (Desabilitado em testes) ==========
+  cache:
+    type: none  # Desabilita cache em testes para evitar side effects
+  
+  # ========== Security Test Configuration ==========
+  security:
+    user:
+      name: test-admin
+      password: test-password
+  
+  # ========== Test Transaction Configuration ==========
+  test:
+    database:
+      replace: none  # Não substitui o DataSource
+
+# ========== Server Test Configuration ==========
+server:
+  port: 0  # Porta aleatória para evitar conflitos em testes paralelos
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: always
+    include-exception: true
+
+# ========== Management/Actuator Test Configuration ==========
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# ========== Logging Test Configuration ==========
+logging:
+  level:
+    root: INFO
+    com.example.taskmanagement: DEBUG
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    org.springframework.test: INFO
+    org.hibernate.SQL: WARN  # Evita logs SQL excessivos em testes
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    org.testcontainers: INFO
+    com.zaxxer.hikari: WARN
+    org.springframework.boot.test: DEBUG
+    org.springframework.test.context: DEBUG
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# ========== SpringDoc Test Configuration (Desabilitado) ==========
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+# ========== Testcontainers Configuration ==========
+testcontainers:
+  reuse:
+    enable: true  # Reutiliza containers entre execuções para acelerar testes
+
+# ========== Custom Test Properties ==========
+app:
+  name: Task Management System (Test)
+  version: 1.0.0-TEST
+  author: Rafael Vieira (rafaelrok)
+  created: 2025-11-04
+  database:
+    max-pool-size: 10
+    min-idle: 2
+    connection-timeout: 20000
+    idle-timeout: 180000
+    max-lifetime: 600000
+  cache:
+    enabled: false  # Cache desabilitado em testes
+    ttl: 3600
+    max-size: 100
+  api:
+    version: 1.0.0-TEST
+    rate-limit: 1000  # Limite maior em testes
+    enable-swagger: false
+    base-path: /api
+
+# ========== Test Data Configuration ==========
+test:
+  data:
+    # Configurações para dados de teste
+    auto-cleanup: true
+    use-fixtures: true
+  parallel:
+    enabled: true
+    max-threads: 4

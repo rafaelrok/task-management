@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '4.0.0-SNAPSHOT'
 	id 'io.spring.dependency-management' version '1.1.7'
+    id 'jacoco'
 }
 
 group = 'br.com.rafaelvieira'
@@ -26,54 +27,189 @@ repositories {
 	maven { url = 'https://repo.spring.io/snapshot' }
 }
 
+ext {
+    springdocVersion = '2.6.0'
+    testcontainersVersion = '1.20.4'
+    assertjVersion = '3.26.3'
+    mockitoVersion = '5.14.2'
+    junitVersion = '6.0.0'
+}
+
 dependencies {
-    // Spring Boot
+    // ========== Spring Boot Starters ==========
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
-    // Database
+    // Jackson para JSON (necessário para ObjectMapper)
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+    // Configuration Processor - gera metadata para autocomplete no IDE
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+    // ========== Database ==========
     runtimeOnly 'org.postgresql:postgresql'
+    implementation 'com.zaxxer:HikariCP:5.1.0'
 
-    // Lombok
+    // ========== OpenAPI/Swagger Documentation ==========
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springdocVersion}"
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:${springdocVersion}"
+
+    // ========== Lombok ==========
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
 
-    // JUnit 6 (Platform Launcher necessário)
-    testImplementation 'org.junit.jupiter:junit-jupiter:6.0.0'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:6.0.0'
-    testImplementation 'org.junit.jupiter:junit-jupiter-params:6.0.0'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:6.0.0'
+    // ========== JUnit 6 ==========
+    testImplementation "org.junit.jupiter:junit-jupiter:${junitVersion}"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+    testImplementation "org.junit.jupiter:junit-jupiter-params:${junitVersion}"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     // Spring Boot Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 
-    // Testcontainers para testes de integração
-    testImplementation 'org.testcontainers:testcontainers:1.20.4'
-    testImplementation 'org.testcontainers:postgresql:1.20.4'
-    testImplementation 'org.testcontainers:junit-jupiter:1.20.4'
+    // ========== Testcontainers ==========
+    testImplementation "org.testcontainers:testcontainers:${testcontainersVersion}"
+    testImplementation "org.testcontainers:postgresql:${testcontainersVersion}"
+    testImplementation "org.testcontainers:junit-jupiter:${testcontainersVersion}"
 
-    // AssertJ para assertions mais fluentes
-    testImplementation 'org.assertj:assertj-core:3.26.3'
+    // ========== AssertJ - Fluent Assertions ==========
+    testImplementation "org.assertj:assertj-core:${assertjVersion}"
 
-    // Mockito
-    testImplementation 'org.mockito:mockito-core:5.14.2'
-    testImplementation 'org.mockito:mockito-junit-jupiter:5.14.2'
+    // ========== Mockito ==========
+    testImplementation "org.mockito:mockito-core:${mockitoVersion}"
+    testImplementation "org.mockito:mockito-junit-jupiter:${mockitoVersion}"
+
+    // ========== REST Assured (para testes de API) ==========
+    testImplementation 'io.rest-assured:rest-assured:5.5.0'
+    testImplementation 'io.rest-assured:json-path:5.5.0'
+    testImplementation 'io.rest-assured:xml-path:5.5.0'
+
+    // Opcional: se precisar de suporte adicional ao Jackson nos testes
+    testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 }
 
+// ========== Configuração de Testes ==========
 tasks.named('test') {
     useJUnitPlatform()
 
-    // Configurações específicas para Java 25
+    // Argumentos JVM para Java 25
     jvmArgs = [
             '--enable-preview',
-            '--add-opens', 'java.base/java.lang=ALL-UNNAMED'
+            '--add-opens', 'java.base/java.lang=ALL-UNNAMED',
+            '--add-opens', 'java.base/java.util=ALL-UNNAMED',
+            '--add-opens', 'java.base/java.time=ALL-UNNAMED'
     ]
 
+    // Configuração de logging dos testes
     testLogging {
         events "passed", "skipped", "failed"
         exceptionFormat "full"
         showStandardStreams = false
+        showCauses = true
+        showStackTraces = true
     }
+
+    // Configuração de memória
+    maxHeapSize = '2G'
+    minHeapSize = '512M'
+
+    // Execução paralela (aproveita melhor os recursos)
+    maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
+
+    // Finaliza a JVM após os testes
+    forkEvery = 100
+}
+
+// ========== Jacoco Test Coverage ==========
+jacoco {
+    toolVersion = "0.8.13"
+}
+
+tasks.named('jacocoTestReport') {
+    dependsOn test
+
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+
+        html.outputLocation = layout.buildDirectory.dir('reports/jacoco')
+    }
+
+    classDirectories.setFrom(files(classDirectories.files.collect {
+        fileTree(dir: it, exclude: [
+                '**/config/**',
+                '**/dto/**',
+                '**/exception/**',
+                '**/*Application.class'
+        ])
+    }))
+}
+
+tasks.named('jacocoTestCoverageVerification') {
+    dependsOn jacocoTestReport
+
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.70 // 70% de cobertura mínima
+            }
+        }
+    }
+}
+
+// ========== Build Task Customizado ==========
+tasks.named('build') {
+    dependsOn jacocoTestReport
+}
+
+// ========== Clean Task ==========
+tasks.named('clean') {
+    delete 'out'
+    delete 'logs'
+}
+
+// ========== Custom Tasks ==========
+
+// Task para executar apenas testes unitários
+tasks.register('unitTest', Test) {
+    useJUnitPlatform {
+        includeTags 'unit'
+    }
+    description = 'Run unit tests'
+    group = 'verification'
+}
+
+// Task para executar apenas testes de integração
+tasks.register('integrationTest', Test) {
+    useJUnitPlatform {
+        includeTags 'integration'
+    }
+    description = 'Run integration tests'
+    group = 'verification'
+
+    shouldRunAfter(unitTest)
+}
+
+// Task para verificar dependências desatualizadas
+tasks.register('checkDependencyUpdates') {
+    doLast {
+        println '========================================='
+        println 'Checking for dependency updates...'
+        println '========================================='
+    }
+}
+
+// ========== Gradle Wrapper ==========
+wrapper {
+    gradleVersion = '8.11'
+    distributionType = Wrapper.DistributionType.ALL
 }

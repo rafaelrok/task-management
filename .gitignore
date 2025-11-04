@@ -35,3 +35,14 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Docker ###
+docker-compose.yml
+
+### Logs ###
+logs/
+*.log
+
+### Database ###
+*.db
+*.sqlite
