@@ -19,19 +19,20 @@ import org.testcontainers.utility.DockerImageName;
 public class TestContainersConfig {
 
     @Bean
+    @SuppressWarnings("resource")
     @ServiceConnection
     public PostgreSQLContainer<?> postgresContainer() {
         PostgreSQLContainer<?> container = new PostgreSQLContainer<>(
                 DockerImageName.parse("postgres:16-alpine")
         )
-                .withDatabaseName("testdb")
+                .withDatabaseName("test_db")
                 .withUsername("test")
                 .withPassword("test")
                 .withReuse(true)
                 .withStartupTimeoutSeconds(60)
                 .withConnectTimeoutSeconds(30);
 
-        // Configurações de performance
+        // Configurações de desempenho
         container.withCommand(
                 "postgres",
                 "-c", "fsync=off",
@@ -45,27 +46,7 @@ public class TestContainersConfig {
 
     @DynamicPropertySource
     static void registerDynamicProperties(DynamicPropertyRegistry registry) {
-        // Propriedades adicionais podem ser registradas aqui
+        // Propriedades adicionais
         registry.add("spring.test.database.replace", () -> "none");
     }
 }
-
-//import org.springframework.boot.test.context.TestConfiguration;
-//import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-//import org.springframework.context.annotation.Bean;
-//import org.testcontainers.containers.PostgreSQLContainer;
-//import org.testcontainers.utility.DockerImageName;
-//
-//@TestConfiguration(proxyBeanMethods = false)
-//public class TestContainersConfig {
-//
-//    @Bean
-//    @ServiceConnection
-//    public PostgreSQLContainer<?> postgresContainer() {
-//        return new PostgreSQLContainer<>(DockerImageName.parse("postgres:latest"))
-//                .withDatabaseName("testdb")
-//                .withUsername("test")
-//                .withPassword("test")
-//                .withReuse(true);
-//    }
-//}

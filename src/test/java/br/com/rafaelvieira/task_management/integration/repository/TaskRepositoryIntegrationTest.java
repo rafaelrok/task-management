@@ -27,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Testes de Integração do Repositório usando Testcontainers
- * Demonstrando integração real com PostgreSQL
+ * Demonstrando integração real com Postgres
  *
  * @author Rafael Vieira (rafaelrok)
  * @since 2025-11-04
@@ -64,7 +64,7 @@ class TaskRepositoryIntegrationTest extends BaseIntegrationTest {
 
         savedUser = userRepository.save(
                 User.builder()
-                        .username("testuser")
+                        .username("testUser")
                         .email("test@example.com")
                         .fullName("Test User")
                         .build()
@@ -74,7 +74,7 @@ class TaskRepositoryIntegrationTest extends BaseIntegrationTest {
     @Test
     @Order(1)
     @DisplayName("Should save and retrieve task from database")
-    void shouldSaveAndRetrieveTask() {
+    void testShouldSaveAndRetrieveTask() {
         Task task = Task.builder()
                 .title("Integration Test Task")
                 .description("Testing database integration")
@@ -89,24 +89,25 @@ class TaskRepositoryIntegrationTest extends BaseIntegrationTest {
         Optional<Task> retrieved = taskRepository.findById(savedTask.getId());
 
         assertThat(retrieved)
+                .as("tarefa recuperada do banco de dados")
                 .isPresent()
                 .get()
                 .satisfies(t -> {
-                    assertThat(t.getTitle()).isEqualTo("Integration Test Task");
-                    assertThat(t.getDescription()).isEqualTo("Testing database integration");
-                    assertThat(t.getStatus()).isEqualTo(TaskStatus.TODO);
-                    assertThat(t.getPriority()).isEqualTo(Priority.HIGH);
-                    assertThat(t.getCategory().getName()).isEqualTo("Work");
-                    assertThat(t.getAssignedUser().getUsername()).isEqualTo("testuser");
-                    assertThat(t.getCreatedAt()).isNotNull();
-                    assertThat(t.getUpdatedAt()).isNotNull();
+                    assertThat(t.getTitle()).as("título da tarefa").isEqualTo("Integration Test Task");
+                    assertThat(t.getDescription()).as("descrição da tarefa").isEqualTo("Testing database integration");
+                    assertThat(t.getStatus()).as("status da tarefa").isEqualTo(TaskStatus.TODO);
+                    assertThat(t.getPriority()).as("prioridade da tarefa").isEqualTo(Priority.HIGH);
+                    assertThat(t.getCategory().getName()).as("categoria da tarefa").isEqualTo("Work");
+                    assertThat(t.getAssignedUser().getUsername()).as("usuário atribuído à tarefa").isEqualTo("testUser");
+                    assertThat(t.getCreatedAt()).as("timestamp de criação da tarefa").isNotNull();
+                    assertThat(t.getUpdatedAt()).as("timestamp de atualização da tarefa").isNotNull();
                 });
     }
 
     @Test
     @Order(2)
     @DisplayName("Should find tasks by status")
-    void shouldFindTasksByStatus() {
+    void testShouldFindTasksByStatus() {
         taskRepository.save(Task.builder()
                 .title("Todo Task 1")
                 .status(TaskStatus.TODO)
@@ -128,14 +129,14 @@ class TaskRepositoryIntegrationTest extends BaseIntegrationTest {
         List<Task> todoTasks = taskRepository.findByStatus(TaskStatus.TODO);
         List<Task> doneTasks = taskRepository.findByStatus(TaskStatus.DONE);
 
-        assertThat(todoTasks).hasSize(2);
-        assertThat(doneTasks).hasSize(1);
+        assertThat(todoTasks).as("tarefas TODO").hasSize(2);
+        assertThat(doneTasks).as("tarefas DONE").hasSize(1);
     }
 
     @Test
     @Order(3)
     @DisplayName("Should find tasks by priority")
-    void shouldFindTasksByPriority() {
+    void testShouldFindTasksByPriority() {
         taskRepository.saveAll(List.of(
                 Task.builder().title("Low Priority").status(TaskStatus.TODO).priority(Priority.LOW).build(),
                 Task.builder().title("High Priority 1").status(TaskStatus.TODO).priority(Priority.HIGH).build(),
@@ -145,14 +146,14 @@ class TaskRepositoryIntegrationTest extends BaseIntegrationTest {
         List<Task> highPriorityTasks = taskRepository.findByPriority(Priority.HIGH);
         List<Task> lowPriorityTasks = taskRepository.findByPriority(Priority.LOW);
 
-        assertThat(highPriorityTasks).hasSize(2);
-        assertThat(lowPriorityTasks).hasSize(1);
+        assertThat(highPriorityTasks).as("tarefas de alta prioridade").hasSize(2);
+        assertThat(lowPriorityTasks).as("tarefas de baixa prioridade").hasSize(1);
     }
 
     @Test
     @Order(4)
     @DisplayName("Should find tasks by category")
-    void shouldFindTasksByCategory() {
+    void testShouldFindTasksByCategory() {
         Category personalCategory = categoryRepository.save(
                 Category.builder().name("Personal").build()
         );
@@ -166,14 +167,14 @@ class TaskRepositoryIntegrationTest extends BaseIntegrationTest {
         List<Task> workTasks = taskRepository.findByCategoryId(savedCategory.getId());
         List<Task> personalTasks = taskRepository.findByCategoryId(personalCategory.getId());
 
-        assertThat(workTasks).hasSize(2);
-        assertThat(personalTasks).hasSize(1);
+        assertThat(workTasks).as("tarefas da categoria Work").hasSize(2);
+        assertThat(personalTasks).as("tarefas da categoria Personal").hasSize(1);
     }
 
     @Test
     @Order(5)
     @DisplayName("Should find tasks by assigned user")
-    void shouldFindTasksByAssignedUser() {
+    void testShouldFindTasksByAssignedUser() {
         User anotherUser = userRepository.save(
                 User.builder()
                         .username("another")
@@ -190,14 +191,14 @@ class TaskRepositoryIntegrationTest extends BaseIntegrationTest {
         List<Task> user1Tasks = taskRepository.findByAssignedUserId(savedUser.getId());
         List<Task> user2Tasks = taskRepository.findByAssignedUserId(anotherUser.getId());
 
-        assertThat(user1Tasks).hasSize(2);
-        assertThat(user2Tasks).hasSize(1);
+        assertThat(user1Tasks).as("tarefas do usuário testUser").hasSize(2);
+        assertThat(user2Tasks).as("tarefas do usuário another").hasSize(1);
     }
 
     @Test
     @Order(6)
     @DisplayName("Should find overdue tasks")
-    void shouldFindOverdueTasks() {
+    void testShouldFindOverdueTasks() {
         LocalDateTime pastDate = LocalDateTime.now().minusDays(2);
         LocalDateTime futureDate = LocalDateTime.now().plusDays(2);
 
@@ -211,17 +212,18 @@ class TaskRepositoryIntegrationTest extends BaseIntegrationTest {
         List<Task> overdueTasks = taskRepository.findOverdueTasks(LocalDateTime.now());
 
         assertThat(overdueTasks)
+                .as("tarefas vencidas não concluídas")
                 .hasSize(2)
                 .allSatisfy(task -> {
-                    assertThat(task.getDueDate()).isBefore(LocalDateTime.now());
-                    assertThat(task.getStatus()).isNotEqualTo(TaskStatus.DONE);
+                    assertThat(task.getDueDate()).as("data de vencimento da tarefa").isBefore(LocalDateTime.now());
+                    assertThat(task.getStatus()).as("status da tarefa").isNotEqualTo(TaskStatus.DONE);
                 });
     }
 
     @Test
     @Order(7)
     @DisplayName("Should count tasks by status")
-    void shouldCountTasksByStatus() {
+    void testShouldCountTasksByStatus() {
         taskRepository.saveAll(List.of(
                 Task.builder().title("Todo 1").status(TaskStatus.TODO).priority(Priority.LOW).build(),
                 Task.builder().title("Todo 2").status(TaskStatus.TODO).priority(Priority.LOW).build(),
@@ -232,14 +234,14 @@ class TaskRepositoryIntegrationTest extends BaseIntegrationTest {
         long todoCount = taskRepository.countByStatus(TaskStatus.TODO);
         long doneCount = taskRepository.countByStatus(TaskStatus.DONE);
 
-        assertThat(todoCount).isEqualTo(3);
-        assertThat(doneCount).isEqualTo(1);
+        assertThat(todoCount).as("contagem de tarefas TODO").isEqualTo(3);
+        assertThat(doneCount).as("contagem de tarefas DONE").isEqualTo(1);
     }
 
     @Test
     @Order(8)
     @DisplayName("Should find tasks by user and status")
-    void shouldFindTasksByUserAndStatus() {
+    void testShouldFindTasksByUserAndStatus() {
         taskRepository.saveAll(List.of(
                 Task.builder().title("User Todo 1").status(TaskStatus.TODO).priority(Priority.LOW).assignedUser(savedUser).build(),
                 Task.builder().title("User Todo 2").status(TaskStatus.TODO).priority(Priority.LOW).assignedUser(savedUser).build(),
@@ -249,14 +251,14 @@ class TaskRepositoryIntegrationTest extends BaseIntegrationTest {
         List<Task> userTodoTasks = taskRepository.findByUserIdAndStatus(savedUser.getId(), TaskStatus.TODO);
         List<Task> userDoneTasks = taskRepository.findByUserIdAndStatus(savedUser.getId(), TaskStatus.DONE);
 
-        assertThat(userTodoTasks).hasSize(2);
-        assertThat(userDoneTasks).hasSize(1);
+        assertThat(userTodoTasks).as("tarefas TODO atribuídas ao usuário testUser").hasSize(2);
+        assertThat(userDoneTasks).as("tarefas DONE atribuídas ao usuário testUser").hasSize(1);
     }
 
     @Test
     @Order(9)
     @DisplayName("Should find tasks by title containing")
-    void shouldFindTasksByTitleContaining() {
+    void testShouldFindTasksByTitleContaining() {
         taskRepository.saveAll(List.of(
                 Task.builder().title("Review code").status(TaskStatus.TODO).priority(Priority.MEDIUM).build(),
                 Task.builder().title("Code refactoring").status(TaskStatus.TODO).priority(Priority.HIGH).build(),
@@ -267,13 +269,14 @@ class TaskRepositoryIntegrationTest extends BaseIntegrationTest {
 
         assertThat(tasksWithCode)
                 .extracting(Task::getTitle)
+                .as("tarefas com 'code' no título")
                 .containsExactlyInAnyOrder("Review code", "Code refactoring");
     }
 
     @Test
     @Order(10)
     @DisplayName("Should update task and verify updated timestamp")
-    void shouldUpdateTaskAndVerifyTimestamp() throws InterruptedException {
+    void testShouldUpdateTaskAndVerifyTimestamp() throws InterruptedException {
         Task task = taskRepository.save(
                 Task.builder()
                         .title("Original Title")
@@ -281,15 +284,18 @@ class TaskRepositoryIntegrationTest extends BaseIntegrationTest {
                         .priority(Priority.LOW)
                         .build()
         );
+        taskRepository.flush();
 
         LocalDateTime originalUpdatedAt = task.getUpdatedAt();
-        Thread.sleep(1000); // Delay to ensure timestamp difference
+        LocalDateTime originalCreatedAt = task.getCreatedAt();
+        Thread.sleep(1000);
 
         task.setTitle("Updated Title");
         Task updatedTask = taskRepository.save(task);
+        taskRepository.flush();
 
-        assertThat(updatedTask.getTitle()).isEqualTo("Updated Title");
-        assertThat(updatedTask.getUpdatedAt()).isAfterOrEqualTo(originalUpdatedAt);
-        assertThat(updatedTask.getCreatedAt()).isEqualTo(task.getCreatedAt());
+        assertThat(updatedTask.getTitle()).as("título atualizado da tarefa").isEqualTo("Updated Title");
+        assertThat(updatedTask.getUpdatedAt()).as("timestamp de atualização da tarefa").isAfter(originalUpdatedAt);
+        assertThat(updatedTask.getCreatedAt()).as("timestamp de criação da tarefa permanece inalterado").isEqualTo(originalCreatedAt);
     }
 }

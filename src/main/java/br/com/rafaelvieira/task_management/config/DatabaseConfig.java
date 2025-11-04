@@ -2,6 +2,7 @@ package br.com.rafaelvieira.task_management.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.Bean;
@@ -18,12 +19,36 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import javax.sql.DataSource;
 import java.util.Properties;
 
+/**
+ * Classe de configuração do banco de dados
+ * Configura o DataSource, EntityManagerFactory e TransactionManager
+ *
+ * @author Rafael Vieira (rafaelrok)
+ * @since 2025-11-04
+ */
+
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(basePackages = "br.com.rafaelvieira.task_management.repository")
 @EntityScan(basePackages = "br.com.rafaelvieira.task_management.domain.model")
 @EnableJpaAuditing
-public class DatabaseConfig {
+@NoArgsConstructor
+public class DatabaseConfig
+{
+    private static final String TEST_PROFILE = "!test";
+    private static final Integer POOL_SIZE = 20;
+    private static final Integer CONNECTION_TIMEOUT = 30000;
+    private static final long IDLE_TIMEOUT = 30_0000L;
+    private static final Integer MIN_IDLE = 5;
+    private static final long MAX_LIFETIME = 18_00000L;
+    private static final String CONNECTION_TEST_QUERY = "SELECT 1";
+    private static final String POOL_NAME = "TaskManagementHikariPool";
+    private static final long LEAK_DETECTION_THRESHOLD = 60000L;
+    private static final String SECOND_CACHE_LEVEL = "false";
+    private static final String USE_QUERY_CACHE = "false";
+    private static final String GENERATE_STATISTICS = "false";
+    private static final String DISABLED_AUTO_COMMITS = "false";
+
 
     @Value("${spring.datasource.url}")
     private String dbUrl;
@@ -50,35 +75,37 @@ public class DatabaseConfig {
     private String hibernateDialect;
 
     @Bean
-    @Profile("!test")
-    public DataSource dataSource() {
-        HikariConfig hikariConfig = new HikariConfig();
+    @Profile(TEST_PROFILE)
+    public DataSource dataSource()
+    {
+        var hikariConfig = new HikariConfig();
 
         hikariConfig.setJdbcUrl(dbUrl);
         hikariConfig.setUsername(dbUsername);
         hikariConfig.setPassword(dbPassword);
         hikariConfig.setDriverClassName(driverClassName);
-        hikariConfig.setMaximumPoolSize(20);
-        hikariConfig.setMinimumIdle(5);
-        hikariConfig.setIdleTimeout(300000);
-        hikariConfig.setConnectionTimeout(30000);
-        hikariConfig.setMaxLifetime(1800000);
+        hikariConfig.setMaximumPoolSize(POOL_SIZE);
+        hikariConfig.setMinimumIdle(MIN_IDLE);
+        hikariConfig.setIdleTimeout(IDLE_TIMEOUT);
+        hikariConfig.setConnectionTimeout(CONNECTION_TIMEOUT);
+        hikariConfig.setMaxLifetime(MAX_LIFETIME);
         hikariConfig.setAutoCommit(true);
-        hikariConfig.setConnectionTestQuery("SELECT 1");
-        hikariConfig.setPoolName("TaskManagementHikariPool");
-        hikariConfig.setLeakDetectionThreshold(60000);
+        hikariConfig.setConnectionTestQuery(CONNECTION_TEST_QUERY);
+        hikariConfig.setPoolName(POOL_NAME);
+        hikariConfig.setLeakDetectionThreshold(LEAK_DETECTION_THRESHOLD);
 
         return new HikariDataSource(hikariConfig);
     }
 
     @Bean
-    @Profile("!test")
-    public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource) {
-        LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
+    @Profile(TEST_PROFILE)
+    public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource)
+    {
+        var em = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(dataSource);
         em.setPackagesToScan("br.com.rafaelvieira.task_management.domain.model");
 
-        HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+        var vendorAdapter = new HibernateJpaVendorAdapter();
         vendorAdapter.setShowSql(showSql);
         vendorAdapter.setGenerateDdl(true);
         em.setJpaVendorAdapter(vendorAdapter);
@@ -88,9 +115,9 @@ public class DatabaseConfig {
         return em;
     }
 
-    private Properties hibernateProperties() {
-        Properties properties = new Properties();
-
+    private Properties hibernateProperties()
+    {
+        var properties = new Properties();
         properties.setProperty("hibernate.dialect", hibernateDialect);
         properties.setProperty("hibernate.hbm2ddl.auto", ddlAuto);
         properties.setProperty("hibernate.show_sql", String.valueOf(showSql));
@@ -100,19 +127,20 @@ public class DatabaseConfig {
         properties.setProperty("hibernate.order_inserts", "true");
         properties.setProperty("hibernate.order_updates", "true");
         properties.setProperty("hibernate.jdbc.batch_versioned_data", "true");
-        properties.setProperty("hibernate.cache.use_second_level_cache", "false");
-        properties.setProperty("hibernate.cache.use_query_cache", "false");
-        properties.setProperty("hibernate.generate_statistics", "false");
-        properties.setProperty("hibernate.connection.provider_disables_autocommit", "false");
+        properties.setProperty("hibernate.cache.use_second_level_cache", SECOND_CACHE_LEVEL);
+        properties.setProperty("hibernate.cache.use_query_cache", USE_QUERY_CACHE);
+        properties.setProperty("hibernate.generate_statistics", GENERATE_STATISTICS);
+        properties.setProperty("hibernate.connection.provider_disables_autocommit", DISABLED_AUTO_COMMITS);
         properties.setProperty("hibernate.bytecode.provider", "bytebuddy");
 
         return properties;
     }
 
     @Bean
-    @Profile("!test")
-    public PlatformTransactionManager transactionManager(LocalContainerEntityManagerFactoryBean entityManagerFactory) {
-        JpaTransactionManager transactionManager = new JpaTransactionManager();
+    @Profile(TEST_PROFILE)
+    public PlatformTransactionManager transactionManager(LocalContainerEntityManagerFactoryBean entityManagerFactory)
+    {
+        var transactionManager = new JpaTransactionManager();
         transactionManager.setEntityManagerFactory(entityManagerFactory.getObject());
         return transactionManager;
     }

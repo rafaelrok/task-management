@@ -12,7 +12,7 @@ spring:
   datasource:
     # Estas configurações serão sobrescritas pelo Testcontainers
     # Mas mantemos valores padrão para testes sem containers
-    url: jdbc:tc:postgresql:16-alpine:///testdb
+    url: jdbc:tc:postgresql:16-alpine:///test_db
     username: test
     password: test
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
@@ -102,7 +102,7 @@ logging:
     org.springframework.web: WARN
     org.springframework.security: WARN
     org.springframework.test: INFO
-    org.hibernate.SQL: WARN  # Evita logs SQL excessivos em testes
+    org.hibernate.SQL: WARN
     org.hibernate.type.descriptor.sql.BasicBinder: WARN
     org.testcontainers: INFO
     com.zaxxer.hikari: WARN

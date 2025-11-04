@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Testes de Integração do Repositório
- * Extende BaseIntegrationTest para reutilizar configurações
+ * Estende BaseIntegrationTest para reutilizar configurações
  *
  * @author Rafael Vieira (rafaelrok)
  * @since 2025-11-04
@@ -93,7 +93,7 @@ class TaskControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @Order(1)
     @DisplayName("POST /api/tasks - Should create task successfully")
-    void shouldCreateTaskSuccessfully() throws Exception {
+    void testShouldCreateTaskSuccessfully() throws Exception {
         TaskCreateRecord create = new TaskCreateRecord(
                 "Implement new feature",
                 "Implement user authentication",
@@ -120,7 +120,7 @@ class TaskControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @Order(2)
     @DisplayName("POST /api/tasks - Should return 400 when title is blank")
-    void shouldReturn400WhenTitleIsBlank() throws Exception {
+    void testShouldReturn400WhenTitleIsBlank() throws Exception {
         TaskCreateRecord create = new TaskCreateRecord(
                 "",
                 "Description",
@@ -141,7 +141,7 @@ class TaskControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @Order(3)
     @DisplayName("GET /api/tasks/{id} - Should get task by ID")
-    void shouldGetTaskById() throws Exception {
+    void testShouldGetTaskById() throws Exception {
         Task task = taskRepository.save(
                 Task.builder()
                         .title("Test Task")
@@ -161,7 +161,7 @@ class TaskControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @Order(4)
     @DisplayName("GET /api/tasks/{id} - Should return 404 when task not found")
-    void shouldReturn404WhenTaskNotFound() throws Exception {
+    void testShouldReturn404WhenTaskNotFound() throws Exception {
         mockMvc.perform(get("/api/tasks/999"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value(containsString("Task not found")));
@@ -170,7 +170,7 @@ class TaskControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @Order(5)
     @DisplayName("GET /api/tasks - Should get all tasks")
-    void shouldGetAllTasks() throws Exception {
+    void testShouldGetAllTasks() throws Exception {
         taskRepository.save(Task.builder().title("Task 1").status(TaskStatus.TODO).priority(Priority.LOW).build());
         taskRepository.save(Task.builder().title("Task 2").status(TaskStatus.IN_PROGRESS).priority(Priority.MEDIUM).build());
         taskRepository.save(Task.builder().title("Task 3").status(TaskStatus.DONE).priority(Priority.HIGH).build());
@@ -184,7 +184,7 @@ class TaskControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @Order(6)
     @DisplayName("GET /api/tasks/status/{status} - Should get tasks by status")
-    void shouldGetTasksByStatus() throws Exception {
+    void testShouldGetTasksByStatus() throws Exception {
         taskRepository.save(Task.builder().title("Todo 1").status(TaskStatus.TODO).priority(Priority.LOW).build());
         taskRepository.save(Task.builder().title("Todo 2").status(TaskStatus.TODO).priority(Priority.LOW).build());
         taskRepository.save(Task.builder().title("Done 1").status(TaskStatus.DONE).priority(Priority.LOW).build());
@@ -198,7 +198,7 @@ class TaskControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @Order(7)
     @DisplayName("GET /api/tasks/priority/{priority} - Should get tasks by priority")
-    void shouldGetTasksByPriority() throws Exception {
+    void testShouldGetTasksByPriority() throws Exception {
         taskRepository.save(Task.builder().title("High 1").status(TaskStatus.TODO).priority(Priority.HIGH).build());
         taskRepository.save(Task.builder().title("High 2").status(TaskStatus.TODO).priority(Priority.HIGH).build());
         taskRepository.save(Task.builder().title("Low 1").status(TaskStatus.TODO).priority(Priority.LOW).build());
@@ -212,7 +212,7 @@ class TaskControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @Order(8)
     @DisplayName("GET /api/tasks/category/{categoryId} - Should get tasks by category")
-    void shouldGetTasksByCategory() throws Exception {
+    void testShouldGetTasksByCategory() throws Exception {
         taskRepository.save(Task.builder().title("Dev Task 1").status(TaskStatus.TODO).priority(Priority.MEDIUM).category(testCategory).build());
         taskRepository.save(Task.builder().title("Dev Task 2").status(TaskStatus.TODO).priority(Priority.MEDIUM).category(testCategory).build());
 
@@ -225,7 +225,7 @@ class TaskControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @Order(9)
     @DisplayName("GET /api/tasks/user/{userId} - Should get tasks by user")
-    void shouldGetTasksByUser() throws Exception {
+    void testShouldGetTasksByUser() throws Exception {
         taskRepository.save(Task.builder().title("User Task 1").status(TaskStatus.TODO).priority(Priority.MEDIUM).assignedUser(testUser).build());
         taskRepository.save(Task.builder().title("User Task 2").status(TaskStatus.TODO).priority(Priority.MEDIUM).assignedUser(testUser).build());
 
@@ -238,7 +238,7 @@ class TaskControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @Order(10)
     @DisplayName("GET /api/tasks/overdue - Should get overdue tasks")
-    void shouldGetOverdueTasks() throws Exception {
+    void testShouldGetOverdueTasks() throws Exception {
         LocalDateTime pastDate = LocalDateTime.now().minusDays(2);
 
         taskRepository.save(Task.builder().title("Overdue 1").status(TaskStatus.TODO).priority(Priority.HIGH).dueDate(pastDate).build());
@@ -254,7 +254,7 @@ class TaskControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @Order(11)
     @DisplayName("PUT /api/tasks/{id} - Should update task")
-    void shouldUpdateTask() throws Exception {
+    void testShouldUpdateTask() throws Exception {
         Task task = taskRepository.save(
                 Task.builder()
                         .title("Original Title")
@@ -287,7 +287,7 @@ class TaskControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @Order(12)
     @DisplayName("PATCH /api/tasks/{id}/status - Should change task status")
-    void shouldChangeTaskStatus() throws Exception {
+    void testShouldChangeTaskStatus() throws Exception {
         Task task = taskRepository.save(
                 Task.builder()
                         .title("Task")
@@ -305,7 +305,7 @@ class TaskControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @Order(13)
     @DisplayName("DELETE /api/tasks/{id} - Should delete task")
-    void shouldDeleteTask() throws Exception {
+    void testShouldDeleteTask() throws Exception {
         Task task = taskRepository.save(
                 Task.builder()
                         .title("Task to delete")
@@ -324,7 +324,7 @@ class TaskControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @Order(14)
     @DisplayName("GET /api/tasks/count/{status} - Should count tasks by status")
-    void shouldCountTasksByStatus() throws Exception {
+    void testShouldCountTasksByStatus() throws Exception {
         taskRepository.save(Task.builder().title("Todo 1").status(TaskStatus.TODO).priority(Priority.LOW).build());
         taskRepository.save(Task.builder().title("Todo 2").status(TaskStatus.TODO).priority(Priority.LOW).build());
         taskRepository.save(Task.builder().title("Todo 3").status(TaskStatus.TODO).priority(Priority.LOW).build());
