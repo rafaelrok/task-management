@@ -10,7 +10,7 @@ import org.testcontainers.utility.DockerImageName;
 
 /**
  * Configuração de Testcontainers para testes de integração
- * Cria um container PostgreSQL real para os testes
+ * Cria um container PostgresSQL real para os testes
  *
  * @author Rafael Vieira (rafaelrok)
  * @since 2025-11-04
