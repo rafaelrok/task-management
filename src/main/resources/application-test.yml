@@ -1,17 +1,9 @@
-# ========================================
-# Task Management Test Configuration
-# Author: Rafael Vieira (rafaelrok)
-# Date: 2025-11-04
-# ========================================
-
 spring:
   application:
     name: task-management-test
   
   # ========== Test Database Configuration (Testcontainers) ==========
   datasource:
-    # Estas configurações serão sobrescritas pelo Testcontainers
-    # Mas mantemos valores padrão para testes sem containers
     url: jdbc:tc:postgresql:16-alpine:///test_db
     username: test
     password: test
@@ -29,9 +21,10 @@ spring:
   # ========== JPA Test Configuration ==========
   jpa:
     hibernate:
-      ddl-auto: create-drop  # Recria o schema a cada teste
-    show-sql: false  # Desabilitado para não poluir logs de teste
+      ddl-auto: create-drop
+    show-sql: false
     open-in-view: false
+    defer-datasource-initialization: false
     properties:
       hibernate:
         format_sql: false
@@ -43,18 +36,19 @@ spring:
         order_inserts: true
         order_updates: true
         generate_statistics: false
-        # Otimizações para testes
-        hbm2ddl:
-          auto: create-drop
         temp:
           use_jdbc_metadata_defaults: false
         connection:
           provider_disables_autocommit: false
   
+  # ========== Flyway Test Configuration ==========
+  flyway:
+    enabled: false
+
   # ========== Jackson Test Configuration ==========
   jackson:
     serialization:
-      indent-output: false  # Desabilitado para testes mais rápidos
+      indent-output: false
     deserialization:
       fail-on-unknown-properties: false
     default-property-inclusion: non_null
@@ -62,7 +56,7 @@ spring:
   
   # ========== Cache Configuration (Desabilitado em testes) ==========
   cache:
-    type: none  # Desabilita cache em testes para evitar side effects
+    type: none
   
   # ========== Security Test Configuration ==========
   security:
@@ -73,11 +67,11 @@ spring:
   # ========== Test Transaction Configuration ==========
   test:
     database:
-      replace: none  # Não substitui o DataSource
+      replace: none
 
 # ========== Server Test Configuration ==========
 server:
-  port: 0  # Porta aleatória para evitar conflitos em testes paralelos
+  port: 0
   error:
     include-message: always
     include-binding-errors: always
@@ -121,7 +115,7 @@ springdoc:
 # ========== Testcontainers Configuration ==========
 testcontainers:
   reuse:
-    enable: true  # Reutiliza containers entre execuções para acelerar testes
+    enable: true
 
 # ========== Custom Test Properties ==========
 app:
@@ -136,19 +130,18 @@ app:
     idle-timeout: 180000
     max-lifetime: 600000
   cache:
-    enabled: false  # Cache desabilitado em testes
+    enabled: false
     ttl: 3600
     max-size: 100
   api:
     version: 1.0.0-TEST
-    rate-limit: 1000  # Limite maior em testes
+    rate-limit: 1000
     enable-swagger: false
     base-path: /api
 
 # ========== Test Data Configuration ==========
 test:
   data:
-    # Configurações para dados de teste
     auto-cleanup: true
     use-fixtures: true
   parallel:

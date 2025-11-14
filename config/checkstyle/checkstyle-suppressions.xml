@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+        "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+        "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+
+<suppressions>
+    <!-- Diretórios gerados -->
+    <suppress checks=".*" files=".*[\\/]generated[\\/].*"/>
+    <suppress checks=".*" files=".*[\\/]target[\\/].*"/>
+    <suppress checks=".*" files=".*[\\/]build[\\/].*"/>
+    <suppress checks=".*" files=".*[\\/]out[\\/].*"/>
+
+    <!-- Testes -->
+    <suppress checks="MagicNumber" files=".*Test\.java"/>
+    <suppress checks="MethodLength" files=".*Test\.java"/>
+    <suppress checks="ParameterNumber" files=".*Test\.java"/>
+
+    <!-- Application principal -->
+    <suppress checks="HideUtilityClassConstructor" files=".*Application\.java"/>
+    <suppress checks="UncommentedMain" files=".*Application\.java"/>
+
+    <!-- Configurações Spring -->
+    <suppress checks="VisibilityModifier" files=".*Config\.java"/>
+    <suppress checks="VisibilityModifier" files=".*Configuration\.java"/>
+    <suppress checks="VisibilityModifier" files=".*Properties\.java"/>
+    <suppress checks="DesignForExtension" files=".*Config\.java"/>
+
+    <!-- DTOs, Entities, Records -->
+    <suppress checks="VisibilityModifier" files=".*[\\/]dto[\\/].*\.java"/>
+    <suppress checks="VisibilityModifier" files=".*[\\/]entity[\\/].*\.java"/>
+    <suppress checks="VisibilityModifier" files=".*[\\/]model[\\/].*\.java"/>
+    <suppress checks="VisibilityModifier" files=".*DTO\.java"/>
+    <suppress checks="VisibilityModifier" files=".*Request\.java"/>
+    <suppress checks="VisibilityModifier" files=".*Response\.java"/>
+
+    <!-- Records (Java 14+) -->
+    <suppress checks=".*" files=".*Record\.java"/>
+
+    <!-- Suprimir ParameterNumber em Controllers -->
+    <suppress checks="ParameterNumber" files=".*Controller\.java"/>
+
+    <!-- Suprimir MagicNumber em constantes de teste -->
+    <suppress checks="MagicNumber" files=".*Test\.java"/>
+</suppressions>

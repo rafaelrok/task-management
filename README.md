@@ -139,7 +139,7 @@ docker run -d \
 | **Gradle** | 8.x | ⚠️ Opcional** | Build (wrapper incluído) |
 | **Git** | Qualquer | ✅ Sim | Controle de versão |
 
-\* PostgreSQL pode ser executado via Docker  
+\* PostgreSQL pode ser executado via Docker
 \*\* Gradle wrapper (`gradlew`) está incluído no projeto
 
 ### Instalação do Java 25
@@ -259,14 +259,14 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
     testImplementation "org.junit.jupiter:junit-jupiter-params:${junitVersion}"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
-    
+
     // AssertJ - Assertions fluentes
     testImplementation "org.assertj:assertj-core:${assertjVersion}"
-    
+
     // Mockito - Mocking framework
     testImplementation "org.mockito:mockito-core:${mockitoVersion}"
     testImplementation "org.mockito:mockito-junit-jupiter:${mockitoVersion}"
-    
+
     // Testcontainers - Containers para testes
     testImplementation "org.testcontainers:testcontainers:${testcontainersVersion}"
     testImplementation "org.testcontainers:postgresql:${testcontainersVersion}"
@@ -283,14 +283,14 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'org.springframework.boot:spring-boot-starter-security'
-    
+
     // Database
     runtimeOnly 'org.postgresql:postgresql'
     implementation 'com.zaxxer:HikariCP:5.1.0'
-    
+
     // Documentation
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0"
-    
+
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
@@ -301,18 +301,18 @@ dependencies {
 ```groovy
 test {
     useJUnitPlatform()  // Habilita JUnit 6
-    
+
     // Java 25 flags
     jvmArgs = [
         '--enable-preview',
         '--add-opens', 'java.base/java.lang=ALL-UNNAMED',
         '--add-opens', 'java.base/java.util=ALL-UNNAMED'
     ]
-    
+
     // Performance
     maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
     maxHeapSize = '2G'
-    
+
     // Logging
     testLogging {
         events "passed", "skipped", "failed"
@@ -332,12 +332,12 @@ jacocoTestReport {
         xml.required = true
         html.required = true
     }
-    
+
     classDirectories.setFrom(
         files(classDirectories.files.collect {
             fileTree(dir: it, exclude: [
                 '**/config/**',
-                '**/dto/**',
+                '**/records/**',
                 '**/exception/**'
             ])
         })
@@ -523,10 +523,10 @@ void shouldIdentifyCompletedStatus(TaskStatus status, boolean expected) {
 @Nested
 @DisplayName("Task with User Assignment Tests")
 class TaskWithUserTests {
-    
+
     @Test
     void shouldAssignUserToTask() { }
-    
+
     @Test
     void shouldFindTasksByUser() { }
 }
@@ -563,12 +563,12 @@ assertThat(result)
 ```java
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class TaskServiceTest {
-    
+
     @Test
     @Order(1)
     @DisplayName("Should create task successfully")
     void test1() { }
-    
+
     @Test
     @Order(2)
     @DisplayName("Should update task")
@@ -597,7 +597,7 @@ assertThatThrownBy(() -> taskService.createTask(invalidData))
 ```java
 @TestConfiguration
 public class TestContainersConfig {
-    
+
     @Bean
     @ServiceConnection
     public PostgreSQLContainer<?> postgresContainer() {
@@ -615,10 +615,10 @@ public class TestContainersConfig {
 ```java
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class TaskControllerIntegrationTest extends BaseIntegrationTest {
-    
+
     @Autowired
     private MockMvc mockMvc;
-    
+
     @Test
     void shouldCreateTaskViaRestAPI() throws Exception {
         mockMvc.perform(post("/api/tasks")
@@ -695,7 +695,7 @@ com.example.taskmanagement/
 - **Testes Unitários**: 15+ testes
   - `TaskServiceTest.java`: 10+ cenários diferentes
   - `TaskTest.java`: 7+ testes de modelo
-  
+
 - **Testes de Integração**: 8+ testes
   - `TaskControllerIntegrationTest.java`: 5+ testes REST
   - `TaskRepositoryIntegrationTest.java`: 3+ testes de persistência
@@ -817,34 +817,34 @@ public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
-    
+
     @NotBlank
     @Size(min = 3, max = 100)
     String title;                    // Título da tarefa
-    
+
     @Size(max = 1000)
     String description;              // Descrição detalhada
-    
+
     @Enumerated(EnumType.STRING)
     TaskStatus status;               // TODO, IN_PROGRESS, DONE, CANCELLED
-    
+
     @Enumerated(EnumType.STRING)
     Priority priority;               // LOW, MEDIUM, HIGH, URGENT
-    
+
     LocalDateTime dueDate;           // Data de vencimento
-    
+
     @CreatedDate
     LocalDateTime createdAt;         // Data de criação (auditoria)
-    
+
     @LastModifiedDate
     LocalDateTime updatedAt;         // Última atualização (auditoria)
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
     Category category;               // Categoria (relacionamento)
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
     User assignedUser;               // Usuário responsável
-    
+
     // Métodos de negócio
     public boolean isOverdue() { ... }
     public boolean isCompleted() { ... }
@@ -957,10 +957,10 @@ void shouldCreateTaskSuccessfully() { }
 void shouldUpdateTask() {
     // Arrange
     Task task = createTestTask();
-    
+
     // Act
     TaskRecord result = taskService.updateTask(1L, updateData);
-    
+
     // Assert
     assertThat(result).isNotNull();
 }
@@ -1048,7 +1048,7 @@ test {
 test {
     // Execução paralela
     maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
-    
+
     // Reutilizar containers
     // Em TestContainersConfig: .withReuse(true)
 }

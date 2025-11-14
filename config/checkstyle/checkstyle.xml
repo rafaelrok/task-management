@@ -1,0 +1,169 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+        "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+        "https://checkstyle.org/dtds/configuration_1_3.dtd">
+
+<module name="Checker">
+    <property name="charset" value="UTF-8"/>
+    <property name="severity" value="warning"/>
+    <property name="fileExtensions" value="java"/>
+
+    <!-- Supressões -->
+    <module name="SuppressionFilter">
+        <property name="file" value="${config_loc}/checkstyle-suppressions.xml"/>
+        <property name="optional" value="true"/>
+    </module>
+
+    <!-- Permite suprimir warnings com anotações -->
+    <module name="SuppressWarningsFilter"/>
+
+    <!-- Tamanho máximo de linha -->
+    <module name="LineLength">
+        <property name="max" value="120"/>
+        <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
+    </module>
+
+    <module name="TreeWalker">
+        <!-- Permite usar @SuppressWarnings -->
+        <module name="SuppressWarningsHolder"/>
+
+        <!-- =========================================== -->
+        <!-- NAMING CONVENTIONS -->
+        <!-- =========================================== -->
+        <module name="ConstantName">
+            <property name="format" value="^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$"/>
+        </module>
+        <module name="LocalFinalVariableName"/>
+        <module name="LocalVariableName"/>
+        <module name="MemberName"/>
+        <module name="MethodName"/>
+        <module name="PackageName">
+            <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/>
+        </module>
+        <module name="ParameterName"/>
+        <module name="StaticVariableName"/>
+        <module name="TypeName"/>
+
+        <!-- =========================================== -->
+        <!-- IMPORTS -->
+        <!-- =========================================== -->
+        <module name="AvoidStarImport"/>
+        <module name="IllegalImport"/>
+        <module name="RedundantImport"/>
+        <module name="UnusedImports"/>
+
+        <!-- =========================================== -->
+        <!-- SIZE VIOLATIONS -->
+        <!-- =========================================== -->
+        <module name="MethodLength">
+            <property name="max" value="150"/>
+            <property name="tokens" value="METHOD_DEF"/>
+        </module>
+        <module name="ParameterNumber">
+            <property name="max" value="8"/>
+        </module>
+
+        <!-- =========================================== -->
+        <!-- WHITESPACE -->
+        <!-- =========================================== -->
+        <module name="EmptyForIteratorPad"/>
+        <module name="GenericWhitespace"/>
+        <module name="MethodParamPad"/>
+        <module name="NoWhitespaceAfter"/>
+        <module name="NoWhitespaceBefore"/>
+        <module name="ParenPad"/>
+        <module name="TypecastParenPad"/>
+        <module name="WhitespaceAfter"/>
+        <module name="WhitespaceAround">
+            <property name="allowEmptyConstructors" value="true"/>
+            <property name="allowEmptyMethods" value="true"/>
+            <property name="allowEmptyTypes" value="true"/>
+            <property name="allowEmptyLoops" value="true"/>
+        </module>
+
+        <!-- =========================================== -->
+        <!-- MODIFIER CHECKS -->
+        <!-- =========================================== -->
+        <module name="ModifierOrder"/>
+        <module name="RedundantModifier"/>
+
+        <!-- =========================================== -->
+        <!-- BLOCKS -->
+        <!-- =========================================== -->
+        <module name="AvoidNestedBlocks"/>
+        <module name="EmptyBlock">
+            <property name="option" value="text"/>
+        </module>
+        <module name="LeftCurly"/>
+        <module name="NeedBraces"/>
+        <module name="RightCurly"/>
+
+        <!-- =========================================== -->
+        <!-- CODING -->
+        <!-- =========================================== -->
+        <module name="EmptyStatement"/>
+        <module name="EqualsHashCode"/>
+        <module name="IllegalInstantiation"/>
+        <module name="InnerAssignment"/>
+        <module name="SimplifyBooleanExpression"/>
+        <module name="SimplifyBooleanReturn"/>
+        <module name="StringLiteralEquality"/>
+        <module name="NestedIfDepth">
+            <property name="max" value="3"/>
+        </module>
+        <module name="NestedTryDepth">
+            <property name="max" value="2"/>
+        </module>
+        <module name="NoFinalizer"/>
+        <module name="IllegalCatch"/>
+        <module name="PackageDeclaration"/>
+        <module name="DefaultComesLast"/>
+        <module name="MultipleVariableDeclarations"/>
+        <module name="OneStatementPerLine"/>
+
+        <!-- =========================================== -->
+        <!-- CLASS DESIGN -->
+        <!-- =========================================== -->
+        <module name="FinalClass"/>
+        <module name="InterfaceIsType"/>
+        <module name="VisibilityModifier">
+            <property name="protectedAllowed" value="true"/>
+            <property name="packageAllowed" value="true"/>
+            <property name="allowPublicFinalFields" value="true"/>
+            <property name="allowPublicImmutableFields" value="true"/>
+            <!-- Ignora campos anotados com @Autowired, @Inject, etc -->
+            <property name="ignoreAnnotationCanonicalNames" value="
+                org.springframework.beans.factory.annotation.Autowired,
+                javax.inject.Inject,
+                com.google.inject.Inject,
+                lombok.Setter,
+                lombok.Getter,
+                lombok.experimental.Delegate"/>
+        </module>
+
+        <!-- =========================================== -->
+        <!-- MISCELLANEOUS -->
+        <!-- =========================================== -->
+        <module name="ArrayTypeStyle"/>
+        <module name="UpperEll"/>
+        <module name="Indentation">
+            <property name="basicOffset" value="4"/>
+            <property name="braceAdjustment" value="0"/>
+            <property name="caseIndent" value="4"/>
+        </module>
+
+        <!-- =========================================== -->
+        <!-- ANNOTATIONS -->
+        <!-- =========================================== -->
+        <module name="AnnotationLocation">
+            <property name="allowSamelineMultipleAnnotations" value="false"/>
+            <property name="allowSamelineSingleParameterlessAnnotation" value="false"/>
+            <property name="allowSamelineParameterizedAnnotation" value="false"/>
+            <property name="tokens" value="VARIABLE_DEF"/>
+            <property name="tokens" value="METHOD_DEF"/>
+            <property name="tokens" value="CLASS_DEF"/>
+            <property name="tokens" value="CTOR_DEF"/>
+            <property name="tokens" value="ENUM_DEF"/>
+        </module>
+    </module>
+</module>
