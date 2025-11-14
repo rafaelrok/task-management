@@ -179,23 +179,29 @@ spotless {
         trimTrailingWhitespace()
         endWithNewline()
         importOrder()
-        formatAnnotations()
-        palantirJavaFormat("2.39.0")
 
-        custom 'AnnotationOnSeparateLine', {
-            it.replaceAll(/(\s*)@(\w+)\s+(protected|private|public)/, '$1@$2\n$1$3')
-        }
-        // Remove extra blank lines that might be created
-        custom 'RemoveExtraBlankLines', {
-            it.replaceAll(/(\s*)@\w+\n\s*\n(\s*\n)+(\s*protected|private|public)/) { match ->
-                def indent1 = match[1]
-                def annotation = (match[0] =~ /@(\w+)/)[0][1]
-                def indent3 = match[3]
-                "${indent1}@${annotation}\n${indent3}"
-            }
+        // REMOVA ou COMENTE esta linha:
+        // formatAnnotations()
+
+        custom 'AnnotationOnSeparateLine', { code ->
+            code.replaceAll(/(?m)^(\s*)@(\w+(?:\([^)]*\))?)\s+(@\w+)/, '$1@$2\n$1$3')
+                    .replaceAll(/(?m)^(\s*)@(\w+(?:\([^)]*\))?)\s+(protected|private|public|static)/, '$1@$2\n$1$3')
+                    .replaceAll(/(?m)(@\w+\n)\n+(\s*@\w+)/, '$1$2')
+                    .replaceAll(/(?m)(@\w+\n)\n+(\s*(?:protected|private|public|static))/, '$1$2')
         }
 
-        // Customizações específicas
+
+//        // Mantém anotações em linhas separadas SEM linhas em branco extras
+//        custom 'AnnotationOnSeparateLine', {
+//            // Separa anotações em linhas diferentes
+//            it.replaceAll(/(\s*)@(\w+)\s+(@\w+)/, '$1@$2\n$1$3')
+//                    .replaceAll(/(\s*)@(\w+)\s+(protected|private|public|static)/, '$1@$2\n$1$3')
+//            // Remove múltiplas linhas em branco entre anotações
+//                    .replaceAll(/(@\w+\n)\n+(\s*@\w+)/, '$1$2')
+//            // Remove linhas em branco entre última anotação e modificador
+//                    .replaceAll(/(@\w+\n)\n+(\s*(?:protected|private|public|static))/, '$1$2')
+//        }
+
         custom 'Lambda fix', {
             it.replace('} )', '})').replace('} ,', '},')
         }
@@ -208,6 +214,7 @@ spotless {
         endWithNewline()
     }
 }
+
 
 // Task para corrigir e verificar código
 tasks.register('fixCode') {

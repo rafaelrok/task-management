@@ -11,7 +11,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @EnableWebMvc
-
 public class WebConfig implements WebMvcConfigurer {
 
     private static final long MAX_AGE_SECS = 3600;
@@ -23,8 +22,6 @@ public class WebConfig implements WebMvcConfigurer {
     };
 
     @Override
-
-
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
                 .allowedOrigins(ALLOWED_ORIGINS)
@@ -35,7 +32,7 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     @Bean
-    ObjectMapper objectMapper() {
+    public ObjectMapper objectMapper() {
         var mapper = new ObjectMapper();
 
         mapper.registerModule(new JavaTimeModule());

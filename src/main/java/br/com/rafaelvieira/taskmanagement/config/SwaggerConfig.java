@@ -13,7 +13,6 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @NoArgsConstructor
-
 public class SwaggerConfig {
 
     private static final String API_TITLE = "Task Management API";
@@ -50,6 +49,7 @@ public class SwaggerConfig {
     private static final String SERVER_URL_TEMPLATE = "http://localhost:%s";
 
     @Value("${server.port:8080}")
+
     private String serverPort;
 
     private static Info buildApiInfo() {

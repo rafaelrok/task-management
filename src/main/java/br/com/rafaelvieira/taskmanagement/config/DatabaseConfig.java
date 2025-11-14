@@ -33,7 +33,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EntityScan(basePackages = "br.com.rafaelvieira.taskmanagement.domain.model")
 @EnableJpaAuditing
 @NoArgsConstructor
-
 public class DatabaseConfig {
     private static final String TEST_PROFILE = "!test";
     private static final Integer POOL_SIZE = 20;
@@ -50,31 +49,40 @@ public class DatabaseConfig {
     private static final String DISABLED_AUTO_COMMITS = "false";
 
     @Value("${spring.datasource.url}")
+
     private String dbUrl;
 
     @Value("${spring.datasource.username}")
+
     private String dbUsername;
 
     @Value("${spring.datasource.password}")
+
     private String dbPassword;
 
     @Value("${spring.datasource.driver-class-name}")
+
     private String driverClassName;
 
     @Value("${spring.jpa.hibernate.ddl-auto:validate}")
+
     private String ddlAuto;
 
     @Value("${spring.jpa.show-sql:false}")
+
     private boolean showSql;
 
     @Value("${spring.jpa.properties.hibernate.format_sql:true}")
+
     private boolean formatSql;
 
     @Value("${spring.jpa.properties.hibernate.dialect:org.hibernate.dialect.PostgreSQLDialect}")
+
     private String hibernateDialect;
 
     @Bean
     @Profile(TEST_PROFILE)
+
     public DataSource dataSource() {
         var hikariConfig = new HikariConfig();
 
@@ -136,6 +144,7 @@ public class DatabaseConfig {
 
     @Bean
     @Profile(TEST_PROFILE)
+
     public PlatformTransactionManager transactionManager(
             AbstractEntityManagerFactoryBean entityManagerFactory) {
         var transactionManager = new JpaTransactionManager();

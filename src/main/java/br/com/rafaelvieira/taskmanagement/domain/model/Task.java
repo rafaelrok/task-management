@@ -40,42 +40,57 @@ public class Task {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+
     private Long id;
 
     @NotBlank(message = "Title is required")
+
     @Size(min = 3, max = 100, message = "Title must be between 3 and 100 characters")
     @Column(nullable = false)
     private String title;
 
     @Size(max = 500, message = "Description cannot exceed 500 characters")
+
     @Column(length = 500)
+
     private String description;
 
     @Enumerated(EnumType.STRING)
+
     @Column(nullable = false)
+
     private TaskStatus status;
 
     @Enumerated(EnumType.STRING)
+
     @Column(nullable = false)
+
     private Priority priority;
 
     @ManyToOne(fetch = FetchType.LAZY)
+
     @JoinColumn(name = "category_id")
+
     private Category category;
 
     @ManyToOne(fetch = FetchType.LAZY)
+
     @JoinColumn(name = "assigned_user_id")
+
     private User assignedUser;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
+
     private LocalDateTime createdAt;
 
     @LastModifiedDate
     @Column(name = "updated_at")
+
     private LocalDateTime updatedAt;
 
     @Column(name = "due_date")
+
     private LocalDateTime dueDate;
 
     @PrePersist

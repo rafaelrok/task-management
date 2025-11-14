@@ -15,14 +15,11 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
-
 public class SecurityConfig {
 
     private static final long MAX_AGE_SECS = 3600L;
 
     @Bean
-
-
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -48,8 +45,6 @@ public class SecurityConfig {
     }
 
     @Bean
-
-
     public CorsConfigurationSource corsConfigurationSource() {
         var configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(

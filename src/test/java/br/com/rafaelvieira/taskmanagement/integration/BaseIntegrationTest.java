@@ -16,6 +16,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+
 @ActiveProfiles("test")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Testcontainers
@@ -26,10 +27,10 @@ public abstract class BaseIntegrationTest {
     @Container
     @ServiceConnection
     protected static PostgreSQLContainer<?> postgres =
-        new PostgreSQLContainer<>("postgres:16-alpine")
-            .withDatabaseName("test_db")
-            .withUsername("test")
-            .withPassword("test");
+            new PostgreSQLContainer<>("postgres:16-alpine")
+                    .withDatabaseName("test_db")
+                    .withUsername("test")
+                    .withPassword("test");
 
     @Autowired
     protected TaskRepository taskRepository;

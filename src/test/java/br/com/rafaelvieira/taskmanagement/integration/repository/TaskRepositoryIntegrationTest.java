@@ -34,18 +34,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 class TaskRepositoryIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
-
-
     private TaskRepository taskRepository;
 
     @Autowired
-
-
     private CategoryRepository categoryRepository;
 
     @Autowired
-
-
     private UserRepository userRepository;
 
     private Category savedCategory;

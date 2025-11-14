@@ -10,8 +10,6 @@ public class LoggingConfig {
     private static final int MAX_PAYLOAD_LENGTH = 10000;
 
     @Bean
-
-
     public CommonsRequestLoggingFilter requestLoggingFilter() {
         var loggingFilter = new CommonsRequestLoggingFilter();
         loggingFilter.setIncludeClientInfo(true);

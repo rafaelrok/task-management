@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional
-
 public class TaskServiceImpl implements TaskService {
 
     private static final String EXCEPTION_TASK_ID = "Task not found with id: ";
@@ -51,8 +50,6 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-
-
     public TaskRecord createTask(TaskCreateRecord taskCreate) {
         var task =
                 Task.builder()
@@ -85,8 +82,6 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-
-
     public TaskRecord updateTask(Long id, TaskCreateRecord taskCreate) {
         Task task =
                 taskRepository
@@ -120,6 +115,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @Transactional(readOnly = true)
+
     public TaskRecord getTaskById(Long id) {
         Task task =
                 taskRepository
@@ -130,12 +126,14 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @Transactional(readOnly = true)
+
     public List<TaskRecord> getAllTasks() {
         return taskRepository.findAll().stream().map(TaskServiceImpl::convertTo).toList();
     }
 
     @Override
     @Transactional(readOnly = true)
+
     public List<TaskRecord> getTasksByStatus(TaskStatus status) {
         return taskRepository.findByStatus(status).stream()
                 .map(TaskServiceImpl::convertTo)
@@ -144,6 +142,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @Transactional(readOnly = true)
+
     public List<TaskRecord> getTasksByPriority(Priority priority) {
         return taskRepository.findByPriority(priority).stream()
                 .map(TaskServiceImpl::convertTo)
@@ -152,6 +151,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @Transactional(readOnly = true)
+
     public List<TaskRecord> getTasksByCategoryId(Long categoryId) {
         return taskRepository.findByCategoryId(categoryId).stream()
                 .map(TaskServiceImpl::convertTo)
@@ -160,6 +160,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @Transactional(readOnly = true)
+
     public List<TaskRecord> getTasksByUserId(Long userId) {
         return taskRepository.findByAssignedUserId(userId).stream()
                 .map(TaskServiceImpl::convertTo)
@@ -168,6 +169,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @Transactional(readOnly = true)
+
     public List<TaskRecord> getOverdueTasks() {
         return taskRepository.findOverdueTasks(LocalDateTime.now()).stream()
                 .map(TaskServiceImpl::convertTo)
@@ -175,8 +177,6 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-
-
     public void deleteTask(Long id) {
         if (!taskRepository.existsById(id)) {
             throw new ResourceNotFoundException(EXCEPTION_TASK_ID + id);
@@ -185,8 +185,6 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-
-
     public TaskRecord changeTaskStatus(Long id, TaskStatus newStatus) {
         Task task =
                 taskRepository
@@ -199,6 +197,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @Transactional(readOnly = true)
+
     public long countTasksByStatus(TaskStatus status) {
         return taskRepository.countByStatus(status);
     }

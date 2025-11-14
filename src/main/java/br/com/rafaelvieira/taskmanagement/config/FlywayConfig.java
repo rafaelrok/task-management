@@ -24,10 +24,10 @@ import org.springframework.core.annotation.Order;
         havingValue = "true",
         matchIfMissing = true)
 @Slf4j
-
 public class FlywayConfig {
 
     @Bean(initMethod = "migrate")
+
     @Profile("!test")
     @Order(HIGHEST_PRECEDENCE)
     public Flyway flyway(DataSource dataSource) {

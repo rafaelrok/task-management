@@ -51,28 +51,18 @@ class TaskControllerIntegrationTest extends BaseIntegrationTest {
     private MockMvc mockMvc;
 
     @Autowired
-
-
     private ObjectMapper objectMapper;
 
     @Autowired
-
-
     private WebApplicationContext webApplicationContext;
 
     @Autowired
-
-
     private TaskRepository taskRepository;
 
     @Autowired
-
-
     private CategoryRepository categoryRepository;
 
     @Autowired
-
-
     private UserRepository userRepository;
 
     private Category testCategory;

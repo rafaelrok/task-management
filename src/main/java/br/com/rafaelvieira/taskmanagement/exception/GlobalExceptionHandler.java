@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
+
     public ResponseEntity<@NotNull ErrorResponse> handleResourceNotFoundException(Throwable ex) {
         ErrorResponse error =
                 ErrorResponse.builder()
@@ -31,6 +32,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
+
     public ResponseEntity<@NotNull Map<String, String>> handleValidationExceptions(
             BindException ex) {
         Map<String, String> errors = new HashMap<>();
@@ -47,7 +49,6 @@ public class GlobalExceptionHandler {
 
     @Builder
     @Data
-
     public static final class ErrorResponse {
         private LocalDateTime timestamp;
         private int status;

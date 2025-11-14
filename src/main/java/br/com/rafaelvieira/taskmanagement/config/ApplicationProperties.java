@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "app")
 @Data
-
 public class ApplicationProperties {
 
     private static final int MAX_POOL_SIZE = 20;
@@ -25,8 +24,6 @@ public class ApplicationProperties {
     private final Api api = new Api();
 
     @Data
-
-
     public static class Database {
         private int maxPoolSize = MAX_POOL_SIZE;
         private int minIdle = MIN_IDLE;
@@ -36,8 +33,6 @@ public class ApplicationProperties {
     }
 
     @Data
-
-
     public static class Cache {
         private boolean enabled = true;
         private long ttl = CACHE_TTL;
@@ -45,8 +40,6 @@ public class ApplicationProperties {
     }
 
     @Data
-
-
     public static class Api {
         private String version = API_VERSION;
         private int rateLimit = API_RATE_LIMIT;

@@ -57,23 +57,15 @@ import org.mockito.MockitoAnnotations;
 class TaskServiceTest {
 
     @Mock
-
-
     private TaskRepository taskRepository;
 
     @Mock
-
-
     private CategoryRepository categoryRepository;
 
     @Mock
-
-
     private UserRepository userRepository;
 
     @InjectMocks
-
-
     private TaskServiceImpl taskService;
 
     private AutoCloseable closeable;
