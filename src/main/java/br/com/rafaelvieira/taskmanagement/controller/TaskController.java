@@ -100,6 +100,16 @@ public class TaskController implements SwaggerTaskController {
         return ResponseEntity.ok(count);
     }
 
+    @PatchMapping("/{id}/extend")
+    public ResponseEntity<@NotNull TaskRecord> extendTask(
+            @PathVariable Long id,
+            @org.springframework.web.bind.annotation.RequestBody @jakarta.validation.Valid
+                    br.com.rafaelvieira.taskmanagement.domain.records.TaskExtensionRecord
+                            extension) {
+        TaskRecord extendedTask = taskService.extendTask(id, extension);
+        return ResponseEntity.ok(extendedTask);
+    }
+
     @GetMapping("/{id}/elapsed")
     public ResponseEntity<@NotNull Map<String, Object>> getReadableElapsed(@PathVariable Long id) {
         var task = taskService.getTaskById(id);

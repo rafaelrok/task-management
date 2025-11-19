@@ -65,7 +65,9 @@ public class TaskServiceImpl implements TaskService {
                 task.getExecutionTimeMinutes(),
                 task.getMainStartedAt(),
                 task.getMainElapsedSeconds(),
-                task.getPomodoroUntil());
+                task.getPomodoroUntil(),
+                task.getExtraTimeMinutes(),
+                task.getExtensionJustification());
     }
 
     private boolean canStart(Task task) {
@@ -424,6 +426,55 @@ public class TaskServiceImpl implements TaskService {
         List<TaskRecord> content =
                 filtered.subList(start, end).stream().map(TaskServiceImpl::convertTo).toList();
         return new PageImpl<>(content, pageable, filtered.size());
+    }
+
+    @Override
+    @Transactional
+    public TaskRecord extendTask(
+            Long id,
+            br.com.rafaelvieira.taskmanagement.domain.records.TaskExtensionRecord extension) {
+        Task task =
+                taskRepository
+                        .findById(id)
+                        .orElseThrow(() -> new ResourceNotFoundException(EXCEPTION_TASK_ID + id));
+
+        // Add extra time to the existing execution time
+        Integer currentExtra = task.getExtraTimeMinutes() != null ? task.getExtraTimeMinutes() : 0;
+        task.setExtraTimeMinutes(currentExtra + extension.extraTimeMinutes());
+
+        // Update execution time to include extra time
+        Integer currentExecution =
+                task.getExecutionTimeMinutes() != null ? task.getExecutionTimeMinutes() : 0;
+        task.setExecutionTimeMinutes(currentExecution + extension.extraTimeMinutes());
+
+        // Set justification
+        if (extension.justification() != null && !extension.justification().isEmpty()) {
+            String currentJustification = task.getExtensionJustification();
+            if (currentJustification != null && !currentJustification.isEmpty()) {
+                task.setExtensionJustification(
+                        currentJustification + "\n---\n" + extension.justification());
+            } else {
+                task.setExtensionJustification(extension.justification());
+            }
+        }
+
+        // Update dates if provided
+        if (extension.scheduledStartAt() != null) {
+            task.setScheduledStartAt(extension.scheduledStartAt());
+        }
+        if (extension.dueDate() != null) {
+            task.setDueDate(extension.dueDate());
+        }
+
+        // Reset status from OVERDUE to IN_PROGRESS to restart the task
+        if (task.getStatus() == TaskStatus.OVERDUE) {
+            task.setStatus(TaskStatus.TODO);
+            // Reset timer for restart
+            task.setPomodoroUntil(null);
+        }
+
+        Task savedTask = taskRepository.save(task);
+        return convertTo(savedTask);
     }
 
     private void findCategoryByTask(TaskCreateRecord taskCreate, Task task) {

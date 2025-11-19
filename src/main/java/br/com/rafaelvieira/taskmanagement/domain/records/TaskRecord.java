@@ -32,4 +32,6 @@ public record TaskRecord(
         Integer executionTimeMinutes,
         LocalDateTime mainStartedAt,
         Long mainElapsedSeconds,
-        LocalDateTime pomodoroUntil) {}
+        LocalDateTime pomodoroUntil,
+        Integer extraTimeMinutes,
+        String extensionJustification) {}

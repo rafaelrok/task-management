@@ -557,7 +557,7 @@ html[style*='data-theme'] body {
 .badge-status.overdue {
     background: #fee2e2;
     color: #991b1b;
-    animation: pulse 2s infinite;
+    /*animation: pulse 2s infinite;*/
 }
 
 tr.task-overdue {
@@ -1428,14 +1428,21 @@ textarea.form-control {
 }
 
 /* Active card state styles */
-.active-card.time-finished {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(99, 102, 241, 0.12));
-    border-color: rgba(99, 102, 241, 0.3);
-}
-
 .active-card.todo-overdue {
     background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(220, 38, 38, 0.12));
     border-color: rgba(239, 68, 68, 0.3);
+}
+
+.active-card.in-pause {
+    background: linear-gradient(135deg, rgba(255, 221, 128, 0.18), rgba(255, 196, 64, 0.15)) !important;
+    border-color: rgba(255, 196, 64, 0.45) !important;
+    border-width: 2px !important;
+}
+
+.active-card.overdue-state {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.12)) !important;
+    border-color: rgba(239, 68, 68, 0.5) !important;
+    border-width: 2px !important;
 }
 
 .status-indicator {
@@ -1453,6 +1460,16 @@ textarea.form-control {
 .status-indicator.warning {
     color: #ef4444;
     animation: pulse-warning 2s infinite;
+}
+
+.status-indicator.user {
+    color: #10b981;
+    animation: pulse-info 2s infinite;
+}
+
+.status-indicator.timer {
+    color: #6366f1;
+    animation: pulse-info 2.5s infinite;
 }
 
 @keyframes pulse-info {
@@ -1609,3 +1626,35 @@ textarea.form-control {
 .active-grid-wrapper {
     overflow-x: auto;
 }
+
+.active-card.pending-start {
+    background: linear-gradient(135deg, rgba(255, 100, 100, 0.15), rgba(239, 68, 68, 0.12)) !important;
+    border-color: rgba(239, 68, 68, 0.5) !important;
+    border-width: 2px !important;
+}
+
+.active-card.time-finished {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(99, 102, 241, 0.15)) !important;
+    border-color: rgba(99, 102, 241, 0.4) !important;
+    border-width: 2px !important;
+}
+
+.badge-status.pending-flag {
+    background: #ff5757;
+    color: white;
+    font-weight: 700;
+    animation: pulse 2s infinite;
+}
+
+.badge-status.overdue-flag {
+    background: #ff5757;
+    color: white;
+    font-weight: 700;
+    /*animation: pulse 2s infinite;*/
+}
+
+.status-indicator.clock {
+    color: #dc2626;
+    animation: pulse-warning 2s infinite;
+}
+

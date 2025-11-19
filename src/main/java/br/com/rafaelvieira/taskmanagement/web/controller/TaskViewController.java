@@ -70,45 +70,76 @@ public class TaskViewController {
             model.addAttribute(
                     "totalCancelled", taskService.countTasksByStatus(TaskStatus.CANCELLED));
 
-            // Overdue tasks: includes tasks past dueDate AND tasks past scheduledStartAt not
-            // started
+            java.time.LocalDateTime now = java.time.LocalDateTime.now();
+            java.time.LocalDate today = now.toLocalDate();
+
+            // Base lists
+            java.util.List<TaskRecord> todoTasks = taskService.getTasksByStatus(TaskStatus.TODO);
             java.util.List<TaskRecord> overdue =
                     new java.util.ArrayList<>(taskService.getOverdueTasks());
-            java.time.LocalDateTime now = java.time.LocalDateTime.now();
 
-            // Add TODO tasks with scheduledStartAt in the past (not started on time)
-            java.util.List<TaskRecord> todoTasks = taskService.getTasksByStatus(TaskStatus.TODO);
+            // Add TODO tasks with scheduledStartAt in the past (not started on time) -> overdue
+            // indicator
             for (TaskRecord t : todoTasks) {
                 if (t.scheduledStartAt() != null && t.scheduledStartAt().isBefore(now)) {
-                    if (!overdue.stream().anyMatch(o -> o.id().equals(t.id()))) {
+                    if (overdue.stream().noneMatch(o -> o.id().equals(t.id()))) {
                         overdue.add(t);
                     }
                 }
             }
             model.addAttribute("overdueTasks", overdue);
 
-            model.addAttribute("dueToday", taskService.getTasksDueToday());
+            // Build dueToday: dueDate today OR scheduledStartAt today (even if not yet started)
+            java.util.List<TaskRecord> dueToday = new java.util.ArrayList<>();
+            java.util.List<TaskRecord> allStatuses = taskService.getAllTasks();
+            for (TaskRecord t : allStatuses) {
+                boolean dueDateToday =
+                        t.dueDate() != null && t.dueDate().toLocalDate().equals(today);
+                boolean scheduledToday =
+                        t.scheduledStartAt() != null
+                                && t.scheduledStartAt().toLocalDate().equals(today);
+                if (dueDateToday || scheduledToday) {
+                    dueToday.add(t);
+                }
+            }
+            // Sort by (scheduledStartAt or dueDate) ascending for nicer table ordering
+            dueToday.sort(
+                    (a, b) -> {
+                        java.time.LocalDateTime aKey =
+                                a.scheduledStartAt() != null ? a.scheduledStartAt() : a.dueDate();
+                        java.time.LocalDateTime bKey =
+                                b.scheduledStartAt() != null ? b.scheduledStartAt() : b.dueDate();
+                        if (aKey == null && bKey == null) {
+                            return 0;
+                        }
+                        if (aKey == null) {
+                            return 1;
+                        }
+                        if (bKey == null) {
+                            return -1;
+                        }
+                        return aKey.compareTo(bKey);
+                    });
+            model.addAttribute("dueToday", dueToday);
+
             model.addAttribute("countLow", taskService.countTasksByPriority(Priority.LOW));
             model.addAttribute("countMedium", taskService.countTasksByPriority(Priority.MEDIUM));
             model.addAttribute("countHigh", taskService.countTasksByPriority(Priority.HIGH));
             model.addAttribute("countUrgent", taskService.countTasksByPriority(Priority.URGENT));
 
-            // Add active tasks (IN_PROGRESS + IN_PAUSE)
+            // Active tasks (IN_PROGRESS + IN_PAUSE + ready-to-start scheduled TODO tasks whose
+            // scheduledStartAt <= now)
             java.util.List<TaskRecord> active = new java.util.ArrayList<>();
             active.addAll(taskService.getTasksByStatus(TaskStatus.IN_PROGRESS));
             active.addAll(taskService.getTasksByStatus(TaskStatus.IN_PAUSE));
-
-            // Add scheduled tasks ready to start (TODO with scheduledStartAt <= now)
             for (TaskRecord t : todoTasks) {
                 if (t.scheduledStartAt() != null
                         && !t.scheduledStartAt().isAfter(now)
                         && t.executionTimeMinutes() != null
                         && t.pomodoroMinutes() != null) {
-                    active.add(t);
+                    active.add(t); // pending start
                 }
             }
-
-            // Order by updatedAt desc for nicer UX
             active.sort(
                     (a, b) -> {
                         java.time.LocalDateTime ua = a.updatedAt();
@@ -126,14 +157,13 @@ public class TaskViewController {
                     });
             model.addAttribute("activeTasks", active);
 
-            // Scheduled tasks (TODO with scheduledStartAt in future)
+            // Scheduled future tasks (scheduled start after now but still today or later)
             java.util.List<TaskRecord> scheduled = new java.util.ArrayList<>();
             for (TaskRecord t : todoTasks) {
                 if (t.scheduledStartAt() != null && t.scheduledStartAt().isAfter(now)) {
                     scheduled.add(t);
                 }
             }
-            // Sort with null-safe comparator
             scheduled.sort(
                     (a, b) -> {
                         if (a.scheduledStartAt() == null && b.scheduledStartAt() == null) {

@@ -40,4 +40,8 @@ public interface TaskService {
 
     Page<TaskRecord> searchTasks(
             br.com.rafaelvieira.taskmanagement.web.dto.TaskFilterForm filter, Pageable pageable);
+
+    TaskRecord extendTask(
+            Long id,
+            br.com.rafaelvieira.taskmanagement.domain.records.TaskExtensionRecord extension);
 }

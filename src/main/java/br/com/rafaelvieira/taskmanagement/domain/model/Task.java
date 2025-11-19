@@ -109,6 +109,15 @@ public class Task {
     @Column(name = "pomodoro_until")
     private LocalDateTime pomodoroUntil;
 
+    // Tempo extra em minutos (caso precise estender a estimativa)
+    @Column(name = "extra_time_minutes")
+    @Builder.Default
+    private Integer extraTimeMinutes = 0;
+
+    // Justificativa para extensão de tempo
+    @Column(name = "extension_justification", columnDefinition = "TEXT")
+    private String extensionJustification;
+
     @Version
     @Column(name = "version")
     private Long version;
