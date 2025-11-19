@@ -2,6 +2,14 @@ spring:
   application:
     name: task-management-test
   
+  # ========== Multipart Configuration ==========
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB
+      max-request-size: 10MB
+      file-size-threshold: 1MB
+
   # ========== Test Database Configuration (Testcontainers) ==========
   datasource:
     url: jdbc:tc:postgresql:16-alpine:///test_db
@@ -77,6 +85,8 @@ server:
     include-binding-errors: always
     include-stacktrace: always
     include-exception: true
+  tomcat:
+    max-file-count: 100
 
 # ========== Management/Actuator Test Configuration ==========
 management:

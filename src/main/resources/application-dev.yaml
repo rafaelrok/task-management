@@ -3,9 +3,21 @@ spring:
   application:
     name: task-management
 
+  # Multipart Configuration
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB
+      max-request-size: 10MB
+      file-size-threshold: 1MB
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
   # Database Configuration
   datasource:
-    url: jdbc:postgresql://localhost:5433/task_db
+    url: jdbc:postgresql://localhost:5433/task_db?characterEncoding=UTF-8&useUnicode=true
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
@@ -67,6 +79,12 @@ spring:
       name: admin
       password: admin
 
+  # Thymeleaf Configuration
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+
 # Server Configuration
 server:
   port: 8080
@@ -74,6 +92,19 @@ server:
     enabled: true
   http2:
     enabled: true
+  tomcat:
+    max-swallow-size: 10MB
+    max-http-form-post-size: 10MB
+    max-parameter-count: 1000
+    uri-encoding: UTF-8
+    threads:
+      max: 200
+      min-spare: 10
+    connection-timeout: 30s
+    accept-count: 100
+    # Fix FileCountLimitExceededException - permite múltiplos campos de formulário
+    max-file-count: 100
+
 
 # Management/Actuator Configuration
 management:
@@ -126,3 +157,5 @@ app:
     version: 1.0.0
     rate-limit: 100
     enable-swagger: true
+  timer:
+    fixedDelayMs: 10000

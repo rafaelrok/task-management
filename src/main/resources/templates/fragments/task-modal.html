@@ -1,0 +1,118 @@
+<!-- Task Modal Fragment -->
+<div aria-hidden="true" aria-labelledby="taskViewModalLabel" class="modal fade" id="taskViewModal" tabindex="-1"
+     th:fragment="fragment">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content task-modal">
+            <div class="modal-header task-modal-header">
+                <div class="task-modal-title-wrapper">
+                    <h5 class="modal-title" id="taskViewModalLabel">
+                        <i class="bi bi-file-earmark-text"></i>
+                        <span id="modalTaskTitle">Título</span>
+                    </h5>
+                    <div class="task-modal-badges">
+                        <span class="badge-status" id="modalTaskStatus">STATUS</span>
+                        <span class="badge-priority" id="modalTaskPriority">PRIORITY</span>
+                    </div>
+                </div>
+                <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+            </div>
+            <div class="modal-body task-modal-body" id="taskViewModalBody">
+                <div class="task-detail-loading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                </div>
+                <div class="task-detail-content" style="display:none;">
+                    <!-- Informações -->
+                    <div class="task-section">
+                        <h6 class="task-section-title"><i class="bi bi-info-circle"></i> Informações</h6>
+                        <div class="task-form-grid">
+                            <div class="fv-item">
+                                <label><i class="bi bi-hash"></i> ID</label>
+                                <div class="value" id="modalTaskId">#0</div>
+                            </div>
+                            <div class="fv-item">
+                                <label><i class="bi bi-diagram-3"></i> Status</label>
+                                <div class="value" id="modalTaskStatusText">-</div>
+                            </div>
+                            <div class="fv-item">
+                                <label><i class="bi bi-lightning"></i> Prioridade</label>
+                                <div class="value" id="modalTaskPriorityText">-</div>
+                            </div>
+                            <div class="fv-item">
+                                <label><i class="bi bi-folder"></i> Categoria</label>
+                                <div class="value" id="modalTaskCategory">-</div>
+                            </div>
+                            <div class="fv-item">
+                                <label><i class="bi bi-person"></i> Responsável</label>
+                                <div class="value" id="modalTaskAssigned">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Datas -->
+                    <div class="task-section">
+                        <h6 class="task-section-title"><i class="bi bi-calendar3"></i> Datas</h6>
+                        <div class="task-form-grid">
+                            <div class="fv-item">
+                                <label><i class="bi bi-calendar-event"></i> Vencimento</label>
+                                <div class="value" id="modalTaskDueDate">-</div>
+                            </div>
+                            <div class="fv-item">
+                                <label><i class="bi bi-clock-history"></i> Agendado</label>
+                                <div class="value" id="modalTaskScheduled">-</div>
+                            </div>
+                            <div class="fv-item">
+                                <label><i class="bi bi-calendar-plus"></i> Criado</label>
+                                <div class="value" id="modalTaskCreated">-</div>
+                            </div>
+                            <div class="fv-item">
+                                <label><i class="bi bi-calendar-check"></i> Atualizado</label>
+                                <div class="value" id="modalTaskUpdated">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tempo -->
+                    <div class="task-section">
+                        <h6 class="task-section-title"><i class="bi bi-stopwatch"></i> Tempo</h6>
+                        <div class="task-form-grid">
+                            <div class="fv-item">
+                                <label><i class="bi bi-hourglass-split"></i> Execução (min)</label>
+                                <div class="value" id="modalTaskExecTime">-</div>
+                            </div>
+                            <div class="fv-item">
+                                <label><i class="bi bi-stopwatch"></i> Pomodoro (min)</label>
+                                <div class="value" id="modalTaskPomodoro">-</div>
+                            </div>
+                            <div class="fv-item">
+                                <label><i class="bi bi-cup-hot"></i> Intervalo (min)</label>
+                                <div class="value" id="modalTaskBreak">-</div>
+                            </div>
+                            <div class="fv-item">
+                                <label><i class="bi bi-play"></i> Iniciado</label>
+                                <div class="value" id="modalTaskMainStarted">-</div>
+                            </div>
+                            <div class="fv-item">
+                                <label><i class="bi bi-clock"></i> Decorridos (s)</label>
+                                <div class="value" id="modalTaskMainElapsed">-</div>
+                            </div>
+                            <div class="fv-item">
+                                <label><i class="bi bi-alarm"></i> Pomodoro até</label>
+                                <div class="value" id="modalTaskPomoUntil">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer task-modal-footer">
+                <a class="btn btn-outline-secondary" href="#" id="modalTaskEditBtn">
+                    <i class="bi bi-pencil"></i> Editar
+                </a>
+                <button class="btn btn-primary" data-bs-dismiss="modal" type="button">
+                    <i class="bi bi-x"></i> Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

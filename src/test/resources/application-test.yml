@@ -1,0 +1,66 @@
+spring:
+  application:
+    name: task-management-test
+
+  # ========== Datasource será provido pelo Testcontainers via @ServiceConnection ==========
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      pool-name: TaskManagementTestHikariPool
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 10000
+      idle-timeout: 60000
+      max-lifetime: 300000
+
+  # ========== JPA Test Configuration ==========
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    open-in-view: false
+    defer-datasource-initialization: false
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 20
+          time_zone: UTC
+        order_inserts: true
+        order_updates: true
+        generate_statistics: false
+
+  # ========== Flyway DESABILITADO em testes (DDL via Hibernate) ==========
+  flyway:
+    enabled: false
+
+  # ========== Security Test Configuration ==========
+  security:
+    user:
+      name: test-admin
+      password: test-password
+
+  # ========== Cache Configuration ==========
+  cache:
+    type: none
+
+# ========== Server Test Configuration ==========
+server:
+  port: 0
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: on_param
+    include-exception: true
+
+# ========== Logging Test Configuration ==========
+logging:
+  level:
+    root: INFO
+    br.com.rafaelvieira.taskmanagement: DEBUG
+    org.springframework: WARN
+    org.hibernate: WARN
+    org.testcontainers: INFO
+

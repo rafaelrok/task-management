@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head :: head('Nova Tarefa - Task Management')"></head>
+<body class="dashboard-body">
+<!-- Sidebar -->
+<nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="logo">
+            <i class="bi bi-kanban"></i>
+            <span class="logo-text">TaskFlow</span>
+        </div>
+        <button class="sidebar-toggle" id="sidebarToggle">
+            <i class="bi bi-list"></i>
+        </button>
+    </div>
+    <ul class="sidebar-menu">
+        <li class="menu-item">
+            <a th:href="@{/}">
+                <i class="bi bi-speedometer2"></i>
+                <span class="menu-text">Dashboard</span>
+            </a>
+        </li>
+        <li class="menu-item">
+            <a th:href="@{/tasks}">
+                <i class="bi bi-list-task"></i>
+                <span class="menu-text">Tarefas</span>
+            </a>
+        </li>
+        <li class="menu-item active">
+            <a th:href="@{/tasks/new}">
+                <i class="bi bi-plus-circle"></i>
+                <span class="menu-text">Nova Tarefa</span>
+            </a>
+        </li>
+        <li class="menu-item">
+            <a href="#" id="themeToggle">
+                <i class="bi bi-moon-stars"></i>
+                <span class="menu-text">Tema Escuro</span>
+            </a>
+        </li>
+    </ul>
+    <div class="sidebar-footer">
+        <form method="post" th:action="@{/logout}">
+            <button class="logout-btn" type="submit">
+                <i class="bi bi-box-arrow-right"></i>
+                <span class="menu-text">Sair</span>
+            </button>
+        </form>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="main-content" id="mainContent">
+    <div class="top-bar">
+        <h1 class="page-title">
+            <i class="bi bi-plus-circle"></i> Nova Tarefa
+        </h1>
+        <div class="user-info">
+            <a class="btn btn-secondary" th:href="@{/tasks}">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+        </div>
+    </div>
+
+    <div class="content-wrapper">
+        <div th:replace="fragments/alerts :: alerts"></div>
+
+        <div class="form-card" data-animate="fade-up">
+            <form method="post" th:action="@{/tasks}" th:object="${taskForm}">
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="bi bi-card-text"></i> Título da Tarefa *
+                    </label>
+                    <input
+                            class="form-control"
+                            placeholder="Ex: Implementar endpoint de criação de tarefas"
+                            th:field="*{title}"
+                            type="text"
+                    />
+                    <div class="form-error" th:if="${#fields.hasErrors('title')}">
+                        <i class="bi bi-exclamation-circle"></i>
+                        <span th:errors="*{title}"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="bi bi-folder2"></i> Categoria
+                    </label>
+                    <div class="select-wrapper">
+                        <select class="form-control" th:field="*{categoryId}">
+                            <option value="">Selecione a categoria</option>
+                            <option th:each="c : ${allCategories}" th:text="${c.name}" th:value="${c.id}"></option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Descrição rica (componente reutilizável) -->
+                <div th:replace="~{fragments/rich-editor :: richEditor('taskDescCreate','description', *{description}, 'Descrição da Tarefa', 'Descreva a tarefa com detalhes…', '360px')}"></div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="bi bi-circle-fill"></i> Status *
+                        </label>
+                        <div class="select-wrapper">
+                            <select class="form-control" th:field="*{status}">
+                                <option value="">Selecione o status</option>
+                                <option th:each="s : ${allStatuses}" th:text="${s}" th:value="${s}"></option>
+                            </select>
+                        </div>
+                        <div class="form-error" th:if="${#fields.hasErrors('status')}">
+                            <i class="bi bi-exclamation-circle"></i>
+                            <span th:errors="*{status}"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="bi bi-flag-fill"></i> Prioridade *
+                        </label>
+                        <div class="select-wrapper">
+                            <select class="form-control" th:field="*{priority}">
+                                <option value="">Selecione a prioridade</option>
+                                <option th:each="p : ${allPriorities}" th:text="${p}" th:value="${p}"></option>
+                            </select>
+                        </div>
+                        <div class="form-error" th:if="${#fields.hasErrors('priority')}">
+                            <i class="bi bi-exclamation-circle"></i>
+                            <span th:errors="*{priority}"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="bi bi-calendar-event"></i> Data de Vencimento
+                        </label>
+                        <input
+                                class="form-control"
+                                th:field="*{dueDate}"
+                                type="datetime-local"
+                        />
+                        <div class="form-error" th:if="${#fields.hasErrors('dueDate')}">
+                            <i class="bi bi-exclamation-circle"></i>
+                            <span th:errors="*{dueDate}"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label"><i class="bi bi-alarm"></i> Agendar início (Pomodoro)</label>
+                        <input class="form-control" th:field="*{scheduledStartAt}" type="datetime-local"/>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><i class="bi bi-hourglass-split"></i> Duração do Pomodoro
+                            (min)</label>
+                        <input class="form-control" min="5" placeholder="ex: 25" th:field="*{pomodoroMinutes}"
+                               type="number"/>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><i class="bi bi-cup-hot"></i> Tempo de pausa (min)</label>
+                        <input class="form-control" min="1" placeholder="ex: 5" th:field="*{pomodoroBreakMinutes}"
+                               type="number" value="5"/>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label"><i class="bi bi-stopwatch"></i> Tempo de execução (min)</label>
+                        <input class="form-control" min="1" placeholder="ex: 120" th:field="*{executionTimeMinutes}"
+                               type="number"/>
+                        <div class="form-text">Tempo total estimado para concluir a tarefa.</div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <a class="btn btn-secondary" th:href="@{/tasks}">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+                    <button class="btn btn-primary" type="submit">
+                        <i class="bi bi-check-circle"></i> Salvar Tarefa
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" th:href="@{/css/rich-editor.css}"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script th:src="@{/js/rich-editor.js}"></script>
+<script crossorigin="anonymous"
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/dashboard.js}"></script>
+<script>
+    // Initialize rich editor after DOM is fully loaded
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log('Initializing rich editor for create page...');
+        if (typeof RichEditor === 'function') {
+            RichEditor('taskDescCreate', 'description');
+        } else {
+            console.error('RichEditor function not found!');
+        }
+    });
+</script>
+</body>
+</html>

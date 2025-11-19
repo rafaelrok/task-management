@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Editar Tarefa - Task Management')}"></head>
+<body class="dashboard-body">
+<!-- Sidebar -->
+<nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="logo">
+            <i class="bi bi-kanban"></i>
+            <span class="logo-text">TaskFlow</span>
+        </div>
+        <button class="sidebar-toggle" id="sidebarToggle">
+            <i class="bi bi-list"></i>
+        </button>
+    </div>
+    <ul class="sidebar-menu">
+        <li class="menu-item">
+            <a th:href="@{/}">
+                <i class="bi bi-speedometer2"></i>
+                <span class="menu-text">Dashboard</span>
+            </a>
+        </li>
+        <li class="menu-item active">
+            <a th:href="@{/tasks}">
+                <i class="bi bi-list-task"></i>
+                <span class="menu-text">Tarefas</span>
+            </a>
+        </li>
+        <li class="menu-item">
+            <a th:href="@{/tasks/new}">
+                <i class="bi bi-plus-circle"></i>
+                <span class="menu-text">Nova Tarefa</span>
+            </a>
+        </li>
+        <li class="menu-item">
+            <a th:href="@{/profile}">
+                <i class="bi bi-person-circle"></i>
+                <span class="menu-text">Perfil</span>
+            </a>
+        </li>
+        <li class="menu-item">
+            <a href="#" id="themeToggle">
+                <i class="bi bi-moon-stars"></i>
+                <span class="menu-text">Tema Escuro</span>
+            </a>
+        </li>
+    </ul>
+    <div class="sidebar-footer">
+        <form method="post" th:action="@{/logout}">
+            <button class="logout-btn" type="submit">
+                <i class="bi bi-box-arrow-right"></i>
+                <span class="menu-text">Sair</span>
+            </button>
+        </form>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="main-content" id="mainContent">
+    <div class="top-bar">
+        <h1 class="page-title">
+            <i class="bi bi-pencil-square"></i> Editar Tarefa
+        </h1>
+        <div class="user-info">
+            <a class="btn btn-secondary" th:href="@{/tasks}">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+        </div>
+    </div>
+
+    <div class="content-wrapper">
+        <div th:replace="fragments/alerts :: alerts"></div>
+
+        <div class="form-card" data-animate="fade-up">
+            <form method="post" th:action="@{'/tasks/' + ${taskForm.id}}" th:object="${taskForm}">
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="bi bi-card-text"></i> Título da Tarefa *
+                    </label>
+                    <input
+                            class="form-control"
+                            th:field="*{title}"
+                            type="text"
+                    />
+                    <div class="form-error" th:if="${#fields.hasErrors('title')}">
+                        <i class="bi bi-exclamation-circle"></i>
+                        <span th:errors="*{title}"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label"><i class="bi bi-folder2"></i> Categoria</label>
+                    <div class="select-wrapper">
+                        <select class="form-control" th:field="*{categoryId}">
+                            <option value="">Selecione a categoria</option>
+                            <option th:each="c : ${allCategories}" th:selected="${c.id} == ${taskForm.categoryId}"
+                                    th:text="${c.name}" th:value="${c.id}"></option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Descrição rica (componente reutilizável) -->
+                <div th:replace="~{fragments/rich-editor :: richEditor('taskDescEdit','description', *{description}, 'Descrição da Tarefa', 'Descreva a tarefa com detalhes…', '360px')}"></div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label"><i class="bi bi-circle-fill"></i> Status *</label>
+                        <div class="select-wrapper">
+                            <select class="form-control" th:field="*{status}">
+                                <option th:each="s : ${allStatuses}" th:text="${s}" th:value="${s}"></option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label"><i class="bi bi-flag-fill"></i> Prioridade *</label>
+                        <div class="select-wrapper">
+                            <select class="form-control" th:field="*{priority}">
+                                <option th:each="p : ${allPriorities}" th:text="${p}" th:value="${p}"></option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label"><i class="bi bi-calendar-event"></i> Data de Vencimento</label>
+                        <input class="form-control" th:field="*{dueDate}"
+                               type="datetime-local"/>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label"><i class="bi bi-alarm"></i> Agendar início (Pomodoro)</label>
+                        <input class="form-control" th:field="*{scheduledStartAt}"
+                               type="datetime-local"/>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><i class="bi bi-hourglass-split"></i> Duração do Pomodoro
+                            (min)</label>
+                        <input class="form-control" min="5" placeholder="ex: 25" th:field="*{pomodoroMinutes}"
+                               type="number"/>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><i class="bi bi-cup-hot"></i> Tempo de pausa (min)</label>
+                        <input class="form-control" min="1" placeholder="ex: 5" th:field="*{pomodoroBreakMinutes}"
+                               type="number"/>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label"><i class="bi bi-stopwatch"></i> Tempo de execução (min)</label>
+                        <input class="form-control" min="1" placeholder="ex: 120" th:field="*{executionTimeMinutes}"
+                               type="number"/>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <a class="btn btn-secondary" th:href="@{/tasks}"><i class="bi bi-x-circle"></i> Cancelar</a>
+                    <button class="btn btn-primary" type="submit"><i class="bi bi-check-circle"></i> Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Quick Status Update -->
+        <div class="form-card" data-animate="fade-up" data-delay="100" style="margin-top: 1.5rem;">
+            <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem; color: var(--text-primary);">
+                <i class="bi bi-lightning-charge"></i> Ações rápidas
+            </h3>
+
+            <div style="display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: end;">
+                <form method="post" style="display: contents;" th:action="@{'/tasks/' + ${taskForm.id} + '/status'}">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label"><i class="bi bi-circle-fill"></i> Alterar Status</label>
+                        <div class="select-wrapper">
+                            <select class="form-control" name="status">
+                                <option th:each="s : ${allStatuses}" th:selected="${s} == ${taskForm.status}"
+                                        th:text="${s}" th:value="${s}"></option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" type="submit"><i class="bi bi-arrow-repeat"></i> Atualizar Status
+                    </button>
+                </form>
+            </div>
+
+            <div style="display: flex; gap: .5rem; margin-top: .75rem;">
+                <form method="post" th:action="@{'/tasks/' + ${taskForm.id} + '/status'}">
+                    <input name="status" type="hidden" value="IN_PROGRESS"/>
+                    <button class="btn btn-success" type="submit"><i class="bi bi-play-fill"></i> Iniciar</button>
+                </form>
+                <form method="post" th:action="@{'/tasks/' + ${taskForm.id} + '/status'}">
+                    <input name="status" type="hidden" value="IN_PAUSE"/>
+                    <button class="btn btn-warning" type="submit"><i class="bi bi-pause-fill"></i> Pausar</button>
+                </form>
+                <button class="btn btn-outline-primary" id="pomodoroStartBtn" type="button">
+                    <i class="bi bi-hourglass-top"></i> Iniciar Pomodoro
+                </button>
+                <form method="post" th:action="@{'/tasks/' + ${taskForm.id} + '/status'}">
+                    <input name="status" type="hidden" value="DONE"/>
+                    <button class="btn btn-info" type="submit"><i class="bi bi-check2-circle"></i> Finalizar</button>
+                </form>
+                <form method="post" th:action="@{'/tasks/' + ${taskForm.id} + '/status'}">
+                    <input name="status" type="hidden" value="CANCELLED"/>
+                    <button class="btn btn-danger" type="submit"><i class="bi bi-x-octagon"></i> Cancelar</button>
+                </form>
+            </div>
+
+            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
+                <form method="post" th:action="@{'/tasks/' + ${taskForm.id} + '/delete'}">
+                    <button class="btn btn-outline-danger"
+                            onclick="return confirm('⚠️ Tem certeza que deseja excluir esta tarefa? Esta ação não pode ser desfeita.');"
+                            type="submit">
+                        <i class="bi bi-trash"></i> Excluir Tarefa
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="form-card" data-animate="fade-up" data-delay="50" style="margin-top: 1rem;">
+            <h3 style="font-size:1.1rem; font-weight:600; margin-bottom:1rem;">
+                <i class="bi bi-stopwatch"></i> Tempo de Execução
+            </h3>
+            <div id="execPanel"
+                 th:data-break-min="${task.pomodoroBreakMinutes()}"
+                 th:data-main-elapsed="${task.mainElapsedSeconds()}"
+                 th:data-main-started="${task.mainStartedAt()}"
+                 th:data-pomo-min="${task.pomodoroMinutes()}"
+                 th:data-pomo-until="${task.pomodoroUntil()}"
+                 th:data-status="${task.status()}"
+                 th:data-target-min="${task.executionTimeMinutes()}">
+                <div class="row" style="--bs-gutter-x: .75rem;">
+                    <div class="col-md-6">
+                        <div class="mb-2 text-muted">Decorrido (Crescente)</div>
+                        <div class="h5" id="mainElapsedLabel">00:00:00</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-2 text-muted"><span id="pomoLabelText">Pomodoro</span> restante (Decrescente)
+                        </div>
+                        <div class="h5" id="pomoRemainingLabel">—</div>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small class="text-muted">Progresso em relação ao tempo alvo</small>
+                        <small class="text-muted" id="targetLabel">—</small>
+                    </div>
+                    <div aria-label="Progresso" class="progress" role="progressbar" style="height: 10px;">
+                        <div class="progress-bar bg-success" id="execProgress" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" th:href="@{/css/rich-editor.css}"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script th:src="@{/js/rich-editor.js}"></script>
+<script crossorigin="anonymous"
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/dashboard.js}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initialize rich editor
+        console.log('Initializing rich editor for edit page...');
+        if (typeof RichEditor === 'function') {
+            RichEditor('taskDescEdit', 'description');
+        } else {
+            console.error('RichEditor function not found!');
+        }
+
+        const pomoBtn = document.getElementById('pomodoroStartBtn');
+        if (pomoBtn) {
+            pomoBtn.addEventListener('click', async () => {
+                const minutesInput = document.querySelector('[name="pomodoroMinutes"]');
+                const minutes = parseInt((minutesInput && minutesInput.value) || '0', 10);
+                if (!minutes || minutes <= 0) {
+                    alert('Defina a duração do Pomodoro (minutos) antes de iniciar.');
+                    return;
+                }
+                const taskIdMatch = window.location.pathname.match(/\/tasks\/(\d+)/);
+                const targetId = taskIdMatch ? taskIdMatch[1] : null;
+                if (!targetId) return;
+
+                const showToast = (cls, msg) => {
+                    const container = document.querySelector('.toast-container');
+                    if (!container) return;
+                    const t = document.createElement('div');
+                    t.className = `toast ${cls} border-0`;
+                    t.innerHTML = `<div class="d-flex"><div class="toast-body">${msg}</div><button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
+                    container.appendChild(t);
+                    new bootstrap.Toast(t, {delay: 4000}).show();
+                };
+
+                try {
+                    await fetch(`/api/tasks/${targetId}/status?status=IN_PAUSE`, {method: 'PATCH'});
+                    showToast('text-bg-primary', `Pomodoro iniciado por ${minutes} min. A tarefa ficará em pausa.`);
+                    setTimeout(async () => {
+                        try {
+                            await fetch(`/api/tasks/${targetId}/status?status=IN_PROGRESS`, {method: 'PATCH'});
+                            showToast('text-bg-success', 'Pomodoro finalizado. Tarefa retomada.');
+                            setTimeout(() => window.location.reload(), 1000);
+                        } catch (e) {
+                            showToast('text-bg-danger', 'Falha ao retomar a tarefa após o Pomodoro.');
+                        }
+                    }, minutes * 60 * 1000);
+                } catch (e) {
+                    showToast('text-bg-danger', 'Falha ao iniciar Pomodoro.');
+                }
+            });
+        }
+
+        // Live timers
+        const panel = document.getElementById('execPanel');
+        if (panel) {
+            const status = panel.dataset.status;
+            const started = panel.dataset.mainStarted ? new Date(panel.dataset.mainStarted) : null;
+            const baseElapsed = parseInt(panel.dataset.mainElapsed || '0', 10);
+            const targetMin = parseInt(panel.dataset.targetMin || '0', 10);
+            const pomoUntil = panel.dataset.pomoUntil ? new Date(panel.dataset.pomoUntil) : null;
+            const pomoMin = parseInt(panel.dataset.pomoMin || '0', 10);
+            const breakMin = parseInt(panel.dataset.breakMin || '5', 10);
+
+            const mainLbl = document.getElementById('mainElapsedLabel');
+            const pomoLbl = document.getElementById('pomoRemainingLabel');
+            const pomoLabelText = document.getElementById('pomoLabelText');
+            const prog = document.getElementById('execProgress');
+            const tgtLbl = document.getElementById('targetLabel');
+
+            if (targetMin > 0) {
+                tgtLbl.textContent = targetMin + ' min';
+            }
+
+            function fmt(sec) {
+                sec = Math.max(0, Math.floor(sec));
+                const h = String(Math.floor(sec / 3600)).padStart(2, '0');
+                const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
+                const s = String(sec % 60).padStart(2, '0');
+                return `${h}:${m}:${s}`;
+            }
+
+            let lastPomodoroState = null;
+
+            function tick() {
+                const now = new Date();
+                let elapsed = baseElapsed;
+                if (status === 'IN_PROGRESS' && started) {
+                    elapsed += Math.max(0, (now - started) / 1000);
+                }
+                mainLbl.textContent = fmt(elapsed);
+
+                if (targetMin > 0) {
+                    const pct = Math.min(100, (elapsed / (targetMin * 60)) * 100);
+                    prog.style.width = pct.toFixed(1) + '%';
+                }
+
+                if (pomoUntil) {
+                    const remain = Math.max(0, (pomoUntil - now) / 1000);
+                    pomoLbl.textContent = remain > 0 ? fmt(remain) : '00:00:00';
+
+                    // Detect pomodoro completion to show toast
+                    if (remain <= 0 && lastPomodoroState !== 'completed') {
+                        lastPomodoroState = 'completed';
+                        if (status === 'IN_PROGRESS') {
+                            showToast('text-bg-info', `Pomodoro de ${pomoMin} min finalizado! Pausa iniciada por ${breakMin} min.`);
+                        } else if (status === 'IN_PAUSE') {
+                            showToast('text-bg-success', `Pausa de ${breakMin} min finalizada! Retomando tarefa e novo pomodoro.`);
+                        }
+                        setTimeout(() => window.location.reload(), 2000);
+                    } else if (remain > 0) {
+                        lastPomodoroState = 'running';
+                    }
+
+                    // Update label based on status
+                    if (status === 'IN_PROGRESS') {
+                        pomoLabelText.textContent = 'Pomodoro';
+                    } else if (status === 'IN_PAUSE') {
+                        pomoLabelText.textContent = 'Pausa';
+                    }
+                } else {
+                    pomoLbl.textContent = '—';
+                    lastPomodoroState = null;
+                }
+            }
+
+            function showToast(cls, msg) {
+                const container = document.querySelector('.toast-container') || (function () {
+                    const c = document.createElement('div');
+                    c.className = 'toast-container position-fixed top-0 end-0 p-3';
+                    c.style.zIndex = '1300';
+                    document.body.appendChild(c);
+                    return c;
+                })();
+                const t = document.createElement('div');
+                t.className = 'toast ' + cls + ' border-0';
+                t.innerHTML = '<div class="d-flex"><div class="toast-body">' + msg + '</div><button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
+                container.appendChild(t);
+                new bootstrap.Toast(t, {delay: 5000}).show();
+            }
+
+            tick();
+            setInterval(tick, 1000);
+        }
+
+        // Intercept start IN_PROGRESS button to show toast if fields missing
+        document.querySelectorAll('form').forEach(f => {
+            const hidden = f.querySelector('input[name="status"][value="IN_PROGRESS"]');
+            if (hidden) {
+                f.addEventListener('submit', async e => {
+                    e.preventDefault(); // Always prevent default to handle via AJAX
+
+                    const execField = document.querySelector('[name="executionTimeMinutes"]');
+                    const pomoField = document.querySelector('[name="pomodoroMinutes"]');
+                    const execVal = execField ? parseInt(execField.value || '0', 10) : 0;
+                    const pomoVal = pomoField ? parseInt(pomoField.value || '0', 10) : 0;
+
+                    // Create or get toast container
+                    const getToastContainer = () => {
+                        let container = document.querySelector('.toast-container');
+                        if (!container) {
+                            container = document.createElement('div');
+                            container.className = 'toast-container position-fixed top-0 end-0 p-3';
+                            container.style.zIndex = '1300';
+                            document.body.appendChild(container);
+                        }
+                        return container;
+                    };
+
+                    const showToastMessage = (cls, msg) => {
+                        const container = getToastContainer();
+                        const t = document.createElement('div');
+                        t.className = 'toast ' + cls + ' border-0';
+                        t.innerHTML = '<div class="d-flex"><div class="toast-body">' + msg + '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
+                        container.appendChild(t);
+                        new bootstrap.Toast(t, {delay: 4000}).show();
+                    };
+
+                    if (execVal <= 0 || pomoVal <= 0) {
+                        showToastMessage('text-bg-warning', '<i class="bi bi-exclamation-triangle"></i> Preencha Tempo de execução e Duração do Pomodoro antes de iniciar.');
+                        return;
+                    }
+
+                    // All validations passed, submit via fetch
+                    try {
+                        const formAction = f.action;
+                        const formData = new FormData(f);
+
+                        const response = await fetch(formAction, {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        if (response.ok) {
+                            showToastMessage('text-bg-success', '<i class="bi bi-play-circle"></i> Tarefa iniciada com sucesso! Contadores em execução...');
+                            // Reload page after short delay to show updated timers
+                            setTimeout(() => window.location.reload(), 1500);
+                        } else {
+                            showToastMessage('text-bg-danger', '<i class="bi bi-exclamation-circle"></i> Erro ao iniciar tarefa. Verifique os campos obrigatórios.');
+                        }
+                    } catch (error) {
+                        console.error('Error starting task:', error);
+                        showToastMessage('text-bg-danger', '<i class="bi bi-exclamation-circle"></i> Erro ao iniciar tarefa.');
+                    }
+                });
+            }
+        });
+
+        // Helper function for toast messages
+        const createToast = (cls, msg) => {
+            let container = document.querySelector('.toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'toast-container position-fixed top-0 end-0 p-3';
+                container.style.zIndex = '1300';
+                document.body.appendChild(container);
+            }
+            const t = document.createElement('div');
+            t.className = 'toast ' + cls + ' border-0';
+            t.innerHTML = '<div class="d-flex"><div class="toast-body">' + msg + '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
+            container.appendChild(t);
+            new bootstrap.Toast(t, {delay: 4000}).show();
+        };
+
+        // Intercept PAUSE button
+        document.querySelectorAll('form').forEach(f => {
+            const pauseHidden = f.querySelector('input[name="status"][value="IN_PAUSE"]');
+            if (pauseHidden) {
+                f.addEventListener('submit', async e => {
+                    e.preventDefault();
+                    try {
+                        const response = await fetch(f.action, {
+                            method: 'POST',
+                            body: new FormData(f)
+                        });
+                        if (response.ok) {
+                            createToast('text-bg-warning', '<i class="bi bi-pause-circle"></i> Tarefa pausada!');
+                            setTimeout(() => window.location.reload(), 1500);
+                        } else {
+                            createToast('text-bg-danger', '<i class="bi bi-exclamation-circle"></i> Erro ao pausar tarefa.');
+                        }
+                    } catch (error) {
+                        console.error('Error pausing task:', error);
+                        createToast('text-bg-danger', '<i class="bi bi-exclamation-circle"></i> Erro ao pausar tarefa.');
+                    }
+                });
+            }
+        });
+
+        // Intercept DONE button
+        document.querySelectorAll('form').forEach(f => {
+            const doneHidden = f.querySelector('input[name="status"][value="DONE"]');
+            if (doneHidden) {
+                f.addEventListener('submit', async e => {
+                    e.preventDefault();
+                    try {
+                        const response = await fetch(f.action, {
+                            method: 'POST',
+                            body: new FormData(f)
+                        });
+                        if (response.ok) {
+                            createToast('text-bg-success', '<i class="bi bi-check-circle"></i> Tarefa finalizada com sucesso!');
+                            setTimeout(() => window.location.href = '/tasks', 1500);
+                        } else {
+                            createToast('text-bg-danger', '<i class="bi bi-exclamation-circle"></i> Erro ao finalizar tarefa.');
+                        }
+                    } catch (error) {
+                        console.error('Error completing task:', error);
+                        createToast('text-bg-danger', '<i class="bi bi-exclamation-circle"></i> Erro ao finalizar tarefa.');
+                    }
+                });
+            }
+        });
+
+        // Intercept CANCELLED button
+        document.querySelectorAll('form').forEach(f => {
+            const cancelHidden = f.querySelector('input[name="status"][value="CANCELLED"]');
+            if (cancelHidden) {
+                f.addEventListener('submit', async e => {
+                    e.preventDefault();
+                    if (!confirm('⚠️ Tem certeza que deseja cancelar esta tarefa?')) {
+                        return;
+                    }
+                    try {
+                        const response = await fetch(f.action, {
+                            method: 'POST',
+                            body: new FormData(f)
+                        });
+                        if (response.ok) {
+                            createToast('text-bg-danger', '<i class="bi bi-x-circle"></i> Tarefa cancelada!');
+                            setTimeout(() => window.location.href = '/tasks', 1500);
+                        } else {
+                            createToast('text-bg-danger', '<i class="bi bi-exclamation-circle"></i> Erro ao cancelar tarefa.');
+                        }
+                    } catch (error) {
+                        console.error('Error cancelling task:', error);
+                        createToast('text-bg-danger', '<i class="bi bi-exclamation-circle"></i> Erro ao cancelar tarefa.');
+                    }
+                });
+            }
+        });
+
+        // Monitor execution time and disable buttons when finished
+        const execPanel = document.getElementById('execPanel');
+        if (execPanel) {
+            const checkTimeFinished = () => {
+                const status = execPanel.getAttribute('data-status');
+                const targetMin = parseInt(execPanel.getAttribute('data-target-min')) || 0;
+                const mainElapsed = parseInt(execPanel.getAttribute('data-main-elapsed')) || 0;
+                const mainStarted = execPanel.getAttribute('data-main-started');
+
+                let currentElapsed = mainElapsed;
+                if (status === 'IN_PROGRESS' && mainStarted) {
+                    const startDate = new Date(mainStarted);
+                    currentElapsed += Math.floor((Date.now() - startDate.getTime()) / 1000);
+                }
+
+                const timeFinished = status === 'IN_PROGRESS' && targetMin > 0 && currentElapsed >= (targetMin * 60);
+
+                if (timeFinished) {
+                    // Disable all action buttons except "Finalizar" (DONE)
+                    document.querySelectorAll('.btn-success, .btn-warning, .btn-danger, .btn-outline-primary').forEach(btn => {
+                        if (!btn.textContent.includes('Finalizar')) {
+                            btn.disabled = true;
+                            btn.style.opacity = '0.5';
+                            btn.style.cursor = 'not-allowed';
+                        }
+                    });
+
+                    // Also disable status selector
+                    const statusSelect = document.querySelector('select[name="status"]');
+                    if (statusSelect) {
+                        statusSelect.disabled = true;
+                        statusSelect.style.opacity = '0.5';
+                    }
+
+                    // Show info message
+                    let infoAlert = document.getElementById('timeFinishedAlert');
+                    if (!infoAlert) {
+                        infoAlert = document.createElement('div');
+                        infoAlert.id = 'timeFinishedAlert';
+                        infoAlert.className = 'alert alert-info';
+                        infoAlert.innerHTML = '<i class="bi bi-info-circle"></i> Tempo de execução finalizado. Por favor, finalize a tarefa ou ajuste a data/horário de início.';
+                        infoAlert.style.marginTop = '1rem';
+                        document.querySelector('.form-card[data-delay="100"]').insertBefore(infoAlert, document.querySelector('.form-card[data-delay="100"]').firstChild);
+                    }
+                } else {
+                    // Remove disabled state if time not finished
+                    document.querySelectorAll('.btn-success, .btn-warning, .btn-danger, .btn-outline-primary').forEach(btn => {
+                        btn.disabled = false;
+                        btn.style.opacity = '';
+                        btn.style.cursor = '';
+                    });
+
+                    const statusSelect = document.querySelector('select[name="status"]');
+                    if (statusSelect) {
+                        statusSelect.disabled = false;
+                        statusSelect.style.opacity = '';
+                    }
+
+                    const infoAlert = document.getElementById('timeFinishedAlert');
+                    if (infoAlert) infoAlert.remove();
+                }
+            };
+
+            // Check immediately and then every second
+            checkTimeFinished();
+            setInterval(checkTimeFinished, 1000);
+
+            // Re-enable on scheduledStartAt or dueDate change
+            document.querySelectorAll('input[name="scheduledStartAt"], input[name="dueDate"]').forEach(input => {
+                input.addEventListener('change', () => {
+                    setTimeout(checkTimeFinished, 100);
+                });
+            });
+        }
+    });
+</script>
+</body>
+</html>

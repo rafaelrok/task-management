@@ -1,0 +1,8 @@
+<!-- footer fragment -->
+<footer class="bg-dark text-light py-3 mt-auto" th:fragment="footer">
+    <div class="container text-center small">
+        <span>&copy; <span th:text="${#dates.format(#dates.createNow(), 'yyyy')}"></span> Task Management</span>
+        <span class="mx-2">|</span>
+        <a class="link-light" target="_blank" th:href="@{/swagger-ui/index.html}">API Docs</a>
+    </div>
+</footer>

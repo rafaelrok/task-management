@@ -1,0 +1,33 @@
+<!-- navbar fragment -->
+<div th:fragment="navbar">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" th:href="@{/}">Task Management</a>
+            <button aria-controls="navbars" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler"
+                    data-bs-target="#navbars" data-bs-toggle="collapse" type="button">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbars">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link" th:href="@{/}">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/tasks}">Tarefas</a></li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/profile}">Perfil</a></li>
+                </ul>
+                <div class="d-flex align-items-center gap-3">
+                    <a class="position-relative text-light" th:href="@{/tasks}">
+                        <i class="bi bi-bell" style="font-size:1.25rem;"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                              th:if="${overdueCount} > 0"
+                              th:text="${overdueCount}">0</span>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark"
+                              style="transform: translate(-60%, -10%);"
+                              th:if="${nearDueCount} > 0" th:text="${nearDueCount}">0</span>
+                    </a>
+                    <form method="post" th:action="@{/logout}">
+                        <button class="btn btn-sm btn-outline-light" type="submit">Sair</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+</div>

@@ -1,0 +1,5 @@
+-- Add new status IN_PAUSE to enum usage. If using a check constraint, adjust accordingly.
+-- For PostgreSQL with text/varchar column of status, no change needed.
+-- If you had an enum type, you would run: ALTER TYPE task_status ADD VALUE IF NOT EXISTS 'IN_PAUSE';
+-- No changes needed for text/varchar status column
+-- Ensure existing tasks can have the new status

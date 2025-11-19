@@ -5,6 +5,8 @@ import br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus;
 import br.com.rafaelvieira.taskmanagement.domain.records.TaskCreateRecord;
 import br.com.rafaelvieira.taskmanagement.domain.records.TaskRecord;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface TaskService {
 
@@ -31,4 +33,11 @@ public interface TaskService {
     TaskRecord changeTaskStatus(Long id, TaskStatus newStatus);
 
     long countTasksByStatus(TaskStatus status);
+
+    long countTasksByPriority(Priority priority);
+
+    List<TaskRecord> getTasksDueToday();
+
+    Page<TaskRecord> searchTasks(
+            br.com.rafaelvieira.taskmanagement.web.dto.TaskFilterForm filter, Pageable pageable);
 }

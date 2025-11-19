@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Tarefas - Task Management')}"></head>
+<body class="dashboard-body">
+<!-- Sidebar -->
+<nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="logo">
+            <i class="bi bi-kanban"></i>
+            <span class="logo-text">TaskFlow</span>
+        </div>
+        <button class="sidebar-toggle" id="sidebarToggle">
+            <i class="bi bi-list"></i>
+        </button>
+    </div>
+    <ul class="sidebar-menu">
+        <li class="menu-item">
+            <a th:href="@{/}">
+                <i class="bi bi-speedometer2"></i>
+                <span class="menu-text">Dashboard</span>
+            </a>
+        </li>
+        <li class="menu-item active">
+            <a th:href="@{/tasks}">
+                <i class="bi bi-list-task"></i>
+                <span class="menu-text">Tarefas</span>
+            </a>
+        </li>
+        <li class="menu-item">
+            <a th:href="@{/tasks/new}">
+                <i class="bi bi-plus-circle"></i>
+                <span class="menu-text">Nova Tarefa</span>
+            </a>
+        </li>
+        <li class="menu-item">
+            <a th:href="@{/profile}">
+                <i class="bi bi-person-circle"></i>
+                <span class="menu-text">Perfil</span>
+            </a>
+        </li>
+        <li class="menu-item">
+            <a href="#" id="themeToggle">
+                <i class="bi bi-moon-stars"></i>
+                <span class="menu-text">Tema Escuro</span>
+            </a>
+        </li>
+    </ul>
+    <div class="sidebar-footer">
+        <form method="post" th:action="@{/logout}">
+            <button class="logout-btn" type="submit">
+                <i class="bi bi-box-arrow-right"></i>
+                <span class="menu-text">Sair</span>
+            </button>
+        </form>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="main-content" id="mainContent">
+    <div class="top-bar">
+        <h1 class="page-title">Minhas Tarefas</h1>
+        <div class="user-info">
+            <a class="btn btn-primary" th:href="@{/tasks}">
+                <i class="bi bi-plus-circle"></i> Nova Tarefa
+            </a>
+        </div>
+    </div>
+
+    <div class="content-wrapper">
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+        <!-- Filtros -->
+        <div class="filter-card" data-animate="fade-up">
+            <form method="get" th:action="@{/tasks}">
+                <div class="filter-grid">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">
+                            <i class="bi bi-funnel"></i> Status
+                        </label>
+                        <div class="select-wrapper">
+                            <select class="form-control" name="status">
+                                <option th:selected="${filter.status} == null" value="">Todos os status</option>
+                                <option th:each="s : ${allStatuses}" th:selected="${filter.status} == ${s}"
+                                        th:text="${s}"
+                                        th:value="${s}"></option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">
+                            <i class="bi bi-flag"></i> Prioridade
+                        </label>
+                        <div class="select-wrapper">
+                            <select class="form-control" name="priority">
+                                <option th:selected="${filter.priority} == null" value="">Todas as prioridades</option>
+                                <option th:each="p : ${allPriorities}" th:selected="${filter.priority} == ${p}"
+                                        th:text="${p}"
+                                        th:value="${p}"></option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group"
+                         style="margin-bottom: 0; display: flex; align-items: flex-end; gap: 0.5rem;">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-search"></i> Filtrar
+                        </button>
+                        <a class="btn btn-secondary" th:href="@{/tasks}">
+                            <i class="bi bi-x-circle"></i> Limpar
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tabela de Tarefas -->
+        <div class="table-card" data-animate="fade-up" data-delay="100">
+            <div class="table-responsive">
+                <table class="modern-table">
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Título</th>
+                        <th>Categoria</th>
+                        <th>Prioridade</th>
+                        <th>Status</th>
+                        <th>Responsável</th>
+                        <th>Vencimento</th>
+                        <th>Agendado</th>
+                        <th style="text-align: center;">Ações</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="table-row-animate"
+                        th:classappend="${task.status().name() == 'OVERDUE'} ? 'task-overdue' : (${task.status().name() == 'DONE'} ? 'task-done' : '')"
+                        th:data-scheduled="${#temporals.format(task.scheduledStartAt(), 'yyyy-MM-dd''T''HH:mm')}"
+                        th:each="task : ${tasksPage.content}">
+                        <td>
+                            <span class="task-id" th:text="${task.id()}">1</span>
+                        </td>
+                        <td>
+                            <span class="task-title" th:text="${task.title()}">Implementar API</span>
+                        </td>
+                        <td>
+                            <span class="badge-category" th:text="${task.categoryName()}">Backend</span>
+                        </td>
+                        <td>
+                                    <span class="badge-priority"
+                                          th:classappend="${task.priority().name().toLowerCase()}"
+                                          th:text="${task.priority()}">HIGH</span>
+                        </td>
+                        <td>
+                            <span class="badge-status"
+                                  th:classappend="${task.status().name().toLowerCase()}"
+                                  th:text="${task.status()}">
+                                <i class="bi bi-exclamation-triangle-fill status-icon-overdue"
+                                   th:if="${task.status().name() == 'OVERDUE'}"></i>
+                                <i class="bi bi-check-circle-fill status-icon-done"
+                                   th:if="${task.status().name() == 'DONE'}"></i>
+                                <span th:text="${task.status()}"></span>
+                            </span>
+                        </td>
+                        <td>
+                            <span class="task-user" th:text="${task.assignedUserName()}">User</span>
+                        </td>
+                        <td>
+                            <span class="task-date" style="color: var(--danger); font-weight:600;"
+                                  th:if="${task.overdue()}">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                <span th:text="${#temporals.format(task.dueDate(), 'dd/MM/yyyy HH:mm')}"></span>
+                            </span>
+                            <span class="task-date" th:if="${!task.overdue()}"
+                                  th:text="${#temporals.format(task.dueDate(), 'dd/MM/yyyy HH:mm')}">01/01/2025</span>
+                        </td>
+                        <td>
+                            <span class="task-date" th:if="${task.scheduledStartAt() != null}"
+                                  th:text="${#temporals.format(task.scheduledStartAt(), 'dd/MM/yyyy HH:mm')}"></span>
+                            <span class="text-muted" th:if="${task.scheduledStartAt() == null}">—</span>
+                        </td>
+                        <td style="text-align: center;">
+                            <div class="table-actions">
+                                <button class="btn-action btn-view" onclick="openTaskModal(this.dataset.taskId)"
+                                        th:attr="data-task-id=${task.id()}"
+                                        title="Visualizar">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <a class="btn-action btn-view" th:href="@{'/tasks/' + ${task.id()}}" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form class="d-inline" method="post"
+                                      th:action="@{'/tasks/' + ${task.id()} + '/status'}">
+                                    <input name="status" type="hidden" value="IN_PROGRESS"/>
+                                    <button class="btn-action btn-view"
+                                            th:disabled="${task.status().name() == 'IN_PROGRESS'}"
+                                            title="Iniciar" type="submit">
+                                        <i class="bi bi-play-fill"></i>
+                                    </button>
+                                </form>
+                                <form class="d-inline" method="post"
+                                      th:action="@{'/tasks/' + ${task.id()} + '/status'}">
+                                    <input name="status" type="hidden" value="IN_PAUSE"/>
+                                    <button class="btn-action btn-view"
+                                            th:disabled="${task.status().name() != 'IN_PROGRESS'}"
+                                            title="Pausar" type="submit">
+                                        <i class="bi bi-pause-fill"></i>
+                                    </button>
+                                </form>
+                                <form class="d-inline" method="post"
+                                      th:action="@{'/tasks/' + ${task.id()} + '/delete'}">
+                                    <button class="btn-action btn-delete"
+                                            onclick="return confirm('Tem certeza que deseja excluir esta tarefa?');"
+                                            title="Excluir" type="submit">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(tasksPage.content)}">
+                        <td class="empty-state" colspan="9">
+                            <i class="bi bi-inbox"></i>
+                            <span>Nenhuma tarefa encontrada</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginação -->
+            <div style="display:flex; justify-content:flex-end; padding: 1rem; gap:.5rem;">
+                <a class="btn btn-secondary page-link-fade" th:classappend="${tasksPage.first} ? ' disabled'"
+                   th:href="@{|/tasks?page=${0}&size=${tasksPage.size}&status=${filter.status}&priority=${filter.priority}|}">
+                    Primeiro
+                </a>
+                <a class="btn btn-secondary page-link-fade" th:classappend="${tasksPage.first} ? ' disabled'"
+                   th:href="@{|/tasks?page=${tasksPage.number - 1}&size=${tasksPage.size}&status=${filter.status}&priority=${filter.priority}|}">
+                    Anterior
+                </a>
+                <span style="align-self:center; color: var(--text-secondary);">Página <span
+                        th:text="${tasksPage.number + 1}"></span> de <span
+                        th:text="${tasksPage.totalPages}"></span></span>
+                <a class="btn btn-secondary page-link-fade" th:classappend="${tasksPage.last} ? ' disabled'"
+                   th:href="@{|/tasks?page=${tasksPage.number + 1}&size=${tasksPage.size}&status=${filter.status}&priority=${filter.priority}|}">
+                    Próxima
+                </a>
+                <a class="btn btn-secondary page-link-fade" th:classappend="${tasksPage.last} ? ' disabled'"
+                   th:href="@{|/tasks?page=${tasksPage.totalPages - 1}&size=${tasksPage.size}&status=${filter.status}&priority=${filter.priority}|}">
+                    Última
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/task-modal :: fragment}"></div>
+
+<script crossorigin="anonymous"
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/dashboard.js}"></script>
+<script>
+    (function () {
+        const theme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+    })();
+
+    function showToast(cls, msg, delay = 4000) {
+        const container = document.querySelector('.toast-container') || (function () {
+            const c = document.createElement('div');
+            c.className = 'toast-container position-fixed top-0 end-0 p-3';
+            c.style.zIndex = '1300';
+            document.body.appendChild(c);
+            return c;
+        })();
+        const t = document.createElement('div');
+        t.className = 'toast ' + cls + ' border-0';
+        t.innerHTML = '<div class="d-flex"><div class="toast-body">' + msg + '</div><button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
+        container.appendChild(t);
+        new bootstrap.Toast(t, {delay}).show();
+    }
+
+    // Enhance IN_PROGRESS start forms
+    document.querySelectorAll('form').forEach(f => {
+        const input = f.querySelector('input[name="status"][value="IN_PROGRESS"]');
+        if (!input) return;
+        f.addEventListener('submit', e => {
+            e.preventDefault();
+            const url = f.getAttribute('action');
+            const formData = new FormData(f);
+            fetch(url, {method: 'POST', body: formData})
+                .then(r => {
+                    if (!r.ok) {
+                        throw new Error('Falha ao atualizar status');
+                    }
+                    return r.text();
+                })
+                .then(() => {
+                    const idMatch = url.match(/\/tasks\/(\d+)\/status/);
+                    const taskId = idMatch ? idMatch[1] : null;
+                    if (!taskId) {
+                        window.location.reload();
+                        return;
+                    }
+                    fetch('/api/tasks/' + taskId)
+                        .then(r => r.json())
+                        .then(task => {
+                            if (task.status === 'TODO') {
+                                showToast('text-bg-warning', 'Preencha Tempo de execução e Duração do Pomodoro na edição antes de iniciar.');
+                            } else if (task.status === 'IN_PROGRESS') {
+                                showToast('text-bg-success', 'Tarefa iniciada. Contador em execução.');
+                            } else {
+                                showToast('text-bg-info', 'Status atualizado para ' + task.status);
+                            }
+                            setTimeout(() => window.location.reload(), 1100);
+                        })
+                        .catch(() => window.location.reload());
+                })
+                .catch(err => showToast('text-bg-danger', 'Erro: ' + err.message));
+        });
+    });
+
+    // Smooth page transitions for pagination links
+    document.querySelectorAll('.page-link-fade').forEach(a => {
+        a.addEventListener('click', function (e) {
+            if (this.classList.contains('disabled')) return;
+            e.preventDefault();
+            const url = this.getAttribute('href');
+            document.body.style.transition = 'opacity .25s ease';
+            document.body.style.opacity = '0';
+            setTimeout(() => window.location.href = url, 200);
+        });
+    });
+</script>
+</body>
+</html>

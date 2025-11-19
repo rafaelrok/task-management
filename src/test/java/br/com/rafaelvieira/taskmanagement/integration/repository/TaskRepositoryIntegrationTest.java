@@ -33,14 +33,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class TaskRepositoryIntegrationTest extends BaseIntegrationTest {
 
-    @Autowired
-    private TaskRepository taskRepository;
+    @Autowired private TaskRepository taskRepository;
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+    @Autowired private CategoryRepository categoryRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    @Autowired private UserRepository userRepository;
 
     private Category savedCategory;
     private User savedUser;
@@ -61,6 +58,7 @@ class TaskRepositoryIntegrationTest extends BaseIntegrationTest {
                                 .username("testUser")
                                 .email("test@example.com")
                                 .fullName("Test User")
+                                .password("password123")
                                 .build());
     }
 
@@ -217,7 +215,11 @@ class TaskRepositoryIntegrationTest extends BaseIntegrationTest {
     void testShouldFindTasksByAssignedUser() {
         User anotherUser =
                 userRepository.save(
-                        User.builder().username("another").email("another@example.com").build());
+                        User.builder()
+                                .username("another")
+                                .email("another@example.com")
+                                .password("password123")
+                                .build());
 
         taskRepository.saveAll(
                 List.of(

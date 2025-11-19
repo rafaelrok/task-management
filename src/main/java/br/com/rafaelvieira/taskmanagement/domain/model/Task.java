@@ -16,6 +16,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
@@ -40,58 +41,77 @@ public class Task {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-
     private Long id;
 
     @NotBlank(message = "Title is required")
-
     @Size(min = 3, max = 100, message = "Title must be between 3 and 100 characters")
     @Column(nullable = false)
     private String title;
 
-    @Size(max = 500, message = "Description cannot exceed 500 characters")
-
-    @Column(length = 500)
-
+    // Rich HTML content from editor - unlimited length (TEXT type in DB)
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Enumerated(EnumType.STRING)
-
     @Column(nullable = false)
-
     private TaskStatus status;
 
     @Enumerated(EnumType.STRING)
-
     @Column(nullable = false)
-
     private Priority priority;
 
     @ManyToOne(fetch = FetchType.LAZY)
-
     @JoinColumn(name = "category_id")
-
     private Category category;
 
     @ManyToOne(fetch = FetchType.LAZY)
-
     @JoinColumn(name = "assigned_user_id")
-
     private User assignedUser;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
-
     private LocalDateTime createdAt;
 
     @LastModifiedDate
     @Column(name = "updated_at")
-
     private LocalDateTime updatedAt;
 
     @Column(name = "due_date")
-
     private LocalDateTime dueDate;
+
+    // New scheduling fields
+    @Column(name = "scheduled_start_at")
+    private LocalDateTime scheduledStartAt;
+
+    // Pomodoro duration in minutes for this task when started (nullable -> no pomodoro)
+    @Column(name = "pomodoro_minutes")
+    private Integer pomodoroMinutes;
+
+    @Column(name = "pomodoro_break_minutes")
+    @Builder.Default
+    private Integer pomodoroBreakMinutes = 5;
+
+    // ===== Execution/pomodoro tracking =====
+    // Tempo alvo de execução em minutos (definido pelo dev)
+    @Column(name = "execution_time_minutes")
+    private Integer executionTimeMinutes;
+
+    // Marca quando o contador principal começou pela última vez (null = parado)
+    @Column(name = "main_started_at")
+    private LocalDateTime mainStartedAt;
+
+    // Acumulado em segundos no contador principal
+    @Column(name = "main_elapsed_seconds")
+    @Builder.Default
+    private Long mainElapsedSeconds = 0L;
+
+    // Quando o pomodoro atual termina (se em execução)
+    @Column(name = "pomodoro_until")
+    private LocalDateTime pomodoroUntil;
+
+    @Version
+    @Column(name = "version")
+    private Long version;
 
     @PrePersist
     void onCreate() {

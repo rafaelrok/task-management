@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Dashboard - Task Management')}"></head>
+<body class="dashboard-body">
+<!-- Sidebar -->
+<nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="logo">
+            <i class="bi bi-kanban"></i>
+            <span class="logo-text">TaskFlow</span>
+        </div>
+        <button class="sidebar-toggle" id="sidebarToggle">
+            <i class="bi bi-list"></i>
+        </button>
+    </div>
+    <ul class="sidebar-menu">
+        <li class="menu-item active">
+            <a th:href="@{/}">
+                <i class="bi bi-speedometer2"></i>
+                <span class="menu-text">Dashboard</span>
+            </a>
+        </li>
+        <li class="menu-item">
+            <a th:href="@{/tasks}">
+                <i class="bi bi-list-task"></i>
+                <span class="menu-text">Tarefas</span>
+            </a>
+        </li>
+        <li class="menu-item">
+            <a th:href="@{/tasks/new}">
+                <i class="bi bi-plus-circle"></i>
+                <span class="menu-text">Nova Tarefa</span>
+            </a>
+        </li>
+        <li class="menu-item">
+            <a th:href="@{/profile}">
+                <i class="bi bi-person-circle"></i>
+                <span class="menu-text">Perfil</span>
+            </a>
+        </li>
+        <li class="menu-item">
+            <a href="#" id="themeToggle">
+                <i class="bi bi-moon-stars"></i>
+                <span class="menu-text">Tema Escuro</span>
+            </a>
+        </li>
+    </ul>
+    <div class="sidebar-footer">
+        <form method="post" th:action="@{/logout}">
+            <button class="logout-btn" type="submit">
+                <i class="bi bi-box-arrow-right"></i>
+                <span class="menu-text">Sair</span>
+            </button>
+        </form>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="main-content" id="mainContent">
+    <div class="top-bar">
+        <h1 class="page-title">Dashboard</h1>
+        <div class="user-info" style="display: flex; gap: 1.5rem; align-items: center;">
+            <a style="position: relative; color: var(--text-primary); text-decoration: none; font-size: 1.5rem;"
+               th:href="@{/tasks}">
+                <i class="bi bi-bell"></i>
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
+                      style="background: var(--danger); color: white; font-size: 0.65rem; padding: 0.25rem 0.5rem;"
+                      th:if="${overdueCount > 0}"
+                      th:text="${overdueCount}">0</span>
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
+                      style="background: var(--warning); color: white; font-size: 0.65rem; padding: 0.25rem 0.5rem; transform: translate(-20%, -50%) !important;"
+                      th:if="${nearDueCount > 0}"
+                      th:text="${nearDueCount}">0</span>
+            </a>
+            <span class="welcome-text">Bem-vindo!</span>
+        </div>
+    </div>
+
+    <div class="content-wrapper">
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+        <!-- KPI Status Cards -->
+        <div class="kpi-section">
+            <h2 class="section-title">Status das Tarefas</h2>
+            <div class="kpi-grid">
+                <div class="kpi-card kpi-todo" data-animate="fade-up">
+                    <div class="kpi-icon">
+                        <i class="bi bi-clipboard"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">A Fazer</span>
+                        <h3 class="kpi-value" th:text="${totalTodo}">0</h3>
+                    </div>
+                </div>
+                <div class="kpi-card kpi-progress" data-animate="fade-up" data-delay="100">
+                    <div class="kpi-icon">
+                        <i class="bi bi-hourglass-split"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Em Progresso</span>
+                        <h3 class="kpi-value" th:text="${totalInProgress}">0</h3>
+                    </div>
+                </div>
+                <div class="kpi-card kpi-done" data-animate="fade-up" data-delay="200">
+                    <div class="kpi-icon">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Concluídas</span>
+                        <h3 class="kpi-value" th:text="${totalDone}">0</h3>
+                    </div>
+                </div>
+                <div class="kpi-card kpi-cancelled" data-animate="fade-up" data-delay="300">
+                    <div class="kpi-icon">
+                        <i class="bi bi-x-circle"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Canceladas</span>
+                        <h3 class="kpi-value" th:text="${totalCancelled}">0</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Tasks Live Section -->
+        <div class="active-section" th:if="${not #lists.isEmpty(activeTasks)}">
+            <h2 class="section-title" style="display:flex;align-items:center;gap:.5rem">
+                <i class="bi bi-lightning-charge"></i>
+                Em execução agora
+                <span class="badge-status in_progress" style="margin-left:.5rem"
+                      th:text="${#lists.size(activeTasks)}"></span>
+            </h2>
+            <div class="active-grid-wrapper">
+                <div class="active-grid" id="activeGrid">
+                    <div class="active-card"
+                         th:attr="data-task-id=${t.id()},data-status=${t.status()},data-exec=${t.executionTimeMinutes()},data-main-start=${t.mainStartedAt()},data-main-elapsed=${t.mainElapsedSeconds()},data-pomo-until=${t.pomodoroUntil()},data-pomo-min=${t.pomodoroMinutes()},data-break-min=${t.pomodoroBreakMinutes()}"
+                         th:each="t : ${activeTasks}">
+                        <div class="active-card-header">
+                            <div class="active-title-text" th:text="${t.title()}">Título</div>
+                            <span class="badge-status" th:classappend="${t.status().name().toLowerCase()}"
+                                  th:text="${t.status()}">IN_PROGRESS</span>
+                        </div>
+                        <div class="active-timers">
+                            <div class="timer-row">
+                                <span class="timer-label">Principal</span>
+                                <span class="timer-value" data-role="main-timer">00:00:00</span>
+                            </div>
+                            <div class="progress progress-compact">
+                                <div aria-valuemax="100" aria-valuemin="0" class="progress-bar"
+                                     data-role="main-progress" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <div class="timer-row">
+                                <span class="timer-label">Pomodoro/Intervalo</span>
+                                <span class="timer-value" data-role="pomo-timer">--:--</span>
+                            </div>
+                        </div>
+                        <div class="active-actions">
+                            <a class="btn-icon-sm btn-outline" th:href="@{'/tasks/' + ${t.id()}}" title="Abrir tarefa">
+                                <i class="bi bi-box-arrow-up-right"></i>
+                            </a>
+                            <button class="btn-icon-sm btn-outline" data-action="start"
+                                    th:attr="data-id=${t.id()}" th:disabled="${t.status().name() == 'IN_PROGRESS'}"
+                                    title="Iniciar">
+                                <i class="bi bi-play-fill"></i>
+                            </button>
+                            <button class="btn-icon-sm btn-outline" data-action="pause"
+                                    th:attr="data-id=${t.id()}" th:disabled="${t.status().name() == 'IN_PAUSE'}"
+                                    title="Pausar">
+                                <i class="bi bi-pause-fill"></i>
+                            </button>
+                            <button class="btn-icon-sm btn-outline text-danger" data-action="cancel"
+                                    th:attr="data-id=${t.id()}" title="Cancelar">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                            <button class="btn-icon-sm btn-outline text-success" data-action="finish"
+                                    th:attr="data-id=${t.id()}" title="Finalizar">
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scheduled Tasks Section -->
+        <div class="scheduled-section" th:if="${not #lists.isEmpty(scheduledTasks)}">
+            <h2 class="section-title" style="display:flex;align-items:center;gap:.5rem">
+                <i class="bi bi-clock-history"></i>
+                Tarefas Agendadas
+                <span class="badge-status todo" style="margin-left:.5rem"
+                      th:text="${#lists.size(scheduledTasks)}"></span>
+            </h2>
+            <div class="scheduled-grid">
+                <div class="scheduled-card" th:each="t : ${scheduledTasks}">
+                    <div class="scheduled-card-header">
+                        <div class="scheduled-icon">
+                            <i class="bi bi-calendar-event"></i>
+                        </div>
+                        <div class="scheduled-info">
+                            <a class="scheduled-title" th:href="@{'/tasks/' + ${t.id()}}"
+                               th:text="${t.title()}">Título</a>
+                            <div class="scheduled-meta">
+                                <span class="badge-priority" th:classappend="${t.priority().name().toLowerCase()}"
+                                      th:text="${t.priority()}">MEDIUM</span>
+                                <span class="scheduled-time">
+                                    <i class="bi bi-clock"></i>
+                                    <span th:text="${#temporals.format(t.scheduledStartAt(),'dd/MM HH:mm')}">18/11 14:00</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="scheduled-description" th:if="${t.description() != null and !t.description().isEmpty()}"
+                         th:utext="${#strings.abbreviate(t.description(), 100)}">
+                        Descrição da tarefa...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Priority Cards -->
+        <div class="priority-section">
+            <h2 class="section-title">Prioridades</h2>
+            <div class="priority-grid">
+                <div class="priority-card priority-low" data-animate="slide-right">
+                    <span class="priority-label">Baixa</span>
+                    <h4 class="priority-value" th:text="${countLow}">0</h4>
+                </div>
+                <div class="priority-card priority-medium" data-animate="slide-right" data-delay="100">
+                    <span class="priority-label">Média</span>
+                    <h4 class="priority-value" th:text="${countMedium}">0</h4>
+                </div>
+                <div class="priority-card priority-high" data-animate="slide-right" data-delay="200">
+                    <span class="priority-label">Alta</span>
+                    <h4 class="priority-value" th:text="${countHigh}">0</h4>
+                </div>
+                <div class="priority-card priority-urgent" data-animate="slide-right" data-delay="300">
+                    <span class="priority-label">Urgente</span>
+                    <h4 class="priority-value" th:text="${countUrgent}">0</h4>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tasks Tables -->
+        <div class="tasks-section">
+            <div class="task-table-container" data-animate="fade-up">
+                <div class="task-table-header">
+                    <h3 class="task-table-title">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Tarefas em Atraso
+                    </h3>
+                    <a class="btn-new-task" th:href="@{/tasks/new}">
+                        <i class="bi bi-plus"></i> Nova Tarefa
+                    </a>
+                </div>
+                <div class="table-responsive">
+                    <table class="modern-table">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Título</th>
+                            <th>Status</th>
+                            <th>Prioridade</th>
+                            <th>Data</th>
+                            <th>Ações</th>
+                        </tr>
+                        </thead>
+                        <tbody id="overdueTableBody">
+                        <tr class="table-row-animate" th:each="t, iterStat : ${overdueTasks}"
+                            th:if="${iterStat.index < 5}">
+                            <td><span class="task-id" th:text="${t.id()}">1</span></td>
+                            <td><span class="task-title" th:text="${t.title()}">Titulo</span></td>
+                            <td>
+                                <span class="badge-status" th:classappend="${t.status().name().toLowerCase()}"
+                                      th:text="${t.status()}">TODO</span>
+                            </td>
+                            <td>
+                                <span class="badge-priority" th:classappend="${t.priority().name().toLowerCase()}"
+                                      th:text="${t.priority()}">HIGH</span>
+                            </td>
+                            <td>
+                                <span class="task-date" th:if="${t.scheduledStartAt() != null}"
+                                      th:text="${'Início: ' + #temporals.format(t.scheduledStartAt(),'dd/MM HH:mm')}">Início: 01/01 12:00</span>
+                                <span class="task-date" th:if="${t.dueDate() != null and t.scheduledStartAt() == null}"
+                                      th:text="${'Venc: ' + #temporals.format(t.dueDate(),'dd/MM HH:mm')}">Venc: 01/01 12:00</span>
+                                <span class="task-date" th:if="${t.dueDate() == null and t.scheduledStartAt() == null}">-</span>
+                            </td>
+                            <td>
+                                <button class="btn-action btn-view" onclick="openTaskModal(this.dataset.taskId)"
+                                        th:attr="data-task-id=${t.id()}">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(overdueTasks)}">
+                            <td class="empty-state" colspan="6">
+                                <i class="bi bi-check-circle"></i>
+                                <span>Nenhuma tarefa atrasada</span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="task-table-container" data-animate="fade-up" data-delay="100">
+                <div class="task-table-header">
+                    <h3 class="task-table-title">
+                        <i class="bi bi-calendar-check"></i>
+                        Vencem Hoje
+                    </h3>
+                </div>
+                <div class="table-responsive">
+                    <table class="modern-table">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Título</th>
+                            <th>Status</th>
+                            <th>Vencimento</th>
+                            <th>Ações</th>
+                        </tr>
+                        </thead>
+                        <tbody id="dueTodayTableBody">
+                        <tr class="table-row-animate" th:each="t, iterStat : ${dueToday}" th:if="${iterStat.index < 5}">
+                            <td><span class="task-id" th:text="${t.id()}">1</span></td>
+                            <td><span class="task-title" th:text="${t.title()}">Titulo</span></td>
+                            <td>
+                                <span class="badge-status" th:classappend="${t.status().name().toLowerCase()}"
+                                      th:text="${t.status()}">TODO</span>
+                            </td>
+                            <td>
+                                <span class="task-date" th:text="${#temporals.format(t.dueDate(),'HH:mm')}">12:00</span>
+                            </td>
+                            <td>
+                                <button class="btn-action btn-view" onclick="openTaskModal(this.dataset.taskId)"
+                                        th:attr="data-task-id=${t.id()}">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(dueToday)}">
+                            <td class="empty-state" colspan="5">
+                                <i class="bi bi-inbox"></i>
+                                <span>Nenhuma tarefa para hoje</span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/task-modal :: fragment}"></div>
+
+<script crossorigin="anonymous"
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>

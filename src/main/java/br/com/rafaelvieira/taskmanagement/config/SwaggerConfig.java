@@ -49,7 +49,6 @@ public class SwaggerConfig {
     private static final String SERVER_URL_TEMPLATE = "http://localhost:%s";
 
     @Value("${server.port:8080}")
-
     private String serverPort;
 
     private static Info buildApiInfo() {

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="richEditor(rootId, fieldName, fieldValue, label, placeholder, height)">
+    <input th:attr="id=${rootId} + '_hidden'" th:name="${fieldName}" th:value="${fieldValue}" type="hidden"/>
+    <div class="rich-editor-container" th:attr="id=${rootId}" th:data-field="${fieldName}" th:data-height="${height}">
+        <div class="rich-editor-header">
+            <h2 class="rich-editor-title" th:text="${label}">Descrição</h2>
+            <button class="rich-editor-close" title="Limpar" type="button">&times;</button>
+        </div>
+        <div class="rich-editor-toolbar">
+            <div class="toolbar-group">
+                <select class="toolbar-select" data-format-block>
+                    <option value="">Formato</option>
+                    <option value="p">Parágrafo</option>
+                    <option value="h1">Título 1</option>
+                    <option value="h2">Título 2</option>
+                    <option value="h3">Título 3</option>
+                    <option value="h4">Título 4</option>
+                </select>
+                <select class="toolbar-select" data-font-name>
+                    <option value="Arial">Arial</option>
+                    <option value="Courier New">Courier New</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                    <option value="Verdana">Verdana</option>
+                </select>
+                <select class="toolbar-select" data-font-size>
+                    <option value="2">Pequeno</option>
+                    <option selected value="3">Normal</option>
+                    <option value="4">Grande</option>
+                    <option value="5">Maior</option>
+                </select>
+            </div>
+            <div class="toolbar-group">
+                <button class="toolbar-btn" data-cmd="bold" title="Negrito" type="button"><b>B</b></button>
+                <button class="toolbar-btn" data-cmd="italic" title="Itálico" type="button"><i>I</i></button>
+                <button class="toolbar-btn" data-cmd="underline" title="Sublinhado" type="button"><u>U</u></button>
+                <button class="toolbar-btn" data-cmd="strikeThrough" title="Tachado" type="button"><s>S</s></button>
+            </div>
+            <div class="toolbar-group">
+                <button class="toolbar-btn" data-cmd="insertUnorderedList" title="Lista" type="button">•</button>
+                <button class="toolbar-btn" data-cmd="insertOrderedList" title="Lista Numerada" type="button">1.
+                </button>
+                <button class="toolbar-btn" data-cmd="formatBlock" data-format="blockquote" title="Citação"
+                        type="button">"
+                </button>
+            </div>
+            <div class="toolbar-group">
+                <button class="toolbar-btn" data-cmd="justifyLeft" title="Alinhar à Esquerda" type="button">≡</button>
+                <button class="toolbar-btn" data-cmd="justifyCenter" title="Centralizar" type="button">≡</button>
+                <button class="toolbar-btn" data-cmd="justifyRight" title="Alinhar à Direita" type="button">≡</button>
+                <button class="toolbar-btn" data-cmd="justifyFull" title="Justificar" type="button">≡</button>
+            </div>
+            <div class="toolbar-group">
+                <button class="toolbar-btn" data-cmd="link" title="Inserir Link" type="button">🔗</button>
+                <button class="toolbar-btn" data-cmd="insertHorizontalRule" title="Linha Horizontal" type="button">—
+                </button>
+                <button class="toolbar-btn" data-cmd="code" title="Inserir Código" type="button">&lt;/&gt;</button>
+            </div>
+            <div class="toolbar-group">
+                <button class="toolbar-btn" data-cmd="undo" title="Desfazer" type="button">↶</button>
+                <button class="toolbar-btn" data-cmd="redo" title="Refazer" type="button">↷</button>
+            </div>
+        </div>
+        <div class="rich-editor-content">
+            <div class="editor-area" contenteditable="true" th:attr="data-placeholder=${placeholder}"
+                 th:utext="${fieldValue}"></div>
+        </div>
+        <div class="rich-editor-footer">
+            <button class="footer-btn btn-cancel" data-action="cancel" type="button">Cancelar</button>
+            <button class="footer-btn btn-save" data-action="save" type="button">Salvar Temporário</button>
+        </div>
+        <!-- Modal Código dentro do root para seleção mais simples -->
+        <div class="code-modal" th:attr="data-root=${rootId}">
+            <div class="code-modal-content">
+                <h3 class="code-modal-header">Inserir Bloco de Código</h3>
+                <select class="code-modal-select" th:attr="id='codeLanguage_' + ${rootId}">
+                    <option value="java">Java</option>
+                    <option value="javascript">JavaScript</option>
+                    <option value="typescript">TypeScript</option>
+                    <option value="html">HTML</option>
+                    <option value="css">CSS</option>
+                    <option value="yaml">YAML</option>
+                    <option value="properties">Properties</option>
+                    <option value="plaintext">PlainText</option>
+                </select>
+                <textarea class="code-modal-textarea" placeholder="Cole seu código aqui..."
+                          th:attr="id='codeTextarea_' + ${rootId}"></textarea>
+                <div class="code-modal-footer">
+                    <button class="footer-btn btn-cancel" data-action="cancelCode" type="button">Cancelar</button>
+                    <button class="footer-btn btn-save" data-action="insertCodeBlock" type="button">Inserir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

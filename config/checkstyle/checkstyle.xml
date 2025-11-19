@@ -156,14 +156,10 @@
         <!-- ANNOTATIONS -->
         <!-- =========================================== -->
         <module name="AnnotationLocation">
-            <property name="allowSamelineMultipleAnnotations" value="false"/>
-            <property name="allowSamelineSingleParameterlessAnnotation" value="false"/>
-            <property name="allowSamelineParameterizedAnnotation" value="false"/>
-            <property name="tokens" value="VARIABLE_DEF"/>
-            <property name="tokens" value="METHOD_DEF"/>
-            <property name="tokens" value="CLASS_DEF"/>
-            <property name="tokens" value="CTOR_DEF"/>
-            <property name="tokens" value="ENUM_DEF"/>
+            <property name="allowSamelineMultipleAnnotations" value="true"/>
+            <property name="allowSamelineSingleParameterlessAnnotation" value="true"/>
+            <property name="allowSamelineParameterizedAnnotation" value="true"/>
+            <property name="tokens" value="VARIABLE_DEF,METHOD_DEF,CLASS_DEF,CTOR_DEF,ENUM_DEF"/>
         </module>
     </module>
 </module>

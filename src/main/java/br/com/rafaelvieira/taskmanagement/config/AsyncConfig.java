@@ -17,7 +17,6 @@ public class AsyncConfig {
     private static final int AWAIT_TERMINATION_SECONDS = 60;
 
     @Bean(name = "taskExecutor")
-
     public Executor taskExecutor() {
         var executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(CORE_POOL_SIZE);
@@ -32,7 +31,6 @@ public class AsyncConfig {
     }
 
     @Bean(name = "virtualThreadExecutor")
-
     public Executor virtualThreadExecutor() {
         return java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor();
     }

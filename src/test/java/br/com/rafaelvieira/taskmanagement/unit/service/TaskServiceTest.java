@@ -56,17 +56,13 @@ import org.mockito.MockitoAnnotations;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class TaskServiceTest {
 
-    @Mock
-    private TaskRepository taskRepository;
+    @Mock private TaskRepository taskRepository;
 
-    @Mock
-    private CategoryRepository categoryRepository;
+    @Mock private CategoryRepository categoryRepository;
 
-    @Mock
-    private UserRepository userRepository;
+    @Mock private UserRepository userRepository;
 
-    @InjectMocks
-    private TaskServiceImpl taskService;
+    @InjectMocks private TaskServiceImpl taskService;
 
     private AutoCloseable closeable;
 

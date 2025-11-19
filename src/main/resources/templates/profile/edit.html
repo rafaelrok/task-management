@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Editar Perfil - Task Management')}"></head>
+<body class="dashboard-body" data-editing="false">
+<nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="logo">
+            <i class="bi bi-kanban"></i>
+            <span class="logo-text">TaskFlow</span>
+        </div>
+        <button class="sidebar-toggle" id="sidebarToggle">
+            <i class="bi bi-list"></i>
+        </button>
+    </div>
+    <ul class="sidebar-menu">
+        <li class="menu-item"><a th:href="@{/}"><i class="bi bi-speedometer2"></i><span
+                class="menu-text">Dashboard</span></a></li>
+        <li class="menu-item"><a th:href="@{/tasks}"><i class="bi bi-list-task"></i><span
+                class="menu-text">Tarefas</span></a></li>
+        <li class="menu-item active"><a th:href="@{/profile}"><i class="bi bi-person"></i><span
+                class="menu-text">Perfil</span></a></li>
+        <li class="menu-item"><a href="#" id="themeToggle"><i class="bi bi-moon-stars"></i><span class="menu-text">Tema Escuro</span></a>
+        </li>
+    </ul>
+    <div class="sidebar-footer">
+
+        <div class="modal-overlay" id="githubImportModal">
+            <div aria-labelledby="githubModalTitle" aria-modal="true" class="modal-card" role="dialog">
+                <button aria-label="Fechar" class="modal-close" onclick="closeGithubImportModal()" type="button">
+                    <i class="bi bi-x"></i>
+                </button>
+                <div class="modal-icon">
+                    <i class="bi bi-github"></i>
+                </div>
+                <h3 id="githubModalTitle">Importar dados do GitHub</h3>
+                <p class="modal-subtitle">Informe seu nome de usuário para sincronizar bio, links e métricas
+                    automaticamente.</p>
+                <div class="form-group" style="margin-top:1rem;">
+                    <label class="form-label" for="githubUsernameInput">Usuário GitHub</label>
+                    <input class="form-control" id="githubUsernameInput" placeholder="ex: octocat" type="text"/>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-outline" onclick="closeGithubImportModal()" type="button">Cancelar</button>
+                    <button class="btn btn-primary" onclick="confirmGithubImport()" type="button">
+                        <i class="bi bi-cloud-download"></i> Importar agora
+                    </button>
+                </div>
+            </div>
+        </div>
+        <form method="post" th:action="@{/logout}">
+            <button class="logout-btn" type="submit"><i class="bi bi-box-arrow-right"></i><span
+                    class="menu-text">Sair</span></button>
+        </form>
+    </div>
+</nav>
+<div class="main-content" id="mainContent">
+    <div class="top-bar">
+        <h1 class="page-title">Perfil Profissional</h1>
+        <div class="user-info">
+            <button class="btn btn-outline" onclick="openGithubImportModal()" type="button">
+                <i class="bi bi-github"></i> Importar do GitHub
+            </button>
+            <button class="btn btn-secondary" data-edit-visible onclick="cancelEditMode()" type="button">
+                <i class="bi bi-x-circle"></i> Cancelar edição
+            </button>
+            <button class="btn btn-primary" data-view-visible onclick="enableEditMode()" type="button">
+                <i class="bi bi-pencil"></i> Editar Perfil
+            </button>
+        </div>
+    </div>
+
+    <div class="content-wrapper">
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+        <div class="edit-hint" data-view-visible>
+            Visualize suas informações abaixo. Clique em <strong>Editar Perfil</strong> para habilitar os campos e
+            salvar novas alterações.
+        </div>
+        <div class="form-card profile-edit-wrapper" data-animate="fade-up"
+             th:with="avatarEditPath=${#strings.isEmpty(profileForm.avatarUrl) ? '/images/avatar-placeholder.svg' : profileForm.avatarUrl}">
+            <form enctype="multipart/form-data" id="profileForm" method="post" th:action="@{/profile}"
+                  th:object="${profileForm}">
+                <input th:field="*{avatarUrl}" type="hidden"/>
+                <!-- Hidden fields for GitHub data -->
+                <input th:field="*{githubLogin}" type="hidden"/>
+                <input th:field="*{githubName}" type="hidden"/>
+                <input th:field="*{githubCompany}" type="hidden"/>
+                <input th:field="*{twitterUsername}" type="hidden"/>
+                <input th:field="*{hireable}" type="hidden"/>
+                <input th:field="*{publicRepos}" type="hidden"/>
+                <input th:field="*{publicGists}" type="hidden"/>
+                <input th:field="*{followers}" type="hidden"/>
+                <input th:field="*{following}" type="hidden"/>
+                <input th:field="*{githubCreatedAt}" type="hidden"/>
+                <input th:field="*{githubUpdatedAt}" type="hidden"/>
+                <input data-tag-hidden="skills" th:field="*{skills}" type="hidden"/>
+                <input data-tag-hidden="softSkills" th:field="*{softSkills}" type="hidden"/>
+
+                <div class="profile-edit-sections">
+                    <section class="profile-panel profile-panel--hero">
+                        <div class="hero-avatar">
+                            <img alt="Avatar" id="avatarPreview" th:src="@{${avatarEditPath}}"/>
+                            <label class="btn btn-outline" data-edit-visible>
+                                <i class="bi bi-upload"></i> Atualizar foto
+                                <input accept="image/*" data-editable-field data-remove-if-empty="true"
+                                       onchange="previewAvatar(event)" th:field="*{avatar}" type="file"/>
+                            </label>
+                        </div>
+                        <div class="hero-details">
+                            <p class="hero-badge">Perfil conectado</p>
+                            <h2 th:text="${profileForm.fullName != null ? profileForm.fullName : 'Seu nome completo'}"></h2>
+                            <p class="hero-subtitle">Sincronize suas informações profissionais com o GitHub para manter
+                                tudo atualizado automaticamente.</p>
+                            <div class="hero-stats">
+                                <div>
+                                    <span>Repositórios</span>
+                                    <strong data-hero-stat="repos"
+                                            th:text="${profileForm.publicRepos != null ? profileForm.publicRepos : 0}">0</strong>
+                                </div>
+                                <div>
+                                    <span>Seguidores</span>
+                                    <strong data-hero-stat="followers"
+                                            th:text="${profileForm.followers != null ? profileForm.followers : 0}">0</strong>
+                                </div>
+                                <div>
+                                    <span>Seguindo</span>
+                                    <strong data-hero-stat="following"
+                                            th:text="${profileForm.following != null ? profileForm.following : 0}">0</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="profile-panel">
+                        <div class="profile-panel__header">
+                            <h3><i class="bi bi-person-lines-fill"></i> Informações pessoais</h3>
+                            <p>Esses dados ajudam colegas e recrutadores a identificarem você.</p>
+                        </div>
+                        <div class="profile-panel__grid two-columns">
+                            <div class="form-group">
+                                <label class="form-label">Nome completo</label>
+                                <input class="form-control" data-editable-field placeholder="Seu nome"
+                                       th:field="*{fullName}" type="text"/>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <input class="form-control" data-editable-field placeholder="email@exemplo.com"
+                                       th:field="*{email}" type="email"/>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Localização</label>
+                                <input class="form-control" data-editable-field placeholder="Cidade, País"
+                                       th:field="*{location}" type="text"/>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Disponibilidade</label>
+                                <div class="select-wrapper">
+                                    <select class="form-control" data-editable-field th:field="*{availability}">
+                                        <option value="">Selecione...</option>
+                                        <option value="FULL_TIME">Full Time</option>
+                                        <option value="PART_TIME">Part Time</option>
+                                        <option value="FREELANCE">Freelance</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="profile-panel">
+                        <div class="profile-panel__header">
+                            <h3><i class="bi bi-briefcase"></i> Perfil profissional</h3>
+                            <p>Conte sobre sua senioridade, stack principal e experiências.</p>
+                        </div>
+                        <div class="profile-panel__grid two-columns">
+                            <div class="form-group">
+                                <label class="form-label">Profissão</label>
+                                <input class="form-control" data-editable-field placeholder="Ex: Desenvolvedor Backend"
+                                       th:field="*{profession}" type="text"/>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Nível de experiência</label>
+                                <div class="select-wrapper">
+                                    <select class="form-control" data-editable-field th:field="*{experienceLevel}">
+                                        <option value="">Selecione...</option>
+                                        <option value="JUNIOR">Junior</option>
+                                        <option value="MID">Pleno</option>
+                                        <option value="SENIOR">Sênior</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Stack principal</label>
+                                <input class="form-control" data-editable-field
+                                       placeholder="Ex: Java/Spring, Node/React" th:field="*{primaryStack}"
+                                       type="text"/>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-top:1rem;">
+                            <label class="form-label">Bio</label>
+                            <textarea class="form-control" data-editable-field
+                                      placeholder="Conte um pouco sobre você, seus valores e foco profissional."
+                                      rows="4"
+                                      th:field="*{bio}"></textarea>
+                        </div>
+                    </section>
+
+                    <section class="profile-panel">
+                        <div class="profile-panel__header">
+                            <h3><i class="bi bi-lightning-charge"></i> Skills</h3>
+                            <p>Adicione suas competências em formato de tags para facilitar a leitura.</p>
+                        </div>
+                        <div class="skills-dual-grid">
+                            <div>
+                                <label class="form-label">Hard skills</label>
+                                <div class="tag-input" data-tag-input-wrapper="skills">
+                                    <div class="tag-list" data-tag-list="skills"></div>
+                                    <input class="tag-input-field" data-editable-field data-tag-input="skills"
+                                           placeholder="Digite e pressione Enter" type="text"/>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="form-label">Soft skills</label>
+                                <div class="tag-input" data-tag-input-wrapper="softSkills">
+                                    <div class="tag-list" data-tag-list="softSkills"></div>
+                                    <input class="tag-input-field" data-editable-field data-tag-input="softSkills"
+                                           placeholder="Comunicação, Liderança..." type="text"/>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="profile-panel">
+                        <div class="profile-panel__header">
+                            <h3><i class="bi bi-link-45deg"></i> Presença digital</h3>
+                            <p>Compartilhe os links onde podemos saber mais sobre você.</p>
+                        </div>
+                        <div class="profile-panel__grid two-columns">
+                            <div class="form-group">
+                                <label class="form-label"><i class="bi bi-globe"></i> Website</label>
+                                <input class="form-control" data-editable-field placeholder="https://"
+                                       th:field="*{websiteUrl}" type="url"/>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label"><i class="bi bi-github"></i> GitHub</label>
+                                <input class="form-control" data-editable-field placeholder="https://github.com/usuario"
+                                       th:field="*{githubUrl}" type="url"/>
+                                <small class="form-text">Use o botão "Importar do GitHub" para preencher os dados
+                                    automaticamente.</small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label"><i class="bi bi-linkedin"></i> LinkedIn</label>
+                                <input class="form-control" data-editable-field
+                                       placeholder="https://linkedin.com/in/usuario" th:field="*{linkedinUrl}"
+                                       type="url"/>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+                <div class="form-actions" data-edit-visible>
+                    <button class="btn btn-secondary" onclick="cancelEditMode()" type="button">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </button>
+                    <button class="btn btn-primary" type="submit">
+                        <i class="bi bi-check-circle"></i> Salvar alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<style>
+    .profile-edit-wrapper {
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+    }
+
+    .profile-edit-sections {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .profile-panel {
+        background: var(--bg-primary, #fff);
+        border: 1px solid var(--border-color);
+        border-radius: 18px;
+        padding: 1.75rem;
+        box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
+    }
+
+    .profile-panel__header {
+        margin-bottom: 1.25rem;
+    }
+
+    .profile-panel__header h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .profile-panel__header p {
+        margin: 0.35rem 0 0;
+        color: var(--text-secondary);
+    }
+
+    .profile-panel__grid {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .profile-panel__grid.two-columns {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .profile-panel--hero {
+        display: flex;
+        gap: 2rem;
+        align-items: center;
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(147, 197, 253, 0.4));
+        border: none;
+        box-shadow: none;
+    }
+
+    .hero-avatar {
+        text-align: center;
+    }
+
+    .hero-avatar img {
+        width: 160px;
+        height: 160px;
+        border-radius: 28px;
+        object-fit: cover;
+        border: 4px solid rgba(255, 255, 255, 0.6);
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.25);
+        margin-bottom: 1rem;
+    }
+
+    .hero-avatar label input {
+        display: none;
+    }
+
+    .hero-details h2 {
+        margin: 0;
+        font-size: 1.8rem;
+    }
+
+    .hero-subtitle {
+        margin: 0.5rem 0 1.2rem;
+        color: var(--text-secondary);
+    }
+
+    .hero-badge {
+        margin: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.9rem;
+        color: var(--primary-color);
+    }
+
+    .hero-stats {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .hero-stats div {
+        display: flex;
+        flex-direction: column;
+        background: rgba(255, 255, 255, 0.8);
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        min-width: 110px;
+    }
+
+    .hero-stats span {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+
+    .hero-stats strong {
+        font-size: 1.4rem;
+        color: var(--primary-color);
+    }
+
+    .skills-dual-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.25rem;
+    }
+
+    .tag-input {
+        border: 1px dashed var(--border-color);
+        border-radius: 12px;
+        padding: 0.75rem;
+        background: var(--bg-secondary);
+    }
+
+    .tag-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .tag-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 999px;
+        background: var(--primary-color);
+        color: #fff;
+        font-size: 0.85rem;
+    }
+
+    .tag-chip button {
+        border: none;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        font-size: 1rem;
+        padding: 0;
+        line-height: 1;
+    }
+
+    body[data-editing='false'] .tag-chip button {
+        display: none;
+    }
+
+    .tag-input-field {
+        width: 100%;
+        border: none;
+        background: transparent;
+        outline: none;
+        font-size: 0.95rem;
+    }
+
+    .edit-hint {
+        margin-bottom: 1rem;
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        background: var(--bg-secondary);
+        border: 1px dashed var(--border-color);
+        color: var(--text-secondary);
+    }
+
+    body[data-editing='false'] .tag-input-field {
+        display: none;
+    }
+
+    body[data-editing='false'] .tag-input {
+        cursor: not-allowed;
+    }
+
+    body[data-editing='false'] .tag-input::after {
+        content: 'Clique em Editar para alterar as tags';
+        display: block;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+
+    .form-control.read-only,
+    body[data-editing='false'] .form-control,
+    body[data-editing='false'] textarea.form-control {
+        background: var(--bg-secondary);
+        cursor: default;
+    }
+
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.55);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        z-index: 1200;
+    }
+
+    .modal-overlay.open {
+        display: flex;
+        animation: fadeIn 0.2s ease;
+    }
+
+    .modal-card {
+        position: relative;
+        max-width: 420px;
+        width: 100%;
+        background: var(--bg-primary, #fff);
+        border-radius: 18px;
+        padding: 2rem;
+        box-shadow: 0 25px 80px rgba(15, 23, 42, 0.25);
+        text-align: center;
+    }
+
+    .modal-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        margin: 0 auto 1rem;
+        background: rgba(15, 23, 42, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: var(--primary-color);
+    }
+
+    .modal-subtitle {
+        margin: 0.5rem 0 0;
+        color: var(--text-secondary);
+    }
+
+    .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+    }
+
+    .modal-close {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        border: none;
+        background: transparent;
+        font-size: 1.25rem;
+        cursor: pointer;
+        color: var(--text-secondary);
+    }
+
+    @media (max-width: 768px) {
+        .profile-panel--hero {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .hero-stats {
+            justify-content: center;
+        }
+
+        .modal-card {
+            padding: 1.5rem;
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+<script crossorigin="anonymous"
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const tagState = {};
+    let isEditing = false;
+    const heroStats = {};
+    const githubModal = {overlay: null, input: null};
+
+    document.addEventListener('DOMContentLoaded', () => {
+        ['skills', 'softSkills'].forEach(initTagInput);
+        setupHeroStats();
+        githubModal.overlay = document.getElementById('githubImportModal');
+        githubModal.input = document.getElementById('githubUsernameInput');
+        if (githubModal.overlay) {
+            githubModal.overlay.addEventListener('click', (event) => {
+                if (event.target === githubModal.overlay) {
+                    closeGithubImportModal();
+                }
+            });
+        }
+
+        // CRITICAL FIX: Remove empty file input AND multipart enctype to avoid FileCountLimitExceededException
+        const profileForm = document.getElementById('profileForm');
+        if (profileForm) {
+            console.log('[MULTIPART FIX] Profile form found, attaching submit handler');
+
+            profileForm.addEventListener('submit', function (event) {
+                console.log('[MULTIPART FIX] Form submit triggered');
+                const avatarInput = profileForm.querySelector('input[name="avatar"]');
+
+                if (avatarInput) {
+                    const hasFiles = avatarInput.files && avatarInput.files.length > 0;
+                    console.log('[MULTIPART FIX] Avatar input found. Has files:', hasFiles);
+
+                    if (!hasFiles) {
+                        console.log('[MULTIPART FIX] NO FILE - Removing empty avatar input');
+                        avatarInput.remove();
+
+                        // CRITICAL: Remove multipart enctype to send as normal POST
+                        console.log('[MULTIPART FIX] Removing enctype="multipart/form-data"');
+                        profileForm.removeAttribute('enctype');
+                        console.log('[MULTIPART FIX] Form will be submitted as application/x-www-form-urlencoded');
+                    } else {
+                        console.log('[MULTIPART FIX] HAS FILE - Keeping avatar input and multipart enctype');
+                    }
+                } else {
+                    console.log('[MULTIPART FIX] Avatar input not found');
+                }
+            });
+        } else {
+            console.error('[MULTIPART FIX] Profile form NOT found!');
+        }
+
+        setEditMode(false);
+    });
+
+    function setupHeroStats() {
+        ['repos', 'followers', 'following'].forEach((metric) => {
+            heroStats[metric] = document.querySelector(`[data-hero-stat="${metric}"]`);
+        });
+    }
+
+    function setEditMode(enabled) {
+        isEditing = enabled;
+        document.body.dataset.editing = enabled ? 'true' : 'false';
+        document.querySelectorAll('[data-editable-field]').forEach((field) => {
+            if (field.type === 'hidden') {
+                return;
+            }
+            if (field.tagName === 'SELECT' || field.type === 'file') {
+                field.disabled = !enabled;
+            } else {
+                field.readOnly = !enabled;
+            }
+            field.classList.toggle('read-only', !enabled);
+        });
+        document.querySelectorAll('[data-edit-visible]').forEach((el) => {
+            el.style.display = enabled ? '' : 'none';
+        });
+        document.querySelectorAll('[data-view-visible]').forEach((el) => {
+            el.style.display = enabled ? 'none' : '';
+        });
+        document.querySelectorAll('.tag-input-field').forEach((input) => {
+            input.disabled = !enabled;
+            if (!input.dataset.placeholderActive) {
+                input.dataset.placeholderActive = input.getAttribute('placeholder') || '';
+            }
+            input.placeholder = enabled
+                ? input.dataset.placeholderActive
+                : 'Ative a edição para adicionar novas tags';
+        });
+        if (enabled) {
+            const firstField = document.querySelector('[data-editable-field]:not([type="hidden"])');
+            if (firstField) {
+                firstField.focus({preventScroll: false});
+            }
+        }
+    }
+
+    function enableEditMode() {
+        setEditMode(true);
+    }
+
+    function cancelEditMode() {
+        setEditMode(false);
+        window.location.reload();
+    }
+
+    function openGithubImportModal() {
+        if (!githubModal.overlay) {
+            return;
+        }
+        const loginField = document.querySelector('[name="githubLogin"]');
+        const urlField = document.querySelector('[name="githubUrl"]');
+        const suggestion = (loginField && loginField.value)
+            || extractGithubUsername((urlField && urlField.value) || '');
+        if (githubModal.input) {
+            githubModal.input.value = suggestion || '';
+        }
+        githubModal.overlay.classList.add('open');
+        setTimeout(() => {
+            if (githubModal.input) {
+                githubModal.input.focus();
+            }
+        }, 120);
+    }
+
+    function closeGithubImportModal() {
+        if (githubModal.overlay) {
+            githubModal.overlay.classList.remove('open');
+        }
+    }
+
+    function confirmGithubImport() {
+        if (!githubModal.input) {
+            return;
+        }
+        const username = githubModal.input.value.trim();
+        if (!username) {
+            githubModal.input.focus();
+            return;
+        }
+        closeGithubImportModal();
+        if (!isEditing) {
+            setEditMode(true);
+        }
+        importFromGithub(username);
+    }
+
+    function initTagInput(field) {
+        const hidden = document.querySelector(`[data-tag-hidden="${field}"]`);
+        const list = document.querySelector(`[data-tag-list="${field}"]`);
+        const input = document.querySelector(`[data-tag-input="${field}"]`);
+        if (!hidden || !list || !input) {
+            return;
+        }
+        tagState[field] = hidden.value
+            ? hidden.value.split(',').map((tag) => tag.trim()).filter((tag) => tag.length > 0)
+            : [];
+        input.dataset.placeholderActive = input.getAttribute('placeholder') || '';
+        renderTags(field, list, hidden);
+
+        input.addEventListener('keydown', (event) => {
+            if (!isEditing) {
+                return;
+            }
+            if ((event.key === 'Enter' || event.key === ',') && input.value.trim()) {
+                event.preventDefault();
+                addTag(field, input.value.trim(), list, hidden);
+                input.value = '';
+            }
+        });
+    }
+
+    function renderTags(field, list, hidden) {
+        list.innerHTML = '';
+        tagState[field].forEach((tag, index) => {
+            const chip = document.createElement('span');
+            chip.className = 'tag-chip';
+            const label = document.createElement('span');
+            label.textContent = tag;
+            chip.appendChild(label);
+            const remove = document.createElement('button');
+            remove.type = 'button';
+            remove.innerHTML = '&times;';
+            remove.setAttribute('aria-label', `Remover ${tag}`);
+            remove.addEventListener('click', () => {
+                if (!isEditing) return;
+                removeTag(field, index, list, hidden);
+            });
+            chip.appendChild(remove);
+            list.appendChild(chip);
+        });
+        hidden.value = tagState[field].join(', ');
+    }
+
+    function addTag(field, value, list, hidden) {
+        if (!isEditing) {
+            return;
+        }
+        const normalized = value.trim();
+        if (!normalized || tagState[field].some((tag) => tag.toLowerCase() === normalized.toLowerCase())) {
+            return;
+        }
+        tagState[field].push(normalized);
+        renderTags(field, list, hidden);
+    }
+
+    function removeTag(field, index, list, hidden) {
+        tagState[field].splice(index, 1);
+        renderTags(field, list, hidden);
+    }
+
+    function previewAvatar(evt) {
+        const file = evt.target.files && evt.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+            const img = document.getElementById('avatarPreview');
+            if (img) img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function extractGithubUsername(url) {
+        if (!url) return '';
+        try {
+            const u = new URL(url);
+            if (!u.hostname.includes('github.com')) return '';
+            const parts = u.pathname.split('/').filter(Boolean);
+            return parts[0] || '';
+        } catch (e) {
+            return url.trim();
+        }
+    }
+
+    function updateHeroStat(key, value) {
+        if (heroStats[key]) {
+            heroStats[key].textContent = Number(value || 0);
+        }
+    }
+
+    async function importFromGithub(forcedUsername) {
+        const githubInput = document.querySelector('[name="githubUrl"]');
+        const urlOrUsername = githubInput ? githubInput.value : '';
+        const derivedUsername = extractGithubUsername(urlOrUsername);
+        const username = forcedUsername || derivedUsername;
+        if (!username) {
+            alert('Informe o usuário do GitHub para continuar.');
+            return;
+        }
+        try {
+            const resp = await fetch(`/api/github/user?username=${encodeURIComponent(username)}`);
+            if (!resp.ok) throw new Error('Falha ao consultar GitHub');
+            const data = await resp.json();
+
+            const bio = document.querySelector('[name="bio"]');
+            const website = document.querySelector('[name="websiteUrl"]');
+            const location = document.querySelector('[name="location"]');
+            const gh = document.querySelector('[name="githubUrl"]');
+            const avatarUrlHidden = document.querySelector('[name="avatarUrl"]');
+
+            const githubLogin = document.querySelector('[name="githubLogin"]');
+            const githubName = document.querySelector('[name="githubName"]');
+            const githubCompany = document.querySelector('[name="githubCompany"]');
+            const twitterUsername = document.querySelector('[name="twitterUsername"]');
+            const hireable = document.querySelector('[name="hireable"]');
+            const publicRepos = document.querySelector('[name="publicRepos"]');
+            const publicGists = document.querySelector('[name="publicGists"]');
+            const followers = document.querySelector('[name="followers"]');
+            const following = document.querySelector('[name="following"]');
+            const githubCreatedAt = document.querySelector('[name="githubCreatedAt"]');
+            const githubUpdatedAt = document.querySelector('[name="githubUpdatedAt"]');
+
+            if (githubName && data.name) githubName.value = data.name;
+            if (githubLogin && data.login) githubLogin.value = data.login;
+
+            if (bio && data.bio) bio.value = data.bio;
+            if (website && data.blog) website.value = data.blog;
+            if (location && data.location) location.value = data.location;
+            if (gh && data.html_url) gh.value = data.html_url;
+
+            if (githubCompany && data.company) githubCompany.value = data.company;
+            if (twitterUsername && data.twitter_username) twitterUsername.value = data.twitter_username;
+            if (hireable) hireable.value = data.hireable ? 'true' : 'false';
+            if (publicRepos) {
+                publicRepos.value = data.public_repos || 0;
+                updateHeroStat('repos', data.public_repos);
+            }
+            if (publicGists) publicGists.value = data.public_gists || 0;
+            if (followers) {
+                followers.value = data.followers || 0;
+                updateHeroStat('followers', data.followers);
+            }
+            if (following) {
+                following.value = data.following || 0;
+                updateHeroStat('following', data.following);
+            }
+            if (githubCreatedAt && data.created_at) githubCreatedAt.value = data.created_at;
+            if (githubUpdatedAt && data.updated_at) githubUpdatedAt.value = data.updated_at;
+
+            if (data.avatar_url) {
+                const img = document.getElementById('avatarPreview');
+                if (img) img.src = data.avatar_url;
+                if (avatarUrlHidden) avatarUrlHidden.value = data.avatar_url;
+            }
+
+            alert('Dados do GitHub importados com sucesso! Clique em "Salvar alterações" para confirmar.');
+        } catch (e) {
+            alert('Não foi possível importar dados do GitHub.');
+            console.error(e);
+        }
+    }
+</script>
+<script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>

@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
-
     public ResponseEntity<@NotNull ErrorResponse> handleResourceNotFoundException(Throwable ex) {
         ErrorResponse error =
                 ErrorResponse.builder()
@@ -31,8 +30,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ExceptionHandler(TaskValidationException.class)
+    public ResponseEntity<@NotNull ErrorResponse> handleTaskValidationException(
+            TaskValidationException ex) {
+        ErrorResponse error =
+                ErrorResponse.builder()
+                        .timestamp(LocalDateTime.now())
+                        .status(HttpStatus.BAD_REQUEST.value())
+                        .error("Validation Error")
+                        .message(ex.getMessage())
+                        .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
 
+    @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<@NotNull Map<String, String>> handleValidationExceptions(
             BindException ex) {
         Map<String, String> errors = new HashMap<>();

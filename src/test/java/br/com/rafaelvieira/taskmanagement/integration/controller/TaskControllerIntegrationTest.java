@@ -50,20 +50,15 @@ class TaskControllerIntegrationTest extends BaseIntegrationTest {
 
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    @Autowired private ObjectMapper objectMapper;
 
-    @Autowired
-    private WebApplicationContext webApplicationContext;
+    @Autowired private WebApplicationContext webApplicationContext;
 
-    @Autowired
-    private TaskRepository taskRepository;
+    @Autowired private TaskRepository taskRepository;
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+    @Autowired private CategoryRepository categoryRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    @Autowired private UserRepository userRepository;
 
     private Category testCategory;
     private User testUser;
@@ -89,6 +84,7 @@ class TaskControllerIntegrationTest extends BaseIntegrationTest {
                                 .username("developer")
                                 .email("dev@example.com")
                                 .fullName("Developer User")
+                                .password("password123")
                                 .build());
     }
 

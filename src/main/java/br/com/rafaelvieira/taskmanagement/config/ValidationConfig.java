@@ -11,8 +11,7 @@ public class ValidationConfig {
 
     @Bean
     public LocalValidatorFactoryBean validator() {
-        LocalValidatorFactoryBean bean = new LocalValidatorFactoryBean();
-        return bean;
+        return new LocalValidatorFactoryBean();
     }
 
     @Bean

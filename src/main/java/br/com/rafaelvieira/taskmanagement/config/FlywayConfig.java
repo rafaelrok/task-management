@@ -27,7 +27,6 @@ import org.springframework.core.annotation.Order;
 public class FlywayConfig {
 
     @Bean(initMethod = "migrate")
-
     @Profile("!test")
     @Order(HIGHEST_PRECEDENCE)
     public Flyway flyway(DataSource dataSource) {
