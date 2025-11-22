@@ -48,6 +48,22 @@
     }
 })();
 
+// Toast notification utility
+function showToast(cls, msg, delay = 4000) {
+    const container = document.querySelector('.toast-container') || (function () {
+        const c = document.createElement('div');
+        c.className = 'toast-container position-fixed top-0 end-0 p-3';
+        c.style.zIndex = '1300';
+        document.body.appendChild(c);
+        return c;
+    })();
+    const t = document.createElement('div');
+    t.className = 'toast ' + cls + ' border-0';
+    t.innerHTML = '<div class="d-flex"><div class="toast-body">' + msg + '</div><button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
+    container.appendChild(t);
+    new bootstrap.Toast(t, {delay}).show();
+}
+
 // Active Tasks live behavior
 (function () {
     const grid = document.getElementById('activeGrid');
@@ -200,6 +216,7 @@
         }
 
         // Button logic
+        const taskId = card.dataset.taskId;
         card.querySelectorAll('[data-action]').forEach(btn => {
             const action = btn.dataset.action;
             let disabled = false;
@@ -227,7 +244,13 @@
                 // Fallback
                 if (action === 'start') disabled = status !== 'TODO';
             }
+
+            const wasDisabled = btn.disabled;
             btn.disabled = disabled;
+
+            if (action === 'start' && wasDisabled !== disabled) {
+                console.log(`🔧 Task #${taskId} START button state changed: ${wasDisabled} → ${disabled} (status: ${status}, pendingStart: ${pendingStart}, scheduledPending: ${scheduledPending})`);
+            }
         });
 
         // Extend button visibility
@@ -287,6 +310,7 @@
             btn.addEventListener('click', async () => {
                 const id = btn.dataset.id;
                 const action = btn.dataset.action;
+                console.log(`🔘 Button clicked - Action: ${action}, Task ID: ${id}`);
 
                 if (action === 'extend') {
                     openExtendModal(id);
@@ -294,14 +318,42 @@
                 }
 
                 let status;
-                if (action === 'start') status = 'IN_PROGRESS'; else if (action === 'pause') status = 'IN_PAUSE'; else if (action === 'cancel') status = 'CANCELLED'; else if (action === 'finish') status = 'DONE'; else return;
+                if (action === 'start') status = 'IN_PROGRESS';
+                else if (action === 'pause') status = 'IN_PAUSE';
+                else if (action === 'cancel') status = 'CANCELLED';
+                else if (action === 'finish') status = 'DONE';
+                else {
+                    console.warn('Unknown action:', action);
+                    return;
+                }
+
+                console.log(`📤 Sending request: PATCH /api/tasks/${id}/status?status=${status}`);
                 btn.disabled = true;
                 try {
-                    await fetch(`/api/tasks/${id}/status?status=${status}`, {method: 'PATCH'});
+                    const response = await fetch(`/api/tasks/${id}/status?status=${status}`, {method: 'PATCH'});
+                    console.log(`📥 Response status: ${response.status} ${response.statusText}`);
+
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        const errorMsg = errorData.message || 'Erro ao atualizar status da tarefa';
+                        console.error('❌ Error response:', errorData);
+                        showToast('text-bg-warning', '⚠️ ' + errorMsg);
+                        if (action === 'start' && errorMsg.includes('Tempo de Execução')) {
+                            setTimeout(() => window.location.href = `/tasks/${id}`, 1500);
+                        }
+                        btn.disabled = false;
+                        return;
+                    }
+
+                    const result = await response.json();
+                    console.log('✅ Task updated successfully:', result);
+
                     if (status === 'DONE' || status === 'CANCELLED') sticky.delete(id);
+                    showToast('text-bg-success', action === 'start' ? '✅ Tarefa iniciada!' : '✅ Status atualizado!');
                     await refresh();
                 } catch (e) {
-                    console.error(e);
+                    console.error('💥 Exception during request:', e);
+                    showToast('text-bg-danger', '❌ Erro: ' + e.message);
                 } finally {
                     btn.disabled = false;
                 }

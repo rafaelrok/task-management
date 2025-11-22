@@ -23,8 +23,10 @@ import br.com.rafaelvieira.taskmanagement.domain.records.TaskCreateRecord;
 import br.com.rafaelvieira.taskmanagement.domain.records.TaskRecord;
 import br.com.rafaelvieira.taskmanagement.exception.ResourceNotFoundException;
 import br.com.rafaelvieira.taskmanagement.repository.CategoryRepository;
+import br.com.rafaelvieira.taskmanagement.repository.PomodoroSessionRepository;
 import br.com.rafaelvieira.taskmanagement.repository.TaskRepository;
 import br.com.rafaelvieira.taskmanagement.repository.UserRepository;
+import br.com.rafaelvieira.taskmanagement.service.UserService;
 import br.com.rafaelvieira.taskmanagement.service.impl.TaskServiceImpl;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -36,6 +38,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -44,6 +47,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * Testes unitários do serviço Task Service Testando lógica de negócio e interações com o
@@ -54,6 +58,7 @@ import org.mockito.MockitoAnnotations;
  */
 @DisplayName("Task Service Unit Tests")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Tag("unit")
 class TaskServiceTest {
 
     @Mock private TaskRepository taskRepository;
@@ -62,6 +67,12 @@ class TaskServiceTest {
 
     @Mock private UserRepository userRepository;
 
+    @Mock private ApplicationEventPublisher eventPublisher; // evita NPE ao publicar eventos
+
+    @Mock private UserService userService; // usado em changeTaskStatus quando IN_PROGRESS
+
+    @Mock private PomodoroSessionRepository pomodoroSessionRepository; // usado em pomodoro
+
     @InjectMocks private TaskServiceImpl taskService;
 
     private AutoCloseable closeable;
@@ -69,6 +80,12 @@ class TaskServiceTest {
     @BeforeEach
     void setUp() {
         closeable = MockitoAnnotations.openMocks(this);
+        // Evita interações reais em publishEvent
+        org.mockito.Mockito.doNothing()
+                .when(eventPublisher)
+                .publishEvent(org.mockito.ArgumentMatchers.any());
+        // Por padrão sem usuário autenticado
+        org.mockito.Mockito.when(userService.getCurrentUser()).thenReturn(null);
     }
 
     @AfterEach

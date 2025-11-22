@@ -38,6 +38,7 @@ public class TaskServiceImpl implements TaskService {
     private final UserRepository userRepository;
     private final UserService userService;
     private final PomodoroSessionRepository pomodoroSessionRepository;
+    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     private static TaskRecord convertTo(Task task) {
         boolean isOverdue =
@@ -146,6 +147,14 @@ public class TaskServiceImpl implements TaskService {
                 finishActivePomodoros(task);
                 task.setStatus(TaskStatus.OVERDUE);
                 task.setPomodoroUntil(null);
+
+                eventPublisher.publishEvent(
+                        new br.com.rafaelvieira.taskmanagement.event.TaskEvent(
+                                this,
+                                task,
+                                br.com.rafaelvieira.taskmanagement.domain.enums.NotificationType
+                                        .TASK_TIME_UP,
+                                "O tempo da tarefa '" + task.getTitle() + "' acabou!"));
             }
         }
     }
@@ -186,6 +195,17 @@ public class TaskServiceImpl implements TaskService {
         }
 
         Task savedTask = taskRepository.save(task);
+
+        if (savedTask.getStatus() == TaskStatus.TODO) {
+            eventPublisher.publishEvent(
+                    new br.com.rafaelvieira.taskmanagement.event.TaskEvent(
+                            this,
+                            savedTask,
+                            br.com.rafaelvieira.taskmanagement.domain.enums.NotificationType
+                                    .TASK_CREATED,
+                            "Nova tarefa criada: " + savedTask.getTitle()));
+        }
+
         return convertTo(savedTask);
     }
 
@@ -227,11 +247,19 @@ public class TaskServiceImpl implements TaskService {
 
         Task updatedTask = taskRepository.save(task);
         taskRepository.flush();
+
+        eventPublisher.publishEvent(
+                new br.com.rafaelvieira.taskmanagement.event.TaskEvent(
+                        this,
+                        updatedTask,
+                        br.com.rafaelvieira.taskmanagement.domain.enums.NotificationType
+                                .TASK_UPDATED,
+                        "Tarefa atualizada: " + updatedTask.getTitle()));
+
         return convertTo(updatedTask);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public TaskRecord getTaskById(Long id) {
         Task task =
                 taskRepository
@@ -301,29 +329,96 @@ public class TaskServiceImpl implements TaskService {
                         .findById(id)
                         .orElseThrow(() -> new ResourceNotFoundException(EXCEPTION_TASK_ID + id));
 
+        System.out.println(
+                "🔄 changeTaskStatus called - ID: "
+                        + id
+                        + ", Current Status: "
+                        + task.getStatus()
+                        + ", New Status: "
+                        + newStatus
+                        + ", ExecTime: "
+                        + task.getExecutionTimeMinutes()
+                        + ", Pomodoro: "
+                        + task.getPomodoroMinutes());
+
         if (newStatus == TaskStatus.IN_PROGRESS) {
-            // Validate required fields; if missing, do not change status (tests expect TODO
+            // Validate required fields; if missing, keep status unchanged (tests expect TODO
             // remains)
             if (!canStart(task)) {
-                return convertTo(task); // leave as-is
+                System.out.println(
+                        "⚠️ Cannot start task ID "
+                                + id
+                                + ": executionTimeMinutes="
+                                + task.getExecutionTimeMinutes()
+                                + ", pomodoroMinutes="
+                                + task.getPomodoroMinutes()
+                                + " -> keeping status "
+                                + task.getStatus());
+                // Simply return current state without throwing, allowing callers/tests to proceed
+                return convertTo(task);
             }
+            System.out.println("✅ Task " + id + " can start - proceeding...");
             // Assign current user if any
             ensureAssignedToCurrentUserIfStarting(task);
+
+            boolean isResumed = task.getStatus() == TaskStatus.IN_PAUSE;
+
             if (task.getStatus() != TaskStatus.IN_PROGRESS) {
+                System.out.println("⏱️ Starting main timer for task " + id);
                 startMainTimer(task);
                 maybeStartPomodoro(task);
             }
             finishActivePomodoros(task);
             task.setStatus(TaskStatus.IN_PROGRESS);
+            System.out.println("✅ Task " + id + " status set to IN_PROGRESS");
+
+            if (isResumed) {
+                eventPublisher.publishEvent(
+                        new br.com.rafaelvieira.taskmanagement.event.TaskEvent(
+                                this,
+                                task,
+                                br.com.rafaelvieira.taskmanagement.domain.enums.NotificationType
+                                        .TASK_RESUMED,
+                                "Tarefa retomada: " + task.getTitle()));
+            } else {
+                eventPublisher.publishEvent(
+                        new br.com.rafaelvieira.taskmanagement.event.TaskEvent(
+                                this,
+                                task,
+                                br.com.rafaelvieira.taskmanagement.domain.enums.NotificationType
+                                        .TASK_STARTED,
+                                "Tarefa iniciada: " + task.getTitle()));
+            }
+
         } else if (newStatus == TaskStatus.IN_PAUSE) {
             pauseMainTimer(task);
             task.setStatus(TaskStatus.IN_PAUSE);
             finishActivePomodoros(task);
+
+            eventPublisher.publishEvent(
+                    new br.com.rafaelvieira.taskmanagement.event.TaskEvent(
+                            this,
+                            task,
+                            br.com.rafaelvieira.taskmanagement.domain.enums.NotificationType
+                                    .TASK_PAUSED,
+                            "Tarefa pausada: " + task.getTitle()));
+
         } else if (newStatus == TaskStatus.DONE || newStatus == TaskStatus.CANCELLED) {
             pauseMainTimer(task);
             finishActivePomodoros(task);
             task.setStatus(newStatus);
             task.setPomodoroUntil(null);
+
+            if (newStatus == TaskStatus.DONE) {
+                eventPublisher.publishEvent(
+                        new br.com.rafaelvieira.taskmanagement.event.TaskEvent(
+                                this,
+                                task,
+                                br.com.rafaelvieira.taskmanagement.domain.enums.NotificationType
+                                        .TASK_FINISHED,
+                                "Tarefa finalizada: " + task.getTitle()));
+            }
+
         } else {
             task.setStatus(newStatus);
         }

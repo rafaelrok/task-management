@@ -1,21 +1,40 @@
 package br.com.rafaelvieira.taskmanagement.service.impl;
 
+import br.com.rafaelvieira.taskmanagement.domain.entity.Notification;
+import br.com.rafaelvieira.taskmanagement.domain.enums.NotificationType;
 import br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus;
+import br.com.rafaelvieira.taskmanagement.domain.model.User;
+import br.com.rafaelvieira.taskmanagement.exception.ForbiddenException;
+import br.com.rafaelvieira.taskmanagement.exception.ResourceNotFoundException;
+import br.com.rafaelvieira.taskmanagement.exception.UnauthorizedException;
+import br.com.rafaelvieira.taskmanagement.repository.NotificationRepository;
 import br.com.rafaelvieira.taskmanagement.repository.TaskRepository;
 import br.com.rafaelvieira.taskmanagement.service.NotificationService;
 import br.com.rafaelvieira.taskmanagement.service.UserService;
+import br.com.rafaelvieira.taskmanagement.web.dto.NotificationResponseDTO;
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class NotificationServiceImpl implements NotificationService {
 
     private final TaskRepository taskRepository;
     private final UserService userService;
+    private final NotificationRepository notificationRepository;
+    private final java.util.Map<Long, SseEmitter> emitters =
+            new java.util.concurrent.ConcurrentHashMap<>();
 
     @Override
     public long countOverdueForCurrentUser() {
@@ -45,5 +64,126 @@ public class NotificationServiceImpl implements NotificationService {
                                         && !t.getDueDate().isBefore(now)
                                         && t.getDueDate().isBefore(window))
                 .count();
+    }
+
+    @Override
+    @Transactional
+    public Notification createNotification(
+            String title, String message, NotificationType type, Long taskId, User user) {
+        if (user == null) {
+            log.debug("Skipping notification creation for task {} because user is null", taskId);
+            return null; // evita constraint violation
+        }
+        var notification =
+                Notification.builder()
+                        .title(title)
+                        .message(message)
+                        .type(type)
+                        .taskId(taskId)
+                        .user(user)
+                        .read(false)
+                        .createdAt(LocalDateTime.now())
+                        .build();
+
+        var saved = notificationRepository.save(notification);
+        sendSseNotification(user.getId(), saved);
+        return saved;
+    }
+
+    @Override
+    public Page<@NotNull Notification> findAllForCurrentUser(Pageable pageable) {
+        var currentUser = userService.getCurrentUser();
+        if (currentUser == null) {
+            log.warn("Attempt to list notifications without authentication");
+            throw new UnauthorizedException("User not authenticated");
+        }
+        return notificationRepository.findByUserOrderByCreatedAtDesc(currentUser, pageable);
+    }
+
+    @Override
+    public List<Notification> findUnreadForCurrentUser() {
+        var currentUser = userService.getCurrentUser();
+        if (currentUser == null) {
+            throw new UnauthorizedException("User not authenticated");
+        }
+        return notificationRepository.findByUserAndReadFalseOrderByCreatedAtDesc(currentUser);
+    }
+
+    @Override
+    public long countUnreadForCurrentUser() {
+        var currentUser = userService.getCurrentUser();
+        if (currentUser == null) {
+            throw new UnauthorizedException("User not authenticated");
+        }
+        return notificationRepository.countByUserAndReadFalse(currentUser);
+    }
+
+    @Override
+    @Transactional
+    public void markAsRead(Long notificationId) {
+        var notification =
+                notificationRepository
+                        .findById(notificationId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
+        var currentUser = userService.getCurrentUser();
+        if (currentUser == null) {
+            throw new UnauthorizedException("User not authenticated");
+        }
+        if (!notification.getUser().getId().equals(currentUser.getId())) {
+            log.warn(
+                    "User {} attempted to access notification {} of user {}",
+                    currentUser.getId(),
+                    notificationId,
+                    notification.getUser().getId());
+            throw new ForbiddenException("Unauthorized access to notification");
+        }
+        notification.setRead(true);
+        notificationRepository.save(notification);
+    }
+
+    @Override
+    @Transactional
+    public void markAllAsRead() {
+        var currentUser = userService.getCurrentUser();
+        if (currentUser == null) {
+            throw new UnauthorizedException("User not authenticated");
+        }
+        notificationRepository.markAllAsRead(currentUser);
+    }
+
+    @Override
+    public SseEmitter subscribe(Long userId) {
+        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
+        emitters.put(userId, emitter);
+        emitter.onCompletion(() -> emitters.remove(userId));
+        emitter.onTimeout(() -> emitters.remove(userId));
+        emitter.onError((e) -> emitters.remove(userId));
+        return emitter;
+    }
+
+    private void sendSseNotification(Long userId, Notification notification) {
+        SseEmitter emitter = emitters.get(userId);
+        if (emitter != null) {
+            try {
+                NotificationResponseDTO dto =
+                        NotificationResponseDTO.builder()
+                                .id(notification.getId())
+                                .title(notification.getTitle())
+                                .message(notification.getMessage())
+                                .type(notification.getType())
+                                .taskId(notification.getTaskId())
+                                .read(notification.isRead())
+                                .createdAt(notification.getCreatedAt())
+                                .build();
+                emitter.send(SseEmitter.event().name("notification").data(dto));
+            } catch (IOException e) {
+                emitters.remove(userId);
+                log.warn(
+                        "Failed to send SSE notification {} for user {}: {}",
+                        notification.getId(),
+                        userId,
+                        e.getMessage());
+            }
+        }
     }
 }

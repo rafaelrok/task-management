@@ -206,7 +206,46 @@ public class TaskViewController {
             Model model) {
         Pageable pageable = PageRequest.of(page, size);
         Page<@NotNull TaskRecord> tasksPage = taskService.searchTasks(filter, pageable);
-        model.addAttribute("tasksPage", tasksPage);
+
+        // Sort tasks: IN_PROGRESS and IN_PAUSE first, then by updatedAt desc
+        java.util.List<TaskRecord> sortedTasks =
+                tasksPage.getContent().stream()
+                        .sorted(
+                                (t1, t2) -> {
+                                    // Priority 1: IN_PROGRESS status
+                                    boolean t1InProgress = t1.status() == TaskStatus.IN_PROGRESS;
+                                    boolean t2InProgress = t2.status() == TaskStatus.IN_PROGRESS;
+                                    if (t1InProgress != t2InProgress) {
+                                        return t1InProgress ? -1 : 1;
+                                    }
+
+                                    // Priority 2: IN_PAUSE status
+                                    boolean t1InPause = t1.status() == TaskStatus.IN_PAUSE;
+                                    boolean t2InPause = t2.status() == TaskStatus.IN_PAUSE;
+                                    if (t1InPause != t2InPause) {
+                                        return t1InPause ? -1 : 1;
+                                    }
+
+                                    // Priority 3: OVERDUE status
+                                    boolean t1Overdue = t1.overdue();
+                                    boolean t2Overdue = t2.overdue();
+                                    if (t1Overdue != t2Overdue) {
+                                        return t1Overdue ? -1 : 1;
+                                    }
+
+                                    // Priority 4: Most recently updated
+                                    if (t1.updatedAt() != null && t2.updatedAt() != null) {
+                                        return t2.updatedAt().compareTo(t1.updatedAt());
+                                    }
+                                    return 0;
+                                })
+                        .toList();
+
+        Page<@NotNull TaskRecord> sortedPage =
+                new org.springframework.data.domain.PageImpl<>(
+                        sortedTasks, pageable, tasksPage.getTotalElements());
+
+        model.addAttribute("tasksPage", sortedPage);
         model.addAttribute("filter", filter);
         return "tasks/list";
     }

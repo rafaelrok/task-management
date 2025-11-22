@@ -2,225 +2,227 @@
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head('Editar Tarefa - Task Management')}"></head>
 <body class="dashboard-body">
-<!-- Sidebar -->
-<nav class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-        <div class="logo">
-            <i class="bi bi-kanban"></i>
-            <span class="logo-text">TaskFlow</span>
-        </div>
-        <button class="sidebar-toggle" id="sidebarToggle">
-            <i class="bi bi-list"></i>
-        </button>
-    </div>
-    <ul class="sidebar-menu">
-        <li class="menu-item">
-            <a th:href="@{/}">
-                <i class="bi bi-speedometer2"></i>
-                <span class="menu-text">Dashboard</span>
-            </a>
-        </li>
-        <li class="menu-item active">
-            <a th:href="@{/tasks}">
-                <i class="bi bi-list-task"></i>
-                <span class="menu-text">Tarefas</span>
-            </a>
-        </li>
-        <li class="menu-item">
-            <a th:href="@{/tasks/new}">
-                <i class="bi bi-plus-circle"></i>
-                <span class="menu-text">Nova Tarefa</span>
-            </a>
-        </li>
-        <li class="menu-item">
-            <a th:href="@{/profile}">
-                <i class="bi bi-person-circle"></i>
-                <span class="menu-text">Perfil</span>
-            </a>
-        </li>
-        <li class="menu-item">
-            <a href="#" id="themeToggle">
-                <i class="bi bi-moon-stars"></i>
-                <span class="menu-text">Tema Escuro</span>
-            </a>
-        </li>
-    </ul>
-    <div class="sidebar-footer">
-        <form method="post" th:action="@{/logout}">
-            <button class="logout-btn" type="submit">
-                <i class="bi bi-box-arrow-right"></i>
-                <span class="menu-text">Sair</span>
-            </button>
-        </form>
-    </div>
-</nav>
+    <!-- Sidebar -->
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
 
-<!-- Main Content -->
-<div class="main-content" id="mainContent">
-    <div class="top-bar">
-        <h1 class="page-title">
-            <i class="bi bi-pencil-square"></i> Editar Tarefa
-        </h1>
-        <div class="user-info">
-            <a class="btn btn-secondary" th:href="@{/tasks}">
-                <i class="bi bi-arrow-left"></i> Voltar
-            </a>
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <div class="top-bar">
+            <h1 class="page-title">
+                <i class="bi bi-pencil-square"></i> Editar Tarefa
+            </h1>
+            <div class="user-info" style="display: flex; gap: 1.5rem; align-items: center">
+                 <!-- Notification Dropdown -->
+                <div class="dropdown">
+                    <a href="#" class="text-decoration-none position-relative" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="color: var(--text-primary); font-size: 1.5rem;">
+                        <i class="bi bi-bell"></i>
+                        <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size: 0.65rem; padding: 0.25rem 0.5rem;">
+                            <span id="notificationCount">0</span>
+                            <span class="visually-hidden">unread messages</span>
+                        </span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" aria-labelledby="notificationDropdown" style="width: 320px; max-height: 400px; overflow-y: auto;">
+                        <li><h6 class="dropdown-header border-bottom py-2 mb-2">Notificações</h6></li>
+                        <div id="notificationList">
+                            <li class="dropdown-item text-center text-muted small py-3">Carregando...</li>
+                        </div>
+                        <li><hr class="dropdown-divider mt-2"></li>
+                        <li><a class="dropdown-item text-center small text-primary fw-bold py-2" th:href="@{/notifications}">Ver todas</a></li>
+                    </ul>
+                </div>
+                <a class="btn btn-secondary" th:href="@{/tasks}">
+                    <i class="bi bi-arrow-left"></i> Voltar
+                </a>
+            </div>
         </div>
-    </div>
 
     <div class="content-wrapper">
         <div th:replace="fragments/alerts :: alerts"></div>
 
-        <div class="form-card" data-animate="fade-up">
+        <!-- Main Edit Form - Compact Layout -->
+        <div class="form-card-modern" data-animate="fade-up">
             <form method="post" th:action="@{'/tasks/' + ${taskForm.id}}" th:object="${taskForm}">
-                <div class="form-group">
-                    <label class="form-label">
-                        <i class="bi bi-card-text"></i> Título da Tarefa *
+        <div class="form-card-modern" data-animate="fade-up">
+            <form method="post" th:action="@{'/tasks/' + ${taskForm.id}}" th:object="${taskForm}">
+
+                <!-- Title - Full Width -->
+                <div class="form-group-compact">
+                    <label class="form-label-compact">
+                        <i class="bi bi-card-text"></i> Título *
                     </label>
-                    <input
-                            class="form-control"
-                            th:field="*{title}"
-                            type="text"
-                    />
+                    <input class="form-control-modern" th:field="*{title}" type="text" placeholder="Nome da tarefa"/>
                     <div class="form-error" th:if="${#fields.hasErrors('title')}">
                         <i class="bi bi-exclamation-circle"></i>
                         <span th:errors="*{title}"></span>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label"><i class="bi bi-folder2"></i> Categoria</label>
-                    <div class="select-wrapper">
-                        <select class="form-control" th:field="*{categoryId}">
-                            <option value="">Selecione a categoria</option>
-                            <option th:each="c : ${allCategories}" th:selected="${c.id} == ${taskForm.categoryId}"
-                                    th:text="${c.name}" th:value="${c.id}"></option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Descrição rica (componente reutilizável) -->
-                <div th:replace="~{fragments/rich-editor :: richEditor('taskDescEdit','description', *{description}, 'Descrição da Tarefa', 'Descreva a tarefa com detalhes…', '360px')}"></div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label"><i class="bi bi-circle-fill"></i> Status *</label>
+                <!-- Grid 3 columns: Status, Priority, Category -->
+                <div class="form-grid-3">
+                    <div class="form-group-compact">
+                        <label class="form-label-compact"><i class="bi bi-circle-fill"></i> Status *</label>
                         <div class="select-wrapper">
-                            <select class="form-control" th:field="*{status}">
+                            <select class="form-control-modern" th:field="*{status}">
                                 <option th:each="s : ${allStatuses}" th:text="${s}" th:value="${s}"></option>
                             </select>
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label"><i class="bi bi-flag-fill"></i> Prioridade *</label>
+                    <div class="form-group-compact">
+                        <label class="form-label-compact"><i class="bi bi-flag-fill"></i> Prioridade *</label>
                         <div class="select-wrapper">
-                            <select class="form-control" th:field="*{priority}">
+                            <select class="form-control-modern" th:field="*{priority}">
                                 <option th:each="p : ${allPriorities}" th:text="${p}" th:value="${p}"></option>
                             </select>
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label"><i class="bi bi-calendar-event"></i> Data de Vencimento</label>
-                        <input class="form-control" th:field="*{dueDate}"
-                               type="datetime-local"/>
+                    <div class="form-group-compact">
+                        <label class="form-label-compact"><i class="bi bi-folder2"></i> Categoria</label>
+                        <div class="select-wrapper">
+                            <select class="form-control-modern" th:field="*{categoryId}">
+                                <option value="">Selecione...</option>
+                                <option th:each="c : ${allCategories}" th:text="${c.name}" th:value="${c.id}"></option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label"><i class="bi bi-alarm"></i> Agendar início (Pomodoro)</label>
-                        <input class="form-control" th:field="*{scheduledStartAt}"
-                               type="datetime-local"/>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label"><i class="bi bi-hourglass-split"></i> Duração do Pomodoro
-                            (min)</label>
-                        <input class="form-control" min="5" placeholder="ex: 25" th:field="*{pomodoroMinutes}"
-                               type="number"/>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label"><i class="bi bi-cup-hot"></i> Tempo de pausa (min)</label>
-                        <input class="form-control" min="1" placeholder="ex: 5" th:field="*{pomodoroBreakMinutes}"
-                               type="number"/>
-                    </div>
+                <!-- Description - Full Width -->
+                <div class="form-group-compact">
+                    <label class="form-label-compact"><i class="bi bi-text-paragraph"></i> Descrição</label>
+                    <div th:replace="~{fragments/rich-editor :: richEditor('taskDescEdit','description', *{description}, '', 'Descreva a tarefa...', '280px')}"></div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label"><i class="bi bi-stopwatch"></i> Tempo de execução (min)</label>
-                        <input class="form-control" min="1" placeholder="ex: 120" th:field="*{executionTimeMinutes}"
-                               type="number"/>
+
+                <!-- Grid 2 columns: Dates -->
+                <div class="form-grid-2">
+                    <div class="form-group-compact">
+                        <label class="form-label-compact"><i class="bi bi-calendar-event"></i> Vencimento</label>
+                        <input class="form-control-modern" th:field="*{dueDate}" type="datetime-local"/>
+                    </div>
+
+                    <div class="form-group-compact">
+                        <label class="form-label-compact"><i class="bi bi-alarm"></i> Agendamento</label>
+                        <input class="form-control-modern" th:field="*{scheduledStartAt}" type="datetime-local"/>
                     </div>
                 </div>
 
-                <div class="form-actions">
-                    <a class="btn btn-secondary" th:href="@{/tasks}"><i class="bi bi-x-circle"></i> Cancelar</a>
-                    <button class="btn btn-primary" type="submit"><i class="bi bi-check-circle"></i> Salvar Alterações
+                <!-- Grid 4 columns: Timers -->
+                <div class="form-grid-4">
+                    <div class="form-group-compact">
+                        <label class="form-label-compact"><i class="bi bi-stopwatch"></i> Exec. (min)</label>
+                        <input class="form-control-modern" min="1" placeholder="120" th:field="*{executionTimeMinutes}" type="number"/>
+                    </div>
+
+                    <div class="form-group-compact">
+                        <label class="form-label-compact"><i class="bi bi-hourglass-split"></i> Pomodoro (min)</label>
+                        <input class="form-control-modern" min="5" placeholder="25" th:field="*{pomodoroMinutes}" type="number"/>
+                    </div>
+
+                    <div class="form-group-compact">
+                        <label class="form-label-compact"><i class="bi bi-cup-hot"></i> Pausa (min)</label>
+                        <input class="form-control-modern" min="1" placeholder="5" th:field="*{pomodoroBreakMinutes}" type="number"/>
+                    </div>
+                </div>
+
+                <!-- Extra Time and Justification -->
+                <div class="form-grid-2" th:if="${task.extraTimeMinutes() != null and task.extraTimeMinutes() > 0}">
+                    <div class="form-group-compact">
+                        <label class="form-label-compact">
+                            <i class="bi bi-clock-history"></i>
+                            Tempo Extra (min)
+                        </label>
+                        <div class="extra-time-display">
+                            <i class="bi bi-plus-circle-fill"></i>
+                            <span th:text="${task.extraTimeMinutes()} + ' minutos adicionados'">30 minutos adicionados</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group-compact" th:if="${task.extensionJustification() != null and task.extensionJustification() != ''}">
+                        <label class="form-label-compact">
+                            <i class="bi bi-journal-text"></i> Justificativa
+                        </label>
+                        <div class="justification-display">
+                            <i class="bi bi-chat-left-quote-fill"></i>
+                            <span th:text="${task.extensionJustification()}">Justificativa...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons - Modern -->
+                <div class="form-actions-modern">
+                    <a class="btn-modern btn-secondary-modern" th:href="@{/tasks}">
+                        <i class="bi bi-arrow-left"></i>
+                        <span>Voltar</span>
+                    </a>
+                    <button class="btn-modern btn-primary-modern" type="submit">
+                        <i class="bi bi-check-circle"></i>
+                        <span>Salvar</span>
                     </button>
                 </div>
             </form>
         </div>
 
-        <!-- Quick Status Update -->
-        <div class="form-card" data-animate="fade-up" data-delay="100" style="margin-top: 1.5rem;">
-            <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem; color: var(--text-primary);">
-                <i class="bi bi-lightning-charge"></i> Ações rápidas
-            </h3>
-
-            <div style="display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: end;">
-                <form method="post" style="display: contents;" th:action="@{'/tasks/' + ${taskForm.id} + '/status'}">
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label"><i class="bi bi-circle-fill"></i> Alterar Status</label>
-                        <div class="select-wrapper">
-                            <select class="form-control" name="status">
-                                <option th:each="s : ${allStatuses}" th:selected="${s} == ${taskForm.status}"
-                                        th:text="${s}" th:value="${s}"></option>
-                            </select>
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" type="submit"><i class="bi bi-arrow-repeat"></i> Atualizar Status
-                    </button>
-                </form>
+        <!-- Quick Actions - Modern Design -->
+        <div class="form-card-modern" data-animate="fade-up" data-delay="100">
+            <div class="section-header-compact">
+                <h3><i class="bi bi-lightning-charge-fill"></i> Ações Rápidas</h3>
             </div>
 
-            <div style="display: flex; gap: .5rem; margin-top: .75rem;">
+            <div class="quick-actions-grid">
+                <!-- Start -->
                 <form method="post" th:action="@{'/tasks/' + ${taskForm.id} + '/status'}">
                     <input name="status" type="hidden" value="IN_PROGRESS"/>
-                    <button class="btn btn-success" type="submit"><i class="bi bi-play-fill"></i> Iniciar</button>
+                    <button class="action-btn action-btn-success" type="submit">
+                        <i class="bi bi-play-fill"></i>
+                        <span>Iniciar</span>
+                    </button>
                 </form>
+
+                <!-- Pause -->
                 <form method="post" th:action="@{'/tasks/' + ${taskForm.id} + '/status'}">
                     <input name="status" type="hidden" value="IN_PAUSE"/>
-                    <button class="btn btn-warning" type="submit"><i class="bi bi-pause-fill"></i> Pausar</button>
+                    <button class="action-btn action-btn-warning" type="submit">
+                        <i class="bi bi-pause-fill"></i>
+                        <span>Pausar</span>
+                    </button>
                 </form>
-                <button class="btn btn-outline-primary" id="pomodoroStartBtn" type="button">
-                    <i class="bi bi-hourglass-top"></i> Iniciar Pomodoro
-                </button>
+
+                <!-- Finish -->
                 <form method="post" th:action="@{'/tasks/' + ${taskForm.id} + '/status'}">
                     <input name="status" type="hidden" value="DONE"/>
-                    <button class="btn btn-info" type="submit"><i class="bi bi-check2-circle"></i> Finalizar</button>
+                    <button class="action-btn action-btn-info" type="submit">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Finalizar</span>
+                    </button>
                 </form>
+
+                <!-- Cancel Task -->
                 <form method="post" th:action="@{'/tasks/' + ${taskForm.id} + '/status'}">
                     <input name="status" type="hidden" value="CANCELLED"/>
-                    <button class="btn btn-danger" type="submit"><i class="bi bi-x-octagon"></i> Cancelar</button>
+                    <button class="action-btn action-btn-secondary" type="submit">
+                        <i class="bi bi-x-circle-fill"></i>
+                        <span>Cancelar</span>
+                    </button>
                 </form>
-            </div>
 
-            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
+                <!-- Delete Task -->
                 <form method="post" th:action="@{'/tasks/' + ${taskForm.id} + '/delete'}">
-                    <button class="btn btn-outline-danger"
-                            onclick="return confirm('⚠️ Tem certeza que deseja excluir esta tarefa? Esta ação não pode ser desfeita.');"
+                    <button class="action-btn action-btn-danger"
+                            onclick="return confirm('⚠️ Tem certeza que deseja excluir esta tarefa?');"
                             type="submit">
-                        <i class="bi bi-trash"></i> Excluir Tarefa
+                        <i class="bi bi-trash3-fill"></i>
+                        <span>Excluir</span>
                     </button>
                 </form>
             </div>
         </div>
 
-        <div class="form-card" data-animate="fade-up" data-delay="50" style="margin-top: 1rem;">
-            <h3 style="font-size:1.1rem; font-weight:600; margin-bottom:1rem;">
-                <i class="bi bi-stopwatch"></i> Tempo de Execução
-            </h3>
+        <!-- Execution Time Card - Modern Design -->
+        <div class="form-card-modern" data-animate="fade-up" data-delay="50">
+            <div class="section-header-compact">
+                <h3><i class="bi bi-stopwatch-fill"></i> Tempo de Execução</h3>
+            </div>
             <div id="execPanel"
                  th:data-break-min="${task.pomodoroBreakMinutes()}"
                  th:data-main-elapsed="${task.mainElapsedSeconds()}"
@@ -228,25 +230,26 @@
                  th:data-pomo-min="${task.pomodoroMinutes()}"
                  th:data-pomo-until="${task.pomodoroUntil()}"
                  th:data-status="${task.status()}"
-                 th:data-target-min="${task.executionTimeMinutes()}">
-                <div class="row" style="--bs-gutter-x: .75rem;">
-                    <div class="col-md-6">
-                        <div class="mb-2 text-muted">Decorrido (Crescente)</div>
-                        <div class="h5" id="mainElapsedLabel">00:00:00</div>
+                 th:data-target-min="${task.executionTimeMinutes()}"
+                 th:data-extra-min="${task.extraTimeMinutes()}">
+                <div class="timer-display-grid">
+                    <div class="timer-display-item">
+                        <div class="timer-label">⏱️ Tempo Decorrido</div>
+                        <div class="timer-value" id="mainElapsedLabel">00:00:00</div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="mb-2 text-muted"><span id="pomoLabelText">Pomodoro</span> restante (Decrescente)
-                        </div>
-                        <div class="h5" id="pomoRemainingLabel">—</div>
+                    <div class="timer-display-item">
+                        <div class="timer-label"><span id="pomoLabelText">🍅 Pomodoro</span> Restante</div>
+                        <div class="timer-value" id="pomoRemainingLabel">—</div>
                     </div>
                 </div>
-                <div class="mt-3">
-                    <div class="d-flex justify-content-between mb-1">
-                        <small class="text-muted">Progresso em relação ao tempo alvo</small>
-                        <small class="text-muted" id="targetLabel">—</small>
+
+                <div class="progress-section">
+                    <div class="progress-header">
+                        <span class="progress-title">📊 Progresso do Tempo Alvo</span>
+                        <span class="progress-target" id="targetLabel">—</span>
                     </div>
-                    <div aria-label="Progresso" class="progress" role="progressbar" style="height: 10px;">
-                        <div class="progress-bar bg-success" id="execProgress" style="width: 0%"></div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" id="execProgress" style="width: 0%"></div>
                     </div>
                 </div>
             </div>
@@ -319,6 +322,8 @@
             const started = panel.dataset.mainStarted ? new Date(panel.dataset.mainStarted) : null;
             const baseElapsed = parseInt(panel.dataset.mainElapsed || '0', 10);
             const targetMin = parseInt(panel.dataset.targetMin || '0', 10);
+            const extraMin = parseInt(panel.dataset.extraMin || '0', 10);
+            const totalTargetMin = targetMin + extraMin;
             const pomoUntil = panel.dataset.pomoUntil ? new Date(panel.dataset.pomoUntil) : null;
             const pomoMin = parseInt(panel.dataset.pomoMin || '0', 10);
             const breakMin = parseInt(panel.dataset.breakMin || '5', 10);
@@ -329,8 +334,12 @@
             const prog = document.getElementById('execProgress');
             const tgtLbl = document.getElementById('targetLabel');
 
-            if (targetMin > 0) {
-                tgtLbl.textContent = targetMin + ' min';
+            if (totalTargetMin > 0) {
+                if (extraMin > 0) {
+                    tgtLbl.innerHTML = `${targetMin} min <span style="color: var(--warning); font-weight: 700;">+${extraMin}</span> = ${totalTargetMin} min`;
+                } else {
+                    tgtLbl.textContent = totalTargetMin + ' min';
+                }
             }
 
             function fmt(sec) {
@@ -351,8 +360,8 @@
                 }
                 mainLbl.textContent = fmt(elapsed);
 
-                if (targetMin > 0) {
-                    const pct = Math.min(100, (elapsed / (targetMin * 60)) * 100);
+                if (totalTargetMin > 0) {
+                    const pct = Math.min(100, (elapsed / (totalTargetMin * 60)) * 100);
                     prog.style.width = pct.toFixed(1) + '%';
                 }
 
@@ -637,5 +646,461 @@
         }
     });
 </script>
+
+<style>
+/* Modern Compact Form Styles */
+.form-card-modern {
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-md);
+    margin-bottom: 1rem;
+}
+
+/* Rich Editor Width Adjustment */
+.form-card-modern .rich-editor-container {
+    max-width: 100%;
+}
+
+.form-card-modern .rich-editor-content {
+    min-height: 200px;
+    max-height: 280px;
+}
+
+.form-card-modern .editor-area {
+    min-height: 180px;
+}
+
+.form-group-compact {
+    margin-bottom: 1rem;
+}
+
+.form-label-compact {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.form-label-compact i {
+    font-size: 1rem;
+    color: var(--primary);
+}
+
+.form-control-modern {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    border: 1.5px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.875rem;
+    background: var(--input-bg);
+    color: var(--text-primary);
+    transition: all 0.2s ease;
+}
+
+.form-control-modern:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.form-control-modern::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.6;
+}
+
+/* Grid Layouts */
+.form-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.form-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+.form-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .form-grid-2,
+    .form-grid-3,
+    .form-grid-4 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Modern Action Buttons */
+.form-actions-modern {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.btn-modern {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-modern i {
+    font-size: 1.1rem;
+}
+
+.btn-primary-modern {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.btn-primary-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+}
+
+.btn-secondary-modern {
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    border: 1.5px solid var(--border-color);
+}
+
+.btn-secondary-modern:hover {
+    background: var(--border-color);
+    color: var(--text-primary);
+}
+
+/* Section Header */
+.section-header-compact {
+    margin-bottom: 1.25rem;
+}
+
+.section-header-compact h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.section-header-compact h3 i {
+    color: var(--warning);
+    font-size: 1.25rem;
+}
+
+/* Quick Actions Grid */
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+}
+
+@media (max-width: 768px) {
+    .quick-actions-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Action Buttons */
+.action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem 0.75rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.813rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    width: 100%;
+}
+
+.action-btn i {
+    font-size: 1.75rem;
+}
+
+.action-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.action-btn:active {
+    transform: translateY(-1px);
+}
+
+.action-btn-success {
+    background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+    color: white;
+}
+
+.action-btn-success:hover {
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.action-btn-warning {
+    background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%);
+    color: white;
+}
+
+.action-btn-warning:hover {
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+.action-btn-info {
+    background: linear-gradient(135deg, var(--info) 0%, #0891b2 100%);
+    color: white;
+}
+
+.action-btn-info:hover {
+    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
+}
+
+.action-btn-secondary {
+    background: linear-gradient(135deg, var(--text-secondary) 0%, #475569 100%);
+    color: white;
+}
+
+.action-btn-secondary:hover {
+    box-shadow: 0 4px 12px rgba(100, 116, 139, 0.4);
+}
+
+.action-btn-danger {
+    background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+    color: white;
+}
+
+.action-btn-danger:hover {
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+/* Extra Time and Justification Display */
+.extra-time-display,
+.justification-display {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    background: rgba(99, 102, 241, 0.08);
+    border-left: 3px solid var(--primary);
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+}
+
+.extra-time-display i {
+    color: var(--warning);
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.justification-display i {
+    color: var(--info);
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.extra-time-display span {
+    font-weight: 600;
+}
+
+.justification-display span {
+    line-height: 1.5;
+    font-style: italic;
+}
+
+.badge-info-tiny {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.5rem;
+    background: var(--warning);
+    color: white;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-left: 0.5rem;
+}
+
+/* Execution Time Card Improvements */
+#execPanel {
+    padding: 0;
+}
+
+.timer-display-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.timer-display-item {
+    background: var(--bg-primary);
+    padding: 1.25rem;
+    border-radius: 12px;
+    border: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.timer-display-item:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+}
+
+.timer-label {
+    font-size: 0.813rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.timer-value {
+    font-family: 'Courier New', monospace;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: 1px;
+}
+
+.progress-section {
+    background: var(--bg-primary);
+    padding: 1.25rem;
+    border-radius: 12px;
+    border: 2px solid var(--border-color);
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.progress-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.progress-target {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--primary);
+    background: rgba(99, 102, 241, 0.1);
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+}
+
+.progress-bar-container {
+    height: 16px;
+    background: var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--success) 0%, var(--primary) 100%);
+    border-radius: 8px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
+
+@media (max-width: 768px) {
+    .timer-display-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .timer-value {
+        font-size: 1.5rem;
+    }
+}
+
+/* Dark Theme Adjustments */
+[data-theme="dark"] .form-card-modern {
+    background: var(--bg-secondary);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .extra-time-display,
+[data-theme="dark"] .justification-display {
+    background: rgba(99, 102, 241, 0.15);
+    border-left-color: var(--primary);
+}
+
+[data-theme="dark"] #execPanel {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .form-control-modern {
+    background: var(--input-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .action-btn {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .action-btn:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    .form-grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .form-card-modern {
+        padding: 1rem;
+    }
+
+    .form-actions-modern {
+        flex-direction: column-reverse;
+    }
+
+    .btn-modern {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+    <div th:replace="~{fragments/notifications :: notifications}"></div>
 </body>
 </html>

@@ -1,69 +1,70 @@
 package br.com.rafaelvieira.taskmanagement.exception;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import lombok.Builder;
-import lombok.Data;
-import org.jetbrains.annotations.NotNull;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
-import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@RestControllerAdvice
+@Slf4j
+@ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<@NotNull ErrorResponse> handleResourceNotFoundException(Throwable ex) {
-        ErrorResponse error =
-                ErrorResponse.builder()
-                        .timestamp(LocalDateTime.now())
-                        .status(HttpStatus.NOT_FOUND.value())
-                        .error("Not Found")
-                        .message(ex.getMessage())
-                        .build();
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<Map<String, Object>> handleUnauthorized(UnauthorizedException ex) {
+        log.warn("Unauthorized: {}", ex.getMessage());
+        return build(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 
-    @ExceptionHandler(TaskValidationException.class)
-    public ResponseEntity<@NotNull ErrorResponse> handleTaskValidationException(
-            TaskValidationException ex) {
-        ErrorResponse error =
-                ErrorResponse.builder()
-                        .timestamp(LocalDateTime.now())
-                        .status(HttpStatus.BAD_REQUEST.value())
-                        .error("Validation Error")
-                        .message(ex.getMessage())
-                        .build();
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<Map<String, Object>> handleForbidden(ForbiddenException ex) {
+        log.warn("Forbidden: {}", ex.getMessage());
+        return build(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNotFound(ResourceNotFoundException ex) {
+        log.info("Not found: {}", ex.getMessage());
+        return build(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, Object>> handleRuntime(RuntimeException ex) {
+        log.error("Internal error: {}", ex.getMessage(), ex);
+        return build(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<@NotNull Map<String, String>> handleValidationExceptions(
-            BindException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult()
-                .getAllErrors()
-                .forEach(
-                        (ObjectError error) -> {
-                            String fieldName = ((FieldError) error).getField();
-                            String errorMessage = error.getDefaultMessage();
-                            errors.put(fieldName, errorMessage);
-                        });
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+    public ResponseEntity<Map<String, Object>> handleValidation(
+            MethodArgumentNotValidException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        for (FieldError fe : ex.getBindingResult().getFieldErrors()) {
+            // Se já existir, concatena mensagens
+            Object existing = body.get(fe.getField());
+            if (existing == null) {
+                body.put(fe.getField(), fe.getDefaultMessage());
+            } else {
+                body.put(fe.getField(), existing + "; " + fe.getDefaultMessage());
+            }
+        }
+        // Metadados opcionais
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("timestamp", LocalDateTime.now().toString());
+        return ResponseEntity.badRequest().body(body);
     }
 
-    @Builder
-    @Data
-    public static final class ErrorResponse {
-        private LocalDateTime timestamp;
-        private int status;
-        private String error;
-        private String message;
+    private ResponseEntity<Map<String, Object>> build(HttpStatus status, String message) {
+        return ResponseEntity.status(status)
+                .body(
+                        Map.of(
+                                "timestamp", LocalDateTime.now().toString(),
+                                "status", status.value(),
+                                "error", status.getReasonPhrase(),
+                                "message", message));
     }
 }

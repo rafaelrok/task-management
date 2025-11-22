@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Notificações - Task Management')}">
+    <title>Notificações - Task Management</title>
+</head>
+<body class="dashboard-body">
+<!-- Sidebar -->
+<nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+
+<!-- Main Content -->
+<div class="main-content" id="mainContent">
+    <div class="top-bar">
+        <h1 class="page-title">Central de Notificações</h1>
+        <div class="user-info" style="display: flex; gap: 1.5rem; align-items: center;">
+            <!-- Notification Dropdown -->
+            <div class="dropdown">
+                <a aria-expanded="false" class="text-decoration-none position-relative" data-bs-toggle="dropdown"
+                   href="#" id="notificationDropdown"
+                   style="color: var(--text-primary); font-size: 1.5rem;">
+                    <i class="bi bi-bell"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none"
+                          id="notificationBadge"
+                          style="font-size: 0.65rem; padding: 0.25rem 0.5rem;">
+                            <span id="notificationCount">0</span>
+                            <span class="visually-hidden">unread messages</span>
+                        </span>
+                </a>
+                <ul aria-labelledby="notificationDropdown" class="dropdown-menu dropdown-menu-end shadow-lg border-0"
+                    id="notificationList" style="width: 320px; max-height: 400px; overflow-y: auto;">
+                    <li><h6 class="dropdown-header border-bottom py-2 mb-2">Notificações</h6></li>
+                    <li class="dropdown-item text-center text-muted small py-3 empty-notification">Carregando...</li>
+                    <li>
+                        <hr class="dropdown-divider mt-2">
+                    </li>
+                    <li><a class="dropdown-item text-center small text-primary fw-bold py-2"
+                           th:href="@{/notifications}">Ver todas</a></li>
+                </ul>
+            </div>
+            <span class="welcome-text">Bem-vindo!</span>
+        </div>
+    </div>
+
+    <div class="content-wrapper">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-primary"><i class="bi bi-bell me-2"></i>Todas as Notificações</h5>
+                <button class="btn btn-outline-primary btn-sm" id="markAllReadBtn">
+                    <i class="bi bi-check-all me-1"></i> Marcar todas como lidas
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush" id="fullNotificationList">
+                    <div class="list-group-item list-group-item-action p-3 border-bottom"
+                         th:classappend="${!notification.read} ? 'bg-light' : ''"
+                         th:each="notification : ${notifications.content}">
+                        <div class="d-flex w-100 justify-content-between align-items-center">
+                            <div class="d-flex align-items-start gap-3">
+                                <div class="flex-shrink-0 mt-1">
+                                    <i style="font-size: 1.5rem;"
+                                       th:class="${notification.type.name() == 'TASK_FINISHED' ? 'bi bi-check-circle text-success' :
+                                                      (notification.type.name() == 'TASK_PAUSED' ? 'bi bi-pause-circle text-warning' :
+                                                      (notification.type.name() == 'TASK_OVERDUE' ? 'bi bi-exclamation-triangle text-danger' : 'bi bi-info-circle text-primary'))}"></i>
+                                </div>
+                                <div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <h6 class="mb-1" th:text="${notification.title}">Título</h6>
+                                        <span class="badge bg-primary rounded-pill" style="font-size: 0.6rem;"
+                                              th:if="${!notification.read}">Nova</span>
+                                    </div>
+                                    <p class="mb-1 text-muted small" th:text="${notification.message}">Mensagem</p>
+                                    <small class="text-muted"
+                                           th:text="${#temporals.format(notification.createdAt, 'dd/MM/yyyy HH:mm')}">Data</small>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a class="btn btn-sm btn-light" th:href="@{/tasks/{id}(id=${notification.taskId})}"
+                                   title="Ver Tarefa">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <button class="btn btn-sm btn-light text-primary"
+                                        th:if="${!notification.read}"
+                                        th:onclick="'NotificationSystem.markAsRead(' + ${notification.id} + ', this)'" title="Marcar como lida">
+                                    <i class="bi bi-check"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center py-5 text-muted" th:if="${notifications.empty}">
+                        <i class="bi bi-bell-slash display-4 mb-3"></i>
+                        <p>Nenhuma notificação encontrada.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-white" th:if="${notifications.totalPages > 1}">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center mb-0">
+                        <li class="page-item" th:classappend="${notifications.first} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/notifications(page=${notifications.number - 1})}">Anterior</a>
+                        </li>
+                        <li class="page-item" th:classappend="${notifications.last} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/notifications(page=${notifications.number + 1})}">Próxima</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/notifications :: notifications}"></div>
+</body>
+</html>

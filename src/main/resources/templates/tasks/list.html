@@ -2,69 +2,37 @@
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head('Tarefas - Task Management')}"></head>
 <body class="dashboard-body">
-<!-- Sidebar -->
-<nav class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-        <div class="logo">
-            <i class="bi bi-kanban"></i>
-            <span class="logo-text">TaskFlow</span>
-        </div>
-        <button class="sidebar-toggle" id="sidebarToggle">
-            <i class="bi bi-list"></i>
-        </button>
-    </div>
-    <ul class="sidebar-menu">
-        <li class="menu-item">
-            <a th:href="@{/}">
-                <i class="bi bi-speedometer2"></i>
-                <span class="menu-text">Dashboard</span>
-            </a>
-        </li>
-        <li class="menu-item active">
-            <a th:href="@{/tasks}">
-                <i class="bi bi-list-task"></i>
-                <span class="menu-text">Tarefas</span>
-            </a>
-        </li>
-        <li class="menu-item">
-            <a th:href="@{/tasks/new}">
-                <i class="bi bi-plus-circle"></i>
-                <span class="menu-text">Nova Tarefa</span>
-            </a>
-        </li>
-        <li class="menu-item">
-            <a th:href="@{/profile}">
-                <i class="bi bi-person-circle"></i>
-                <span class="menu-text">Perfil</span>
-            </a>
-        </li>
-        <li class="menu-item">
-            <a href="#" id="themeToggle">
-                <i class="bi bi-moon-stars"></i>
-                <span class="menu-text">Tema Escuro</span>
-            </a>
-        </li>
-    </ul>
-    <div class="sidebar-footer">
-        <form method="post" th:action="@{/logout}">
-            <button class="logout-btn" type="submit">
-                <i class="bi bi-box-arrow-right"></i>
-                <span class="menu-text">Sair</span>
-            </button>
-        </form>
-    </div>
-</nav>
+    <!-- Sidebar -->
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
 
-<!-- Main Content -->
-<div class="main-content" id="mainContent">
-    <div class="top-bar">
-        <h1 class="page-title">Minhas Tarefas</h1>
-        <div class="user-info">
-            <a class="btn btn-primary" th:href="@{/tasks}">
-                <i class="bi bi-plus-circle"></i> Nova Tarefa
-            </a>
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <div class="top-bar fixed">
+            <h1 class="page-title">Minhas Tarefas</h1>
+            <div class="user-info" style="display: flex; gap: 1.5rem; align-items: center">
+                 <!-- Notification Dropdown -->
+                <div class="dropdown">
+                    <a href="#" class="text-decoration-none position-relative" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="color: var(--text-primary); font-size: 1.5rem;">
+                        <i class="bi bi-bell"></i>
+                        <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size: 0.65rem; padding: 0.25rem 0.5rem;">
+                            <span id="notificationCount">0</span>
+                            <span class="visually-hidden">unread messages</span>
+                        </span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" aria-labelledby="notificationDropdown" style="width: 320px; max-height: 400px; overflow-y: auto;">
+                        <li><h6 class="dropdown-header border-bottom py-2 mb-2">Notificações</h6></li>
+                        <div id="notificationList">
+                            <li class="dropdown-item text-center text-muted small py-3">Carregando...</li>
+                        </div>
+                        <li><hr class="dropdown-divider mt-2"></li>
+                        <li><a class="dropdown-item text-center small text-primary fw-bold py-2" th:href="@{/notifications}">Ver todas</a></li>
+                    </ul>
+                </div>
+                <a class="btn btn-primary" th:href="@{/tasks}">
+                    <i class="bi bi-plus-circle"></i> Nova Tarefa
+                </a>
+            </div>
         </div>
-    </div>
 
     <div class="content-wrapper">
         <div th:replace="~{fragments/alerts :: alerts}"></div>
@@ -118,79 +86,116 @@
                 <table class="modern-table">
                     <thead>
                     <tr>
-                        <th>#</th>
+                        <th style="width: 50px;">#</th>
                         <th>Título</th>
-                        <th>Categoria</th>
-                        <th>Prioridade</th>
-                        <th>Status</th>
-                        <th>Responsável</th>
-                        <th>Vencimento</th>
-                        <th>Agendado</th>
-                        <th style="text-align: center;">Ações</th>
+                        <th style="width: 100px;">Cat.</th>
+                        <th style="width: 80px;">Prior.</th>
+                        <th style="width: 100px;">Status</th>
+                        <th style="width: 90px;">Timer</th>
+                        <th style="width: 60px;">PMD</th>
+                        <th style="width: 100px;">Resp.</th>
+                        <th style="width: 130px;">Vencim.</th>
+                        <th style="width: 130px;">Agendam.</th>
+                        <th style="text-align: center; width: 180px;">Ações</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr class="table-row-animate"
-                        th:classappend="${task.status().name() == 'OVERDUE'} ? 'task-overdue' : (${task.status().name() == 'DONE'} ? 'task-done' : '')"
-                        th:data-scheduled="${#temporals.format(task.scheduledStartAt(), 'yyyy-MM-dd''T''HH:mm')}"
-                        th:each="task : ${tasksPage.content}">
+                    <tr class="table-row-animate task-list-row"
+                        th:attr="data-task-id=${task.id()},
+                                 data-status=${status},
+                                 data-overdue=${isOverdueFlag},
+                                 data-scheduled=${task.scheduledStartAt() != null ? #temporals.format(task.scheduledStartAt(), 'yyyy-MM-dd''T''HH:mm') : ''},
+                                 data-exec=${task.executionTimeMinutes()},
+                                 data-main-start=${task.mainStartedAt() != null ? #temporals.format(task.mainStartedAt(), 'yyyy-MM-dd''T''HH:mm:ss') : ''},
+                                 data-main-elapsed=${task.mainElapsedSeconds() != null ? task.mainElapsedSeconds() : 0},
+                                 data-pomo-until=${task.pomodoroUntil() != null ? #temporals.format(task.pomodoroUntil(), 'yyyy-MM-dd''T''HH:mm:ss') : ''},
+                                 data-pomo-min=${task.pomodoroMinutes()},
+                                 data-break-min=${task.pomodoroBreakMinutes()},
+                                 data-extra-min=${task.extraTimeMinutes()}"
+                        th:classappend="${isOverdueStatus or isOverdueFlag} ? 'task-row-overdue' :
+                                       (${isDone} ? 'task-row-done' :
+                                       (${isInPause} ? 'task-row-pause' :
+                                       (${isInProgress} ? 'task-row-progress' : '')))"
+                        th:each="task : ${tasksPage.content}"
+                        th:with="status=${task.status().name()},
+                                 isDone=${status == 'DONE'},
+                                 isCancelled=${status == 'CANCELLED'},
+                                 isInProgress=${status == 'IN_PROGRESS'},
+                                 isInPause=${status == 'IN_PAUSE'},
+                                 isOverdueStatus=${status == 'OVERDUE'},
+                                 isOverdueFlag=${task.overdue()}">
                         <td>
                             <span class="task-id" th:text="${task.id()}">1</span>
                         </td>
                         <td>
-                            <span class="task-title" th:text="${task.title()}">Implementar API</span>
+                            <div class="task-title-with-icon">
+                                <i class="task-row-icon bi" data-role="status-icon"></i>
+                                <span class="task-title" th:text="${task.title()}">Implementar API</span>
+                            </div>
                         </td>
                         <td>
-                            <span class="badge-category" th:text="${task.categoryName()}">Backend</span>
+                            <span class="badge-category-compact" th:text="${task.categoryName()}">Backend</span>
                         </td>
                         <td>
-                                    <span class="badge-priority"
-                                          th:classappend="${task.priority().name().toLowerCase()}"
-                                          th:text="${task.priority()}">HIGH</span>
+                            <span class="badge-priority-compact"
+                                  th:classappend="${task.priority().name().toLowerCase()}"
+                                  th:text="${#strings.substring(task.priority().name(), 0, 1)}"
+                                  th:title="${task.priority()}">H</span>
                         </td>
                         <td>
-                            <span class="badge-status"
+                            <span class="badge-status-compact"
                                   th:classappend="${task.status().name().toLowerCase()}"
-                                  th:text="${task.status()}">
-                                <i class="bi bi-exclamation-triangle-fill status-icon-overdue"
-                                   th:if="${task.status().name() == 'OVERDUE'}"></i>
-                                <i class="bi bi-check-circle-fill status-icon-done"
-                                   th:if="${task.status().name() == 'DONE'}"></i>
-                                <span th:text="${task.status()}"></span>
-                            </span>
+                                  th:text="${task.status()}"></span>
                         </td>
                         <td>
-                            <span class="task-user" th:text="${task.assignedUserName()}">User</span>
+                            <div class="timer-cell-compact">
+                                <span class="timer-value-compact" data-role="main-timer">00:00:00</span>
+                                <div class="timer-progress-compact">
+                                    <div class="timer-progress-bar" data-role="main-progress" style="width: 0%"></div>
+                                </div>
+                            </div>
                         </td>
                         <td>
-                            <span class="task-date" style="color: var(--danger); font-weight:600;"
+                            <span class="timer-value-compact" data-role="pomo-timer">—</span>
+                        </td>
+                        <td>
+                            <span class="task-user-compact" th:text="${task.assignedUserName()}">User</span>
+                        </td>
+                        <td>
+                            <span class="task-date-compact" style="color: var(--danger);"
                                   th:if="${task.overdue()}">
                                 <i class="bi bi-exclamation-triangle"></i>
-                                <span th:text="${#temporals.format(task.dueDate(), 'dd/MM/yyyy HH:mm')}"></span>
+                                <span th:text="${#temporals.format(task.dueDate(), 'dd/MM HH:mm')}"></span>
                             </span>
-                            <span class="task-date" th:if="${!task.overdue()}"
-                                  th:text="${#temporals.format(task.dueDate(), 'dd/MM/yyyy HH:mm')}">01/01/2025</span>
+                            <span class="task-date-compact" th:if="${!task.overdue()}"
+                                  th:text="${#temporals.format(task.dueDate(), 'dd/MM HH:mm')}">01/01</span>
                         </td>
                         <td>
-                            <span class="task-date" th:if="${task.scheduledStartAt() != null}"
-                                  th:text="${#temporals.format(task.scheduledStartAt(), 'dd/MM/yyyy HH:mm')}"></span>
+                            <span class="task-date-compact" th:if="${task.scheduledStartAt() != null}"
+                                  th:text="${#temporals.format(task.scheduledStartAt(), 'dd/MM HH:mm')}"></span>
                             <span class="text-muted" th:if="${task.scheduledStartAt() == null}">—</span>
                         </td>
                         <td style="text-align: center;">
                             <div class="table-actions">
-                                <button class="btn-action btn-view" onclick="openTaskModal(this.dataset.taskId)"
+                                <button class="btn-action btn-view btn-view-task"
+                                        onclick="openTaskModal(this.dataset.taskId)"
                                         th:attr="data-task-id=${task.id()}"
-                                        title="Visualizar">
+                                        title="Visualizar"
+                                        type="button">
                                     <i class="bi bi-eye"></i>
                                 </button>
-                                <a class="btn-action btn-view" th:href="@{'/tasks/' + ${task.id()}}" title="Editar">
+                                <button class="btn-action btn-view btn-edit"
+                                        th:attr="data-edit-url=@{'/tasks/' + ${task.id()}}"
+                                        th:disabled="${isDone or isCancelled}"
+                                        title="Editar"
+                                        type="button">
                                     <i class="bi bi-pencil"></i>
-                                </a>
+                                </button>
                                 <form class="d-inline" method="post"
                                       th:action="@{'/tasks/' + ${task.id()} + '/status'}">
                                     <input name="status" type="hidden" value="IN_PROGRESS"/>
-                                    <button class="btn-action btn-view"
-                                            th:disabled="${task.status().name() == 'IN_PROGRESS'}"
+                                    <button class="btn-action btn-view btn-start"
+                                            th:disabled="${isInProgress or isDone or isCancelled or isOverdueStatus or isOverdueFlag}"
                                             title="Iniciar" type="submit">
                                         <i class="bi bi-play-fill"></i>
                                     </button>
@@ -198,16 +203,25 @@
                                 <form class="d-inline" method="post"
                                       th:action="@{'/tasks/' + ${task.id()} + '/status'}">
                                     <input name="status" type="hidden" value="IN_PAUSE"/>
-                                    <button class="btn-action btn-view"
-                                            th:disabled="${task.status().name() != 'IN_PROGRESS'}"
+                                    <button class="btn-action btn-view btn-pause"
+                                            th:disabled="${!isInProgress}"
                                             title="Pausar" type="submit">
                                         <i class="bi bi-pause-fill"></i>
                                     </button>
                                 </form>
+                                <button class="btn-action btn-warning btn-extend-timer"
+                                        onclick="openExtendModalFromList(this.dataset.taskId)"
+                                        th:attr="data-task-id=${task.id()}"
+                                        th:if="${isOverdueStatus or isOverdueFlag}"
+                                        title="Estender Tempo"
+                                        type="button">
+                                    <i class="bi bi-clock-history"></i>
+                                </button>
                                 <form class="d-inline" method="post"
                                       th:action="@{'/tasks/' + ${task.id()} + '/delete'}">
-                                    <button class="btn-action btn-delete"
+                                    <button class="btn-action btn-delete btn-delete-task"
                                             onclick="return confirm('Tem certeza que deseja excluir esta tarefa?');"
+                                            th:disabled="${status != 'TODO'}"
                                             title="Excluir" type="submit">
                                         <i class="bi bi-trash"></i>
                                     </button>
@@ -253,6 +267,84 @@
 
 <div th:replace="~{fragments/task-modal :: fragment}"></div>
 
+<!-- Extend Task Modal -->
+<div aria-hidden="true" aria-labelledby="extendTaskModalLabel" class="modal fade" id="extendTaskModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header modal-header-warning">
+                <h5 class="modal-title" id="extendTaskModalLabel">
+                    <i class="bi bi-clock-history"></i>
+                    Estender Tempo da Tarefa
+                </h5>
+                <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+            </div>
+            <div class="modal-body">
+                <input id="extendTaskId" type="hidden">
+                <div class="mb-3">
+                    <h6 class="text-muted">
+                        <i class="bi bi-file-earmark-text"></i>
+                        <span id="extendTaskTitle">Título da Tarefa</span>
+                    </h6>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="extendExtraTime">
+                        <i class="bi bi-clock"></i>
+                        Tempo Extra (minutos) <span class="text-danger">*</span>
+                    </label>
+                    <input class="form-control" id="extendExtraTime" min="1" placeholder="Ex: 30" required
+                           type="number">
+                    <small class="form-text text-muted">Informe quantos minutos deseja adicionar à estimativa</small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="extendScheduledStart">
+                        <i class="bi bi-calendar-event"></i>
+                        Nova Data de Início
+                    </label>
+                    <input class="form-control" id="extendScheduledStart" type="datetime-local">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="extendDueDate">
+                        <i class="bi bi-calendar-check"></i>
+                        Nova Data de Vencimento
+                    </label>
+                    <input class="form-control" id="extendDueDate" type="datetime-local">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="extendJustification">
+                        <i class="bi bi-journal-text"></i>
+                        Justificativa/Observação
+                    </label>
+                    <textarea class="form-control" id="extendJustification"
+                              placeholder="Descreva o motivo da extensão de tempo..."
+                              rows="4"></textarea>
+                    <small class="form-text text-muted">Importante para rastreamento e histórico da tarefa</small>
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Atenção:</strong> Ao estender a tarefa, o tempo extra será somado ao tempo de execução
+                    original
+                    e a tarefa voltará ao estado TODO para ser reiniciada.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">
+                    <i class="bi bi-x-circle"></i>
+                    Fechar
+                </button>
+                <button class="btn btn-warning" id="extendSubmitBtn" onclick="submitExtendTask()" type="button">
+                    <i class="bi bi-clock-history"></i>
+                    Estender Tarefa
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script crossorigin="anonymous"
         src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script th:src="@{/js/dashboard.js}"></script>
@@ -277,18 +369,329 @@
         new bootstrap.Toast(t, {delay}).show();
     }
 
-    // Enhance IN_PROGRESS start forms
-    document.querySelectorAll('form').forEach(f => {
-        const input = f.querySelector('input[name="status"][value="IN_PROGRESS"]');
-        if (!input) return;
+    function updateTaskRow(row) {
+        const status = row.dataset.status;
+        const overdue = row.dataset.overdue === 'true';
+        const execMin = parseInt(row.dataset.exec) || 0;
+        const mainStart = row.dataset.mainStart;
+        const mainElapsed = parseInt(row.dataset.mainElapsed) || 0;
+        const pomoUntil = row.dataset.pomoUntil;
+        const extraMin = parseInt(row.dataset.extraMin) || 0;
+
+        // Update status icon
+        const icon = row.querySelector('[data-role="status-icon"]');
+        if (icon) {
+            icon.className = 'task-row-icon bi';
+            if (status === 'IN_PROGRESS' && mainStart && !overdue) {
+                const targetSec = (execMin + extraMin) * 60;
+                const now = new Date();
+                const start = new Date(mainStart);
+                const elapsed = Math.floor((now - start) / 1000) + mainElapsed;
+                if (elapsed >= targetSec) {
+                    icon.classList.add('bi-person-fill');
+                    icon.title = 'Tempo concluído';
+                } else {
+                    icon.classList.add('bi-hourglass-split');
+                    icon.title = 'Em progresso';
+                }
+            } else if (status === 'IN_PROGRESS' && (!mainStart || overdue)) {
+                icon.classList.add('bi-exclamation-triangle-fill');
+                icon.title = 'Atrasado - não iniciado';
+            } else if (status === 'IN_PAUSE') {
+                icon.classList.add('bi-pause-circle-fill');
+                icon.title = 'Em pausa';
+            } else if (status === 'OVERDUE' || overdue) {
+                icon.classList.add('bi-clock-fill');
+                icon.title = 'Atrasado';
+            } else if (status === 'DONE') {
+                icon.classList.add('bi-check-circle-fill');
+                icon.title = 'Concluído';
+            } else if (status === 'CANCELLED') {
+                icon.classList.add('bi-x-circle-fill');
+                icon.title = 'Cancelado';
+            } else {
+                icon.classList.add('bi-circle');
+                icon.title = 'Pendente';
+            }
+        }
+
+        // Update main timer
+        const mainTimerEl = row.querySelector('[data-role="main-timer"]');
+        const mainProgressEl = row.querySelector('[data-role="main-progress"]');
+        if (mainTimerEl) {
+            if (mainStart) {
+                const now = new Date();
+                const start = new Date(mainStart);
+                const elapsed = Math.floor((now - start) / 1000) + mainElapsed;
+                const hours = Math.floor(elapsed / 3600);
+                const mins = Math.floor((elapsed % 3600) / 60);
+                const secs = elapsed % 60;
+                mainTimerEl.textContent = `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+                if (mainProgressEl && execMin > 0) {
+                    const targetSec = (execMin + extraMin) * 60;
+                    const progress = Math.min(100, (elapsed / targetSec) * 100);
+                    mainProgressEl.style.width = progress + '%';
+                }
+            } else if (mainElapsed > 0) {
+                const hours = Math.floor(mainElapsed / 3600);
+                const mins = Math.floor((mainElapsed % 3600) / 60);
+                const secs = mainElapsed % 60;
+                mainTimerEl.textContent = `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+                if (mainProgressEl && execMin > 0) {
+                    const targetSec = (execMin + extraMin) * 60;
+                    const progress = Math.min(100, (mainElapsed / targetSec) * 100);
+                    mainProgressEl.style.width = progress + '%';
+                }
+            } else {
+                mainTimerEl.textContent = '00:00:00';
+                if (mainProgressEl) mainProgressEl.style.width = '0%';
+            }
+        }
+
+        // Update pomodoro timer
+        const pomoTimerEl = row.querySelector('[data-role="pomo-timer"]');
+        if (pomoTimerEl) {
+            if (pomoUntil) {
+                const until = new Date(pomoUntil);
+                const now = new Date();
+                const remaining = Math.max(0, Math.floor((until - now) / 1000));
+                if (remaining > 0) {
+                    const mins = Math.floor(remaining / 60);
+                    const secs = remaining % 60;
+                    pomoTimerEl.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+                } else {
+                    pomoTimerEl.textContent = 'Intervalo';
+                }
+            } else {
+                pomoTimerEl.textContent = '—';
+            }
+        }
+    }
+
+    function syncActionButtons() {
+        console.log('🔄 Sincronizando botões de ação...');
+        document.querySelectorAll('.task-list-row').forEach(row => {
+            const status = row.dataset.status;
+            if (!status) {
+                console.warn('⚠️ Row sem status:', row);
+                return;
+            }
+            const overdueFlag = row.dataset.overdue === 'true';
+            console.log(`📋 Task status: ${status}, overdue: ${overdueFlag}`);
+
+            // Update timers and icons
+            updateTaskRow(row);
+
+            const viewBtn = row.querySelector('.btn-view-task');
+            if (viewBtn) {
+                viewBtn.disabled = false;
+            }
+            const editBtn = row.querySelector('.btn-edit');
+            if (editBtn) {
+                editBtn.disabled = status === 'DONE' || status === 'CANCELLED';
+                console.log(`  ✏️ Editar: ${editBtn.disabled ? 'DESABILITADO' : 'habilitado'}`);
+            }
+            const startBtn = row.querySelector('.btn-start');
+            if (startBtn) {
+                startBtn.disabled = status === 'IN_PROGRESS' || status === 'DONE' || status === 'CANCELLED' || status === 'OVERDUE' || overdueFlag;
+                console.log(`  ▶️ Iniciar: ${startBtn.disabled ? 'DESABILITADO' : 'habilitado'}`);
+            }
+            const pauseBtn = row.querySelector('.btn-pause');
+            if (pauseBtn) {
+                pauseBtn.disabled = status !== 'IN_PROGRESS';
+                console.log(`  ⏸️ Pausar: ${pauseBtn.disabled ? 'DESABILITADO' : 'habilitado'}`);
+            }
+            const deleteBtn = row.querySelector('.btn-delete');
+            if (deleteBtn) {
+                deleteBtn.disabled = status !== 'TODO';
+                console.log(`  🗑️ Excluir: ${deleteBtn.disabled ? 'DESABILITADO' : 'habilitado'}`);
+            }
+        });
+
+        document.querySelectorAll('.btn-edit').forEach(btn => {
+            btn.addEventListener('click', function () {
+                if (this.disabled) {
+                    return;
+                }
+                const url = this.dataset.editUrl;
+                if (url) {
+                    window.location.href = url;
+                }
+            });
+        });
+    }
+
+    // Function to open extend modal from list
+    async function openExtendModalFromList(taskId) {
+        console.log('📋 Opening extend modal for task:', taskId);
+
+        try {
+            // Fetch task details
+            const response = await fetch(`/api/tasks/${taskId}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch task details');
+            }
+
+            const task = await response.json();
+            console.log('✅ Task loaded:', task);
+
+            // Populate modal
+            document.getElementById('extendTaskId').value = task.id;
+            document.getElementById('extendTaskTitle').textContent = task.title;
+            document.getElementById('extendExtraTime').value = '';
+            document.getElementById('extendJustification').value = '';
+
+            // Set current dates as defaults
+            if (task.scheduledStartAt) {
+                const scheduledDate = new Date(task.scheduledStartAt);
+                document.getElementById('extendScheduledStart').value =
+                    scheduledDate.toISOString().slice(0, 16);
+            }
+
+            if (task.dueDate) {
+                const dueDate = new Date(task.dueDate);
+                document.getElementById('extendDueDate').value =
+                    dueDate.toISOString().slice(0, 16);
+            }
+
+            // Show modal using Bootstrap 5 API
+            const modalElement = document.getElementById('extendTaskModal');
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+
+        } catch (error) {
+            console.error('❌ Error opening extend modal:', error);
+            showToast('text-bg-danger', '❌ Erro ao carregar dados da tarefa');
+        }
+    }
+
+    // Function to submit extend task
+    async function submitExtendTask() {
+        console.log('📤 Submitting extend task...');
+
+        const taskId = document.getElementById('extendTaskId').value;
+        const extraTime = document.getElementById('extendExtraTime').value;
+        const scheduledStart = document.getElementById('extendScheduledStart').value;
+        const dueDate = document.getElementById('extendDueDate').value;
+        const justification = document.getElementById('extendJustification').value;
+
+        // Validate
+        if (!extraTime || parseInt(extraTime) < 1) {
+            showToast('text-bg-warning', '⚠️ Informe o tempo extra (mínimo 1 minuto)');
+            return;
+        }
+
+        const submitBtn = document.getElementById('extendSubmitBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processando...';
+
+        try {
+            const payload = {
+                extraTimeMinutes: parseInt(extraTime),
+                extensionJustification: justification || null
+            };
+
+            if (scheduledStart) {
+                payload.scheduledStartAt = new Date(scheduledStart).toISOString();
+            }
+
+            if (dueDate) {
+                payload.dueDate = new Date(dueDate).toISOString();
+            }
+
+            console.log('📦 Payload:', payload);
+
+            const response = await fetch(`/api/tasks/${taskId}/extend`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Erro ao estender tarefa');
+            }
+
+            const result = await response.json();
+            console.log('✅ Task extended:', result);
+
+            // Close modal
+            const modalElement = document.getElementById('extendTaskModal');
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            modal.hide();
+
+            // Show success message
+            showToast('text-bg-success', '✅ Tarefa estendida com sucesso!');
+
+            // Reload page after delay
+            setTimeout(() => window.location.reload(), 1500);
+
+        } catch (error) {
+            console.error('❌ Error extending task:', error);
+            showToast('text-bg-danger', '❌ ' + error.message);
+
+            // Re-enable button
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="bi bi-clock-history"></i> Estender Tarefa';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        syncActionButtons();
+
+        // Update timers every second
+        setInterval(() => {
+            document.querySelectorAll('.task-list-row').forEach(row => {
+                updateTaskRow(row);
+            });
+        }, 1000);
+    });
+
+    // Handle form submissions for status changes
+    document.querySelectorAll('form[action*="/status"]').forEach(f => {
         f.addEventListener('submit', e => {
+            // Let forms with status other than IN_PROGRESS submit normally
+            const input = f.querySelector('input[name="status"]');
+            if (!input || input.value !== 'IN_PROGRESS') {
+                return; // normal form submit
+            }
+
             e.preventDefault();
             const url = f.getAttribute('action');
             const formData = new FormData(f);
-            fetch(url, {method: 'POST', body: formData})
+
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                redirect: 'follow'
+            })
                 .then(r => {
-                    if (!r.ok) {
-                        throw new Error('Falha ao atualizar status');
+                    // Check if there's a redirect with error message
+                    const finalUrl = r.url;
+                    if (finalUrl.includes('errorMessage') || finalUrl.includes('/tasks/')) {
+                        // Redirect happened, likely validation error
+                        return r.text().then(() => {
+                            // Extract task ID and check status
+                            const idMatch = url.match(/\/tasks\/(\d+)\/status/);
+                            const taskId = idMatch ? idMatch[1] : null;
+                            if (taskId) {
+                                return fetch('/api/tasks/' + taskId)
+                                    .then(r2 => r2.json())
+                                    .then(task => {
+                                        if (task.status === 'TODO') {
+                                            showToast('text-bg-warning', '⚠️ Preencha Tempo de Execução e Duração do Pomodoro na edição antes de iniciar.');
+                                            setTimeout(() => window.location.href = '/tasks/' + taskId, 1500);
+                                        } else {
+                                            window.location.reload();
+                                        }
+                                    });
+                            }
+                            window.location.reload();
+                        });
                     }
                     return r.text();
                 })
@@ -302,18 +705,22 @@
                     fetch('/api/tasks/' + taskId)
                         .then(r => r.json())
                         .then(task => {
-                            if (task.status === 'TODO') {
-                                showToast('text-bg-warning', 'Preencha Tempo de execução e Duração do Pomodoro na edição antes de iniciar.');
-                            } else if (task.status === 'IN_PROGRESS') {
-                                showToast('text-bg-success', 'Tarefa iniciada. Contador em execução.');
+                            if (task.status === 'IN_PROGRESS') {
+                                showToast('text-bg-success', '✅ Tarefa iniciada! Contador em execução.');
+                                setTimeout(() => window.location.reload(), 1100);
+                            } else if (task.status === 'TODO') {
+                                showToast('text-bg-warning', '⚠️ Preencha Tempo de Execução e Duração do Pomodoro na edição antes de iniciar.');
+                                setTimeout(() => window.location.href = '/tasks/' + taskId, 1500);
                             } else {
-                                showToast('text-bg-info', 'Status atualizado para ' + task.status);
+                                window.location.reload();
                             }
-                            setTimeout(() => window.location.reload(), 1100);
                         })
                         .catch(() => window.location.reload());
                 })
-                .catch(err => showToast('text-bg-danger', 'Erro: ' + err.message));
+                .catch(err => {
+                    console.error('Erro ao iniciar tarefa:', err);
+                    showToast('text-bg-danger', 'Erro ao iniciar tarefa: ' + err.message);
+                });
         });
     });
 
@@ -329,5 +736,6 @@
         });
     });
 </script>
+<div th:replace="~{fragments/notifications :: notifications}"></div>
 </body>
 </html>

@@ -2,6 +2,13 @@ spring:
   application:
     name: task-management-test
 
+  web:
+    error:
+      include-exception: true
+      include-stacktrace: on_param
+      include-binding-errors: always
+      include-message: always
+
   # ========== Datasource será provido pelo Testcontainers via @ServiceConnection ==========
   datasource:
     driver-class-name: org.postgresql.Driver
@@ -49,13 +56,11 @@ spring:
 # ========== Server Test Configuration ==========
 server:
   port: 0
-  error:
-    include-message: always
-    include-binding-errors: always
-    include-stacktrace: on_param
-    include-exception: true
+  include-message: always
+  include-binding-errors: always
+  include-stacktrace: on_param
+  include-exception: true
 
-# ========== Logging Test Configuration ==========
 logging:
   level:
     root: INFO
@@ -63,4 +68,3 @@ logging:
     org.springframework: WARN
     org.hibernate: WARN
     org.testcontainers: INFO
-

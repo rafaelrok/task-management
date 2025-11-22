@@ -1,0 +1,20 @@
+<div th:fragment="notifications">
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer" style="z-index: 1055;"></div>
+
+    <!-- Notification Scripts -->
+    <script th:src="@{/js/notifications.js}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Notification System
+            if (typeof NotificationSystem !== 'undefined') {
+                NotificationSystem.init();
+                
+                // Start background refresh if on dashboard
+                if (window.location.pathname === '/' || window.location.pathname === '') {
+                    NotificationSystem.initBackgroundRefresh();
+                }
+            }
+        });
+    </script>
+</div>

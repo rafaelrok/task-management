@@ -18,9 +18,14 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Profile("test")
 @EnableTransactionManagement
 @EnableJpaRepositories(basePackages = "br.com.rafaelvieira.taskmanagement.repository")
-@EntityScan(basePackages = "br.com.rafaelvieira.taskmanagement.domain.model")
+@EntityScan(
+        basePackages = {
+            "br.com.rafaelvieira.taskmanagement.domain.model",
+            "br.com.rafaelvieira.taskmanagement.domain.entity"
+        })
 @EnableJpaAuditing
 public class TestDatabaseConfig {
-    // DataSource é automaticamente configurado pelo Testcontainers via @ServiceConnection
+    // DataSource é automaticamente configurado pelo Testcontainers via
+    // @ServiceConnection
     // Não é necessário criar bean manualmente
 }

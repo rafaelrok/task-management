@@ -2,65 +2,39 @@
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="fragments/head :: head('Nova Tarefa - Task Management')"></head>
 <body class="dashboard-body">
-<!-- Sidebar -->
-<nav class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-        <div class="logo">
-            <i class="bi bi-kanban"></i>
-            <span class="logo-text">TaskFlow</span>
-        </div>
-        <button class="sidebar-toggle" id="sidebarToggle">
-            <i class="bi bi-list"></i>
-        </button>
-    </div>
-    <ul class="sidebar-menu">
-        <li class="menu-item">
-            <a th:href="@{/}">
-                <i class="bi bi-speedometer2"></i>
-                <span class="menu-text">Dashboard</span>
-            </a>
-        </li>
-        <li class="menu-item">
-            <a th:href="@{/tasks}">
-                <i class="bi bi-list-task"></i>
-                <span class="menu-text">Tarefas</span>
-            </a>
-        </li>
-        <li class="menu-item active">
-            <a th:href="@{/tasks/new}">
-                <i class="bi bi-plus-circle"></i>
-                <span class="menu-text">Nova Tarefa</span>
-            </a>
-        </li>
-        <li class="menu-item">
-            <a href="#" id="themeToggle">
-                <i class="bi bi-moon-stars"></i>
-                <span class="menu-text">Tema Escuro</span>
-            </a>
-        </li>
-    </ul>
-    <div class="sidebar-footer">
-        <form method="post" th:action="@{/logout}">
-            <button class="logout-btn" type="submit">
-                <i class="bi bi-box-arrow-right"></i>
-                <span class="menu-text">Sair</span>
-            </button>
-        </form>
-    </div>
-</nav>
+    <!-- Sidebar -->
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
 
-<!-- Main Content -->
-<div class="main-content" id="mainContent">
-    <div class="top-bar">
-        <h1 class="page-title">
-            <i class="bi bi-plus-circle"></i> Nova Tarefa
-        </h1>
-        <div class="user-info">
-            <a class="btn btn-secondary" th:href="@{/tasks}">
-                <i class="bi bi-arrow-left"></i> Voltar
-            </a>
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <div class="top-bar">
+            <h1 class="page-title">
+                <i class="bi bi-plus-circle"></i> Nova Tarefa
+            </h1>
+            <div class="user-info" style="display: flex; gap: 1.5rem; align-items: center">
+                 <!-- Notification Dropdown -->
+                <div class="dropdown">
+                    <a href="#" class="text-decoration-none position-relative" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="color: var(--text-primary); font-size: 1.5rem;">
+                        <i class="bi bi-bell"></i>
+                        <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size: 0.65rem; padding: 0.25rem 0.5rem;">
+                            <span id="notificationCount">0</span>
+                            <span class="visually-hidden">unread messages</span>
+                        </span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" aria-labelledby="notificationDropdown" style="width: 320px; max-height: 400px; overflow-y: auto;">
+                        <li><h6 class="dropdown-header border-bottom py-2 mb-2">Notificações</h6></li>
+                        <div id="notificationList">
+                            <li class="dropdown-item text-center text-muted small py-3">Carregando...</li>
+                        </div>
+                        <li><hr class="dropdown-divider mt-2"></li>
+                        <li><a class="dropdown-item text-center small text-primary fw-bold py-2" th:href="@{/notifications}">Ver todas</a></li>
+                    </ul>
+                </div>
+                <a class="btn btn-secondary" th:href="@{/tasks}">
+                    <i class="bi bi-arrow-left"></i> Voltar
+                </a>
+            </div>
         </div>
-    </div>
 
     <div class="content-wrapper">
         <div th:replace="fragments/alerts :: alerts"></div>
@@ -204,5 +178,6 @@
         }
     });
 </script>
+<div th:replace="~{fragments/notifications :: notifications}"></div>
 </body>
 </html>

@@ -31,7 +31,11 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Profile("!test")
 @EnableTransactionManagement
 @EnableJpaRepositories(basePackages = "br.com.rafaelvieira.taskmanagement.repository")
-@EntityScan(basePackages = "br.com.rafaelvieira.taskmanagement.domain.model")
+@EntityScan(
+        basePackages = {
+            "br.com.rafaelvieira.taskmanagement.domain.model",
+            "br.com.rafaelvieira.taskmanagement.domain.entity"
+        })
 @EnableJpaAuditing
 @NoArgsConstructor
 public class DatabaseConfig {
@@ -101,7 +105,9 @@ public class DatabaseConfig {
     public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource) {
         var em = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(dataSource);
-        em.setPackagesToScan("br.com.rafaelvieira.taskmanagement.domain.model");
+        em.setPackagesToScan(
+                "br.com.rafaelvieira.taskmanagement.domain.model",
+                "br.com.rafaelvieira.taskmanagement.domain.entity");
 
         var vendorAdapter = new HibernateJpaVendorAdapter();
         vendorAdapter.setShowSql(showSql);
