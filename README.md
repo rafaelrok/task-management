@@ -1,4 +1,4 @@
-# 📋 Task Management System - JUnit 6 + Spring Boot 4.0 + Java 25
+# Task Management System - JUnit 6 + Spring Boot 4.0 + Java 25
 
 ![Java](https://img.shields.io/badge/Java-25-orange?style=for-the-badge&logo=openjdk)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0-brightgreen?style=for-the-badge&logo=spring)
@@ -9,11 +9,11 @@
 
 Sistema completo de gerenciamento de tarefas desenvolvido para demonstrar **todas as funcionalidades** do **JUnit 6.0.0**, **Spring Boot 4.0** e **Java 25**.
 
-> 📖 **Artigo Relacionado**: [JUnit 6.0.0: O que há de novo, por que migrar e como usar](https://www.rafaelvieiradev.com.br/blog/junit-600-o-que-ha-de-novo-por-que-migrar-e-como-usar)
+> **Artigo Relacionado**: [JUnit 6.0.0: O que há de novo, por que migrar e como usar](https://www.rafaelvieiradev.com.br/blog/junit-600-o-que-ha-de-novo-por-que-migrar-e-como-usar)
 
 ---
 
-## 📑 Índice
+## Índice
 
 - [Sobre o Projeto](#-sobre-o-projeto)
 - [Tecnologias Utilizadas](#-tecnologias-utilizadas)
@@ -30,21 +30,21 @@ Sistema completo de gerenciamento de tarefas desenvolvido para demonstrar **toda
 
 ---
 
-## 🎯 Sobre o Projeto
+## Sobre o Projeto
 
 Este projeto foi criado como material de estudo e demonstração prática das novidades do **JUnit 6.0.0**, a mais recente versão do framework de testes mais popular do ecossistema Java. O sistema implementa um CRUD completo de tarefas com todas as funcionalidades modernas de testes.
 
-### 🎪 Destaques do Projeto
+### Destaques do Projeto
 
-- 🧪 **JUnit 6.0.0** - Primeira implementação completa das features mais recentes
-- 🚀 **Spring Boot 4.0** - Framework em versão snapshot com últimas features
-- ☕ **Java 25** - Utilizando as features mais modernas da linguagem
-- 🐘 **PostgreSQL 16** - Banco de dados robusto e confiável
-- 🐳 **Testcontainers** - Testes de integração com containers reais
-- 📊 **Jacoco** - Cobertura de testes configurada e automatizada
-- 📝 **OpenAPI 3** - Documentação interativa da API
+- **JUnit 6.0.0** - Primeira implementação completa das features mais recentes
+- **Spring Boot 4.0** - Framework em versão snapshot com últimas features
+- **Java 25** - Utilizando as features mais modernas da linguagem
+- **PostgreSQL 16** - Banco de dados robusto e confiável
+- **Testcontainers** - Testes de integração com containers reais
+- **Jacoco** - Cobertura de testes configurada e automatizada
+- **OpenAPI 3** - Documentação interativa da API
 
-### 🆚 Comparação com Abordagens Tradicionais
+### Comparação com Abordagens Tradicionais
 
 | Aspecto | Abordagem Tradicional | Este Projeto |
 |---------|---------------------|--------------|
@@ -101,7 +101,7 @@ Este projeto foi criado como material de estudo e demonstração prática das no
 - ✅ Validação de toda a stack
 - ✅ Testes transacionais
 
-## ⚡ Quick Start
+## Quick Start
 
 ```bash
 # 1. Clone o repositório
@@ -202,7 +202,7 @@ docker ps
 brew install --cask docker
 ```
 
-## 🏗️ Construindo o Projeto
+## Construindo o Projeto
 
 ### 1. Clone ou crie o projeto via Spring Initializr
 
@@ -389,7 +389,7 @@ java -jar build/libs/task-management-0.0.1-SNAPSHOT.jar
 
 A aplicação estará disponível em: `http://localhost:8080`
 
-### 📖 Documentação Interativa da API (Swagger UI)
+### Documentação Interativa da API (Swagger UI)
 
 Após iniciar a aplicação, acesse:
 
@@ -688,7 +688,7 @@ com.example.taskmanagement/
 - [x] Exception Handling
 - [x] Transações de Banco de Dados
 
-## 📊 Cobertura de Testes
+## Cobertura de Testes
 
 ### Estatísticas de Testes
 
@@ -745,12 +745,12 @@ start build\reports\jacoco\index.html
 ### 📈 Relatório de Testes
 
 O relatório HTML gerado mostra:
-- ✅ Testes passados/falhados/ignorados
-- ⏱️ Tempo de execução
-- 📊 Cobertura de código por classe/método/linha
-- 🎯 Branches cobertos vs não cobertos
+- Testes passados/falhados/ignorados
+- Tempo de execução
+- Cobertura de código por classe/método/linha
+- Branches cobertos vs não cobertos
 
-## 🏗️ Arquitetura do Sistema
+## Arquitetura do Sistema
 
 ### Estrutura em Camadas
 
@@ -807,7 +807,7 @@ src/
         └── TestContainersConfig.java  # PostgreSQL container config
 ```
 
-### 🗄️ Modelo de Dados
+### Modelo de Dados
 
 #### Task (Entidade Principal)
 ```java
@@ -851,7 +851,7 @@ public class Task {
 }
 ```
 
-### 🎨 Padrões de Design Implementados
+### Padrões de Design Implementados
 
 1. **Repository Pattern** - Abstração de acesso a dados
 2. **Service Layer** - Lógica de negócio isolada
@@ -894,7 +894,7 @@ Relatório disponível em: `build/reports/jacoco/test/html/index.html`
 4. Push para a branch (`git push origin feature/nova-feature`)
 5. Abra um Pull Request
 
-## 🎯 Por Que Migrar para JUnit 6?
+## Por Que Migrar para JUnit 6?
 
 Baseado no [artigo oficial do blog](https://www.rafaelvieiradev.com.br/blog/junit-600-o-que-ha-de-novo-por-que-migrar-e-como-usar), aqui estão as principais razões:
 
@@ -1054,7 +1054,7 @@ test {
 }
 ```
 
-## 📚 Recursos Adicionais
+## Recursos Adicionais
 
 ### Documentação Oficial
 - [JUnit 6 Documentation](https://junit.org/junit6/)
@@ -1063,9 +1063,9 @@ test {
 - [AssertJ Guide](https://assertj.github.io/doc/)
 
 ### Artigos Relacionados
-- 📖 [JUnit 6.0.0: O que há de novo](https://www.rafaelvieiradev.com.br/blog/junit-600-o-que-ha-de-novo-por-que-migrar-e-como-usar)
-- 🎯 [Melhores Práticas de Testes em Java](https://www.rafaelvieiradev.com.br/blog)
-- 🚀 [Spring Boot 4.0 Novidades](https://www.rafaelvieiradev.com.br/blog)
+- [JUnit 6.0.0: O que há de novo](https://www.rafaelvieiradev.com.br/blog/junit-600-o-que-ha-de-novo-por-que-migrar-e-como-usar)
+- [Melhores Práticas de Testes em Java](https://www.rafaelvieiradev.com.br/blog)
+- [Spring Boot 4.0 Novidades](https://www.rafaelvieiradev.com.br/blog)
 
 ### Ferramentas Úteis
 - **IntelliJ IDEA** - Melhor suporte para JUnit 6
@@ -1074,7 +1074,7 @@ test {
 - **Postman/Insomnia** - Testar APIs REST
 - **DBeaver** - Cliente PostgreSQL
 
-## 🤝 Contribuindo
+## Contribuindo
 
 Contribuições são bem-vindas! Por favor:
 
@@ -1091,58 +1091,58 @@ Contribuições são bem-vindas! Por favor:
 - `Test:` Adição ou modificação de testes
 - `Refactor:` Refatoração de código
 
-## 📸 Screenshots e Demo
+## Screenshots e Demo
 
 ### Swagger UI - Documentação Interativa
 Após iniciar a aplicação, acesse: `http://localhost:8080/swagger-ui.html`
 
 A interface Swagger permite:
-- 🔍 Explorar todos os endpoints disponíveis
-- ▶️ Executar requisições diretamente no navegador
-- 📄 Ver schemas JSON completos
-- ✅ Validar payloads antes de enviar
-- 🎯 Testar autenticação e autorizações
+- Explorar todos os endpoints disponíveis
+- Executar requisições diretamente no navegador
+- Ver schemas JSON completos
+- Validar payloads antes de enviar
+- Testar autenticação e autorizações
 
 ### Relatório de Testes JUnit
 Após executar `./gradlew test`, acesse: `build/reports/tests/test/index.html`
 
 O relatório HTML mostra:
-- ✅ Taxa de sucesso dos testes (100% neste projeto)
-- ⏱️ Tempo de execução por classe e método
-- 📊 Estatísticas detalhadas por pacote
-- 🎯 Testes que falharam com stack traces completas
-- 📈 Histórico de execuções
+- Taxa de sucesso dos testes (100% neste projeto)
+- Tempo de execução por classe e método
+- Estatísticas detalhadas por pacote
+- Testes que falharam com stack traces completas
+- Histórico de execuções
 
 ### Relatório de Cobertura Jacoco
 Após executar `./gradlew jacocoTestReport`, acesse: `build/reports/jacoco/index.html`
 
 Visualize métricas de cobertura:
-- 📈 Porcentagem de cobertura por pacote/classe
-- 🎯 Linhas cobertas vs não cobertas (highlighting visual)
-- 🔀 Branches testados (if/else, switch)
-- 📊 Complexidade ciclomática
-- 🚀 Metas de cobertura configuráveis
+- Porcentagem de cobertura por pacote/classe
+- Linhas cobertas vs não cobertas (highlighting visual)
+- Branches testados (if/else, switch)
+- Complexidade ciclomática
+- Metas de cobertura configuráveis
 
-## 👨‍💻 Autor
+## Autor
 
 **Rafael Vieira** (rafaelrok)
 
 Desenvolvedor Full Stack especializado em Java, Spring Framework e arquitetura de microserviços.
 
-- 🌐 Website: [rafaelvieiradev.com.br](https://www.rafaelvieiradev.com.br)
-- 📝 Blog: [rafaelvieiradev.com.br/blog](https://www.rafaelvieiradev.com.br/blog)
-- 💼 LinkedIn: [linkedin.com/in/rafaelrok](https://www.linkedin.com/in/rafaelrok)
-- 🐙 GitHub: [@rafaelrok](https://github.com/rafaelrok)
-- 📧 Email: contato@rafaelvieiradev.com.br
+- Website: [rafaelvieiradev.com.br](https://www.rafaelvieiradev.com.br)
+- Blog: [rafaelvieiradev.com.br/blog](https://www.rafaelvieiradev.com.br/blog)
+- LinkedIn: [linkedin.com/in/rafaelrok](https://www.linkedin.com/in/rafaelrok)
+- GitHub: [@rafaelrok](https://github.com/rafaelrok)
+- Email: contato@rafaelvieiradev.com.br
 
 ### Sobre este Projeto
-- 📅 Criado em: **04 de Novembro de 2025**
-- 🎯 Objetivo: Demonstração completa e didática de **JUnit 6.0.0**, **Spring Boot 4.0** e **Java 25**
-- 📖 Artigo Relacionado: [JUnit 6.0.0: O que há de novo, por que migrar e como usar](https://www.rafaelvieiradev.com.br/blog/junit-600-o-que-ha-de-novo-por-que-migrar-e-como-usar)
-- 🏷️ Tags: `junit6`, `spring-boot-4`, `java-25`, `testing`, `tdd`, `bdd`, `testcontainers`, `mockito`, `assertj`
-- 📚 Finalidade: Material educacional e referência para a comunidade
+- Criado em: **04 de Novembro de 2025**
+- Objetivo: Demonstração completa e didática de **JUnit 6.0.0**, **Spring Boot 4.0** e **Java 25**
+- Artigo Relacionado: [JUnit 6.0.0: O que há de novo, por que migrar e como usar](https://www.rafaelvieiradev.com.br/blog/junit-600-o-que-ha-de-novo-por-que-migrar-e-como-usar)
+- Tags: `junit6`, `spring-boot-4`, `java-25`, `testing`, `tdd`, `bdd`, `testcontainers`, `mockito`, `assertj`
+- Finalidade: Material educacional e referência para a comunidade
 
-## 📜 Licença
+## Licença
 
 Este projeto está licenciado sob a **MIT License** - sinta-se livre para usar, modificar e distribuir.
 
@@ -1172,41 +1172,29 @@ SOFTWARE.
 
 Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 
-## 📚 Referências e Documentação Oficial
+## Referências e Documentação Oficial
 
 ### Frameworks e Bibliotecas
-- 🧪 [JUnit 6 Documentation](https://junit.org/junit6/) - Framework de testes
-- 🍃 [Spring Boot 4.0 Documentation](https://docs.spring.io/spring-boot/docs/4.0.x/reference/) - Framework web
-- ☕ [Java 25 Documentation](https://openjdk.org/projects/jdk/25/) - Linguagem Java
-- 🐳 [Testcontainers Documentation](https://www.testcontainers.org/) - Containers para testes
-- ✅ [AssertJ Documentation](https://assertj.github.io/doc/) - Assertions fluentes
-- 🎭 [Mockito Documentation](https://site.mockito.org/) - Mock framework
-- 📖 [SpringDoc OpenAPI](https://springdoc.org/) - Documentação de APIs
+- [JUnit 6 Documentation](https://junit.org/junit6/) - Framework de testes
+- [Spring Boot 4.0 Documentation](https://docs.spring.io/spring-boot/docs/4.0.x/reference/) - Framework web
+- [Java 25 Documentation](https://openjdk.org/projects/jdk/25/) - Linguagem Java
+- [Testcontainers Documentation](https://www.testcontainers.org/) - Containers para testes
+- [AssertJ Documentation](https://assertj.github.io/doc/) - Assertions fluentes
+- [Mockito Documentation](https://site.mockito.org/) - Mock framework
+- [SpringDoc OpenAPI](https://springdoc.org/) - Documentação de APIs
 
 ### Tutoriais e Guias
-- 📝 [Artigo: JUnit 6.0.0 - O que há de novo](https://www.rafaelvieiradev.com.br/blog/junit-600-o-que-ha-de-novo-por-que-migrar-e-como-usar)
-- 🎓 [Spring Boot 4.0 Migration Guide](https://github.com/spring-projects/spring-boot/wiki)
-- 🚀 [Java 25 New Features](https://openjdk.org/projects/jdk/25/)
-- 🐘 [PostgreSQL 16 Documentation](https://www.postgresql.org/docs/16/)
+- [Artigo: JUnit 6.0.0 - O que há de novo](https://www.rafaelvieiradev.com.br/blog/junit-600-o-que-ha-de-novo-por-que-migrar-e-como-usar)
+- [Spring Boot 4.0 Migration Guide](https://github.com/spring-projects/spring-boot/wiki)
+- [Java 25 New Features](https://openjdk.org/projects/jdk/25/)
+- [PostgreSQL 16 Documentation](https://www.postgresql.org/docs/16/)
 
 ### Ferramentas Recomendadas
-- 💻 **IDE**: IntelliJ IDEA Ultimate (melhor suporte para Spring Boot)
-- 🔨 **Build**: Gradle 8.x com Kotlin DSL
-- 🐳 **Containers**: Docker Desktop
-- 📮 **API Testing**: Postman, Insomnia ou Thunder Client
-- 🗄️ **Database Client**: DBeaver, pgAdmin ou DataGrip
-
----
-
-## 🌟 Agradecimentos
-
-Obrigado por conferir este projeto! Se foi útil para você:
-
-- ⭐ Deixe uma estrela no repositório
-- 🐛 Reporte bugs ou sugira melhorias via Issues
-- 🔀 Envie Pull Requests com novos recursos
-- 📢 Compartilhe com outros desenvolvedores
-- 💬 Entre em contato para dúvidas ou feedback
+- **IDE**: IntelliJ IDEA Ultimate (melhor suporte para Spring Boot)
+- **Build**: Gradle 8.x com Kotlin DSL
+- **Containers**: Docker Desktop
+- **API Testing**: Postman, Insomnia ou Thunder Client
+- **Database Client**: DBeaver, pgAdmin ou DataGrip
 
 ---
 
