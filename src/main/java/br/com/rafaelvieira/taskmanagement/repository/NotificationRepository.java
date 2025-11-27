@@ -17,6 +17,9 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     List<Notification> findByUserAndReadFalseOrderByCreatedAtDesc(User user);
 
+    /** Encontra notificações sticky não lidas para um usuário. */
+    List<Notification> findByUserAndReadFalseAndStickyTrueOrderByCreatedAtDesc(User user);
+
     long countByUserAndReadFalse(User user);
 
     @Modifying

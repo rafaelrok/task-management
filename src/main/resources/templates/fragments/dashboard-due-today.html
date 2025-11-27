@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<tbody th:fragment="due-today-tasks" id="dueTodayTableBody">
+    <tr class="table-row-animate"
+        th:each="t, iterStat : ${dueToday}"
+        th:if="${iterStat.index < 5}">
+        <td><span class="task-id" th:text="${t.id()}">1</span></td>
+        <td><span class="task-title" th:text="${t.title()}">Titulo</span></td>
+        <td>
+            <span class="badge-status"
+                  th:classappend="${t.status().name().toLowerCase()}"
+                  th:text="${t.status()}">TODO</span>
+        </td>
+        <td>
+            <span class="task-date"
+                  th:text="${#temporals.format(t.dueDate(),'HH:mm')}">12:00</span>
+        </td>
+        <td>
+            <button class="btn-action btn-view"
+                    onclick="openTaskModal(this.dataset.taskId)"
+                    th:attr="data-task-id=${t.id()}">
+                <i class="bi bi-eye"></i>
+            </button>
+        </td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(dueToday)}">
+        <td class="empty-state" colspan="5">
+            <i class="bi bi-inbox"></i>
+            <span>Nenhuma tarefa para hoje</span>
+        </td>
+    </tr>
+</tbody>
+</body>
+</html>

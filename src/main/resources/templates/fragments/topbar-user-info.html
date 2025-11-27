@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="userInfo" class="d-flex align-items-center" style="gap: 0.75rem;">
+    <!-- Notification Dropdown -->
+    <div class="dropdown">
+        <a href="#"
+           class="text-decoration-none position-relative d-flex align-items-center"
+           id="notificationDropdown"
+           data-bs-toggle="dropdown"
+           aria-expanded="false"
+           style="color: var(--text-primary);">
+            
+            <!-- Avatar -->
+            <img th:if="${currentUser != null and currentUser.profile != null and currentUser.profile.avatarUrl != null and !currentUser.profile.avatarUrl.isEmpty()}"
+                 th:src="${currentUser.profile.avatarUrl}"
+                 alt="User Avatar"
+                 class="rounded-circle"
+                 style="width: 40px; height: 40px; object-fit: cover; border: 2px solid var(--primary-color);">
+            
+            <!-- Default Icon (if no avatar) -->
+            <div th:unless="${currentUser != null and currentUser.profile != null and currentUser.profile.avatarUrl != null and !currentUser.profile.avatarUrl.isEmpty()}"
+                 class="rounded-circle d-flex justify-content-center align-items-center"
+                 style="width: 40px; height: 40px; background-color: var(--surface-hover); color: var(--text-primary); border: 2px solid var(--border-color);">
+                <i class="bi bi-person-fill" style="font-size: 1.2rem;"></i>
+            </div>
+
+            <!-- Notification Badge -->
+            <span id="notificationBadge"
+                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none"
+                  style="font-size: 0.65rem; padding: 0.25rem 0.5rem; transform: translate(-50%, -50%) !important;">
+                <span id="notificationCount">0</span>
+                <span class="visually-hidden">unread messages</span>
+            </span>
+        </a>
+        
+        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0"
+            aria-labelledby="notificationDropdown"
+            style="width: 320px; max-height: 400px; overflow-y: auto">
+            <li>
+                <h6 class="dropdown-header border-bottom py-2 mb-2">
+                    Notificações
+                </h6>
+            </li>
+            <div id="notificationList">
+                <!-- Notifications will be injected here -->
+                <li class="dropdown-item text-center text-muted small py-3">
+                    Carregando...
+                </li>
+            </div>
+            <li><hr class="dropdown-divider mt-2" /></li>
+            <li>
+                <a class="dropdown-item text-center small text-primary fw-bold py-2"
+                   th:href="@{/notifications}">Ver todas</a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- User Name -->
+    <span class="welcome-text" 
+          th:text="${currentUser != null ? (currentUser.fullName != null ? currentUser.fullName : currentUser.username) : 'Visitante'}"
+          style="font-weight: 500; color: var(--text-primary);">
+        Bem-vindo!
+    </span>
+</div>
+</html>

@@ -142,6 +142,8 @@ public class TaskServiceImpl implements TaskService {
             }
             if (elapsed >= targetSeconds
                     && task.getStatus() != TaskStatus.DONE
+                    && task.getStatus() != TaskStatus.PENDING
+                    && task.getStatus() != TaskStatus.CANCELLED
                     && task.getStatus() != TaskStatus.OVERDUE) {
                 pauseMainTimer(task);
                 finishActivePomodoros(task);
@@ -342,7 +344,8 @@ public class TaskServiceImpl implements TaskService {
                         + task.getPomodoroMinutes());
 
         if (newStatus == TaskStatus.IN_PROGRESS) {
-            // Validate required fields; if missing, keep status unchanged (tests expect TODO
+            // Validate required fields; if missing, keep status unchanged (tests expect
+            // TODO
             // remains)
             if (!canStart(task)) {
                 System.out.println(
@@ -354,14 +357,17 @@ public class TaskServiceImpl implements TaskService {
                                 + task.getPomodoroMinutes()
                                 + " -> keeping status "
                                 + task.getStatus());
-                // Simply return current state without throwing, allowing callers/tests to proceed
+                // Simply return current state without throwing, allowing callers/tests to
+                // proceed
                 return convertTo(task);
             }
             System.out.println("✅ Task " + id + " can start - proceeding...");
             // Assign current user if any
             ensureAssignedToCurrentUserIfStarting(task);
 
-            boolean isResumed = task.getStatus() == TaskStatus.IN_PAUSE;
+            boolean isResumed =
+                    task.getStatus() == TaskStatus.IN_PAUSE
+                            || task.getStatus() == TaskStatus.PENDING;
 
             if (task.getStatus() != TaskStatus.IN_PROGRESS) {
                 System.out.println("⏱️ Starting main timer for task " + id);

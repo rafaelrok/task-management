@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="scheduled-tasks" class="scheduled-section" th:if="${not #lists.isEmpty(scheduledTasks)}">
+    <h2 class="section-title" style="display: flex; align-items: center; gap: 0.5rem">
+        <i class="bi bi-clock-history"></i>
+        Tarefas Agendadas
+        <span class="badge-status todo" style="margin-left: 0.5rem" th:text="${#lists.size(scheduledTasks)}"></span>
+    </h2>
+    <div class="scheduled-grid">
+        <div class="scheduled-card" th:each="t : ${scheduledTasks}">
+            <div class="scheduled-card-header">
+                <div class="scheduled-icon">
+                    <i class="bi bi-calendar-event"></i>
+                </div>
+                <div class="scheduled-info">
+                    <a class="scheduled-title" th:href="@{'/tasks/' + ${t.id()}}" th:text="${t.title()}">Título</a>
+                    <div class="scheduled-meta">
+                        <span class="badge-priority" th:classappend="${t.priority().name().toLowerCase()}" th:text="${t.priority()}">MEDIUM</span>
+                        <span class="scheduled-time">
+                            <i class="bi bi-clock"></i>
+                            <span th:text="${#temporals.format(t.scheduledStartAt(),'dd/MM HH:mm')}">18/11 14:00</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="scheduled-description" th:if="${t.description() != null and !t.description().isEmpty()}" th:utext="${#strings.abbreviate(t.description(), 100)}">
+                Descrição da tarefa...
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

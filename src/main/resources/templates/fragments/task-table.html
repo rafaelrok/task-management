@@ -1,0 +1,175 @@
+<!-- Fragment for tasks table and pagination -->
+<div th:fragment="fragment">
+    <div class="table-responsive">
+        <table class="modern-table">
+            <thead>
+            <tr>
+                <th style="width: 50px;">#</th>
+                <th>Título</th>
+                <th style="width: 100px;">Cat.</th>
+                <th style="width: 80px;">Prior.</th>
+                <th style="width: 100px;">Status</th>
+                <th style="width: 90px;">Timer</th>
+                <th style="width: 60px;">PMD</th>
+                <th style="width: 100px;">Resp.</th>
+                <th style="width: 130px;">Vencim.</th>
+                <th style="width: 130px;">Agendam.</th>
+                <th style="text-align: center; width: 180px;">Ações</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr class="table-row-animate task-list-row"
+                th:attr="data-task-id=${task.id()},
+                         data-status=${status},
+                         data-overdue=${isOverdueFlag},
+                         data-scheduled=${task.scheduledStartAt() != null ? #temporals.format(task.scheduledStartAt(), 'yyyy-MM-dd''T''HH:mm') : ''},
+                         data-exec=${task.executionTimeMinutes()},
+                         data-main-start=${task.mainStartedAt() != null ? #temporals.format(task.mainStartedAt(), 'yyyy-MM-dd''T''HH:mm:ss') : ''},
+                         data-main-elapsed=${task.mainElapsedSeconds() != null ? task.mainElapsedSeconds() : 0},
+                         data-pomo-until=${task.pomodoroUntil() != null ? #temporals.format(task.pomodoroUntil(), 'yyyy-MM-dd''T''HH:mm:ss') : ''},
+                         data-pomo-min=${task.pomodoroMinutes()},
+                         data-break-min=${task.pomodoroBreakMinutes()},
+                         data-extra-min=${task.extraTimeMinutes()}"
+                th:classappend="${isOverdueStatus or isOverdueFlag} ? 'task-row-overdue' :
+                               (${isPending} ? 'task-row-pending' :
+                               (${isDone} ? 'task-row-done' :
+                               (${isInPause} ? 'task-row-pause' :
+                               (${isInProgress} ? 'task-row-progress' : ''))))"
+                th:each="task : ${tasksPage.content}"
+                th:with="status=${task.status().name()},
+                         isDone=${status == 'DONE'},
+                         isCancelled=${status == 'CANCELLED'},
+                         isInProgress=${status == 'IN_PROGRESS'},
+                         isInPause=${status == 'IN_PAUSE'},
+                         isPending=${status == 'PENDING'},
+                         isOverdueStatus=${status == 'OVERDUE'},
+                         isOverdueFlag=${task.overdue()}">
+                <td>
+                    <span class="task-id" th:text="${task.id()}">1</span>
+                </td>
+                <td>
+                    <div class="task-title-with-icon">
+                        <i class="task-row-icon bi" data-role="status-icon"></i>
+                        <span class="task-title" th:text="${task.title()}">Implementar API</span>
+                    </div>
+                </td>
+                <td>
+                    <span class="badge-category-compact" th:text="${task.categoryName()}">Backend</span>
+                </td>
+                <td>
+                    <span class="badge-priority-compact"
+                          th:classappend="${task.priority().name().toLowerCase()}"
+                          th:text="${#strings.substring(task.priority().name(), 0, 1)}"
+                          th:title="${task.priority()}">H</span>
+                </td>
+                <td>
+                    <span class="badge-status-compact"
+                          th:classappend="${task.status().name().toLowerCase()}"
+                          th:text="${task.status()}"></span>
+                </td>
+                <td>
+                    <div class="timer-cell-compact">
+                        <span class="timer-value-compact" data-role="main-timer">00:00:00</span>
+                        <div class="timer-progress-compact">
+                            <div class="timer-progress-bar" data-role="main-progress" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <span class="timer-value-compact" data-role="pomo-timer">—</span>
+                </td>
+                <td>
+                    <span class="task-user-compact" th:text="${task.assignedUserName()}">User</span>
+                </td>
+                <td>
+                    <span class="task-date-compact" style="color: var(--danger);"
+                          th:if="${task.overdue()}">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <span th:text="${#temporals.format(task.dueDate(), 'dd/MM HH:mm')}"></span>
+                    </span>
+                    <span class="task-date-compact" th:if="${!task.overdue()}"
+                          th:text="${#temporals.format(task.dueDate(), 'dd/MM HH:mm')}">01/01</span>
+                </td>
+                <td>
+                    <span class="task-date-compact" th:if="${task.scheduledStartAt() != null}"
+                          th:text="${#temporals.format(task.scheduledStartAt(), 'dd/MM HH:mm')}"></span>
+                    <span class="text-muted" th:if="${task.scheduledStartAt() == null}">—</span>
+                </td>
+                <td style="text-align: center;">
+                    <div class="table-actions">
+                        <button class="btn-action btn-view btn-view-task"
+                                onclick="openTaskModal(this.dataset.taskId)"
+                                th:attr="data-task-id=${task.id()}"
+                                title="Visualizar"
+                                type="button">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn-action btn-view btn-edit"
+                                th:attr="data-edit-url=@{'/tasks/' + ${task.id()}}"
+                                th:disabled="${isDone or isCancelled}"
+                                title="Editar"
+                                type="button">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <form class="d-inline" method="post"
+                              th:action="@{'/tasks/' + ${task.id()} + '/status'}">
+                            <input name="status" type="hidden" value="IN_PROGRESS"/>
+                            <button class="btn-action btn-view btn-start"
+                                    th:disabled="${isInProgress or isDone or isCancelled or isPending or isOverdueStatus or isOverdueFlag}"
+                                    title="Iniciar" type="submit">
+                                <i class="bi bi-play-fill"></i>
+                            </button>
+                        </form>
+                        <form class="d-inline" method="post"
+                              th:action="@{'/tasks/' + ${task.id()} + '/status'}">
+                            <input name="status" type="hidden" value="IN_PAUSE"/>
+                            <button class="btn-action btn-view btn-pause"
+                                    th:disabled="${!isInProgress}"
+                                    title="Pausar" type="submit">
+                                <i class="bi bi-pause-fill"></i>
+                            </button>
+                        </form>
+                        <button class="btn-action btn-warning btn-extend-timer btn-extend"
+                                onclick="openExtendModalFromList(this.dataset.taskId)"
+                                th:attr="data-task-id=${task.id()}"
+                                th:if="${isPending or isOverdueStatus or isOverdueFlag}"
+                                title="Estender Tempo"
+                                type="button">
+                            <i class="bi bi-clock-history"></i>
+                        </button>
+                        <form class="d-inline" method="post"
+                              th:action="@{'/tasks/' + ${task.id()} + '/delete'}">
+                            <button class="btn-action btn-delete btn-delete-task"
+                                    onclick="return confirm('Tem certeza que deseja excluir esta tarefa?');"
+                                    th:disabled="${status != 'TODO'}"
+                                    title="Excluir" type="submit">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(tasksPage.content)}">
+                <td class="empty-state" colspan="9">
+                    <i class="bi bi-inbox"></i>
+                    <span>Nenhuma tarefa encontrada</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <!-- Paginação -->
+    <div style="display:flex; justify-content:flex-end; padding: 1rem; gap:.5rem;">
+        <a class="btn btn-secondary page-link-fade" th:classappend="${tasksPage.first} ? ' disabled'"
+           th:href="@{|/tasks?page=${0}&size=${tasksPage.size}&status=${filter.status}&priority=${filter.priority}|}">Primeiro</a>
+        <a class="btn btn-secondary page-link-fade" th:classappend="${tasksPage.first} ? ' disabled'"
+           th:href="@{|/tasks?page=${tasksPage.number - 1}&size=${tasksPage.size}&status=${filter.status}&priority=${filter.priority}|}">Anterior</a>
+        <span style="align-self:center; color: var(--text-secondary);">Página <span
+                th:text="${tasksPage.number + 1}"></span> de <span th:text="${tasksPage.totalPages}"></span></span>
+        <a class="btn btn-secondary page-link-fade" th:classappend="${tasksPage.last} ? ' disabled'"
+           th:href="@{|/tasks?page=${tasksPage.number + 1}&size=${tasksPage.size}&status=${filter.status}&priority=${filter.priority}|}">Próxima</a>
+        <a class="btn btn-secondary page-link-fade" th:classappend="${tasksPage.last} ? ' disabled'"
+           th:href="@{|/tasks?page=${tasksPage.totalPages - 1}&size=${tasksPage.size}&status=${filter.status}&priority=${filter.priority}|}">Última</a>
+    </div>
+</div>
+

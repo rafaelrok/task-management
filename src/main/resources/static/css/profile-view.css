@@ -1,0 +1,334 @@
+/* ===== Profile View Page Styles ===== */
+
+/* Profile Container */
+.profile-view-wrapper {
+    max-width: 100% !important;
+    width: 100%;
+}
+
+/* Profile Section Cards - Full Width */
+.profile-section-card {
+    max-width: 100% !important;
+    margin: 0 !important;
+    width: 100%;
+}
+
+/* Link Items */
+.link-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1.25rem;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--text-primary);
+    font-weight: 500;
+    transition: all 0.25s ease;
+    border: 1px solid var(--border-color);
+}
+
+.link-item:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateX(8px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
+    border-color: var(--primary-color);
+}
+
+.link-item i {
+    font-size: 1.25rem;
+    transition: transform 0.2s ease;
+}
+
+.link-item:hover i {
+    transform: scale(1.1);
+}
+
+/* Skills Grid */
+.skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+/* Skill Chips */
+.skill-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1.15rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color, #8b5cf6));
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 500;
+    box-shadow: 0 3px 12px rgba(99, 102, 241, 0.25);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.skill-chip:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
+}
+
+.skill-chip.soft {
+    background: linear-gradient(135deg, #f472b6, #fb7185);
+    color: #fff;
+    box-shadow: 0 3px 12px rgba(244, 114, 182, 0.25);
+}
+
+.skill-chip.soft:hover {
+    box-shadow: 0 6px 20px rgba(244, 114, 182, 0.35);
+}
+
+/* Profile Header Card */
+.profile-header-card {
+    display: flex;
+    gap: 2.5rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    padding: 2rem;
+}
+
+/* Profile Avatar */
+.profile-avatar {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 5px solid var(--primary-color);
+    box-shadow: 0 12px 35px rgba(99, 102, 241, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.profile-avatar:hover {
+    transform: scale(1.05);
+    box-shadow: 0 18px 45px rgba(99, 102, 241, 0.4);
+}
+
+/* Profile Info */
+.profile-info {
+    flex: 1;
+    min-width: 320px;
+}
+
+.profile-name {
+    margin: 0 0 0.25rem 0;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.profile-github-name {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+}
+
+.profile-profession {
+    margin: 0 0 1rem 0;
+    color: var(--text-secondary);
+    font-size: 1.15rem;
+}
+
+/* GitHub Stats */
+.github-stats {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1.25rem;
+    flex-wrap: wrap;
+}
+
+.github-stat {
+    text-align: center;
+    padding: 0.85rem 1.25rem;
+    background: var(--bg-secondary);
+    border-radius: 14px;
+    border: 1px solid var(--border-color);
+    min-width: 100px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.github-stat:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.github-stat-value {
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    line-height: 1.2;
+}
+
+.github-stat-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+
+/* About Section */
+.profile-about-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.profile-detail-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.95rem;
+}
+
+.profile-detail-row i {
+    color: var(--primary-color);
+    width: 22px;
+    font-size: 1.1rem;
+}
+
+.profile-detail-row strong {
+    color: var(--text-primary);
+}
+
+.profile-detail-row span {
+    color: var(--text-secondary);
+}
+
+/* Section Cards */
+.profile-section-card {
+    background: var(--bg-card, var(--bg-primary));
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    padding: 1.75rem;
+    box-shadow: 0 15px 50px rgba(15, 23, 42, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.profile-section-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
+}
+
+.profile-section-title {
+    font-size: 1.3rem;
+    margin: 0 0 1.25rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--text-primary);
+}
+
+.profile-section-title i {
+    color: var(--primary-color);
+    font-size: 1.2rem;
+}
+
+/* Bio */
+.profile-bio {
+    line-height: 1.7;
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+}
+
+/* Hireable Badge */
+.hireable-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.05));
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    border-radius: 999px;
+    color: var(--success-color, #22c55e);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* ===== Dark Theme - Profile View ===== */
+[data-theme="dark"] .profile-section-card {
+    background: var(--bg-card, #1e293b);
+    border-color: var(--border-color, #334155);
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="dark"] .profile-section-card:hover {
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="dark"] .profile-avatar {
+    border-color: var(--primary-color, #6366f1);
+    box-shadow: 0 12px 35px rgba(99, 102, 241, 0.35);
+}
+
+[data-theme="dark"] .profile-avatar:hover {
+    box-shadow: 0 18px 45px rgba(99, 102, 241, 0.45);
+}
+
+[data-theme="dark"] .profile-name {
+    color: var(--text-primary, #f1f5f9);
+}
+
+[data-theme="dark"] .github-stat {
+    background: rgba(15, 23, 42, 0.6);
+    border-color: var(--border-color, #334155);
+}
+
+[data-theme="dark"] .github-stat:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .link-item {
+    background: var(--bg-secondary, #1e293b);
+    border-color: var(--border-color, #334155);
+    color: var(--text-primary, #f1f5f9);
+}
+
+[data-theme="dark"] .link-item:hover {
+    background: var(--primary-color, #6366f1);
+    color: #fff;
+    border-color: var(--primary-color, #6366f1);
+}
+
+[data-theme="dark"] .profile-section-title {
+    color: var(--text-primary, #f1f5f9);
+}
+
+[data-theme="dark"] .profile-bio {
+    color: var(--text-secondary, #94a3b8);
+}
+
+[data-theme="dark"] .profile-detail-row strong {
+    color: var(--text-primary, #f1f5f9);
+}
+
+[data-theme="dark"] .profile-detail-row span {
+    color: var(--text-secondary, #94a3b8);
+}
+
+[data-theme="dark"] .hireable-badge {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.1));
+    border-color: rgba(34, 197, 94, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .profile-header-card {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .profile-info {
+        min-width: 100%;
+    }
+    
+    .github-stats {
+        justify-content: center;
+    }
+    
+    .skills-grid {
+        grid-template-columns: 1fr;
+    }
+}

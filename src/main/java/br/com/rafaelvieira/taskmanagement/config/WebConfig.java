@@ -11,6 +11,13 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+/**
+ * Configuração geral para a aplicação web, incluindo CORS, mapeamento de recursos estáticos e
+ * configuração do ObjectMapper.
+ *
+ * @author Rafael Vieira (rafaelrok)
+ * @since 2024-06-01
+ */
 @Configuration
 @EnableWebMvc
 public class WebConfig implements WebMvcConfigurer {

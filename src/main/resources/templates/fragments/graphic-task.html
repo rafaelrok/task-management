@@ -1,0 +1,33 @@
+<div th:fragment="graphic-task" class="graphic-task-container">
+    <div class="row">
+        <div class="col-12 col-lg-8 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                    <h5 class="card-title fw-bold text-primary mb-0">
+                        <i class="bi bi-bar-chart-line me-2"></i>Visão Geral das Tarefas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="tasksChart"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-4 mb-4">
+             <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                    <h5 class="card-title fw-bold text-primary mb-0">
+                        <i class="bi bi-pie-chart me-2"></i>Distribuição
+                    </h5>
+                </div>
+                <div class="card-body d-flex align-items-center justify-content-center">
+                    <div id="statusDonutChart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ApexCharts CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <!-- Custom Chart Logic -->
+    <script th:src="@{/js/graphic-task.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/graphic-task.css}">
+</div>

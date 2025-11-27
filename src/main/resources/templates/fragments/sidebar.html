@@ -1,58 +1,94 @@
 <nav class="sidebar" id="sidebar" th:fragment="sidebar">
-    <div class="sidebar-header">
-        <div class="logo">
-            <i class="bi bi-kanban"></i>
-            <span class="logo-text">TaskFlow</span>
+    <header>
+        <div class="image-text">
+            <span class="image">
+                <!-- Ícone do Logo -->
+                <i class="bi bi-kanban display-6"></i>
+            </span>
+
+            <div class="text logo-text">
+                <span class="name">TaskFlow</span>
+                <span class="profession">Gerenciador</span>
+            </div>
         </div>
-        <button class="sidebar-toggle" id="sidebarToggle">
-            <i class="bi bi-list"></i>
-        </button>
-    </div>
-    <ul class="sidebar-menu">
-        <li class="menu-item" th:classappend="${activePage == 'dashboard'} ? 'active'">
-            <a th:href="@{/}">
-                <i class="bi bi-speedometer2"></i>
-                <span class="menu-text">Dashboard</span>
-            </a>
-        </li>
-        <li class="menu-item" th:classappend="${activePage == 'tasks'} ? 'active'">
-            <a th:href="@{/tasks}">
-                <i class="bi bi-list-task"></i>
-                <span class="menu-text">Tarefas</span>
-            </a>
-        </li>
-        <li class="menu-item" th:classappend="${activePage == 'newTask'} ? 'active'">
-            <a th:href="@{/tasks/new}">
-                <i class="bi bi-plus-circle"></i>
-                <span class="menu-text">Nova Tarefa</span>
-            </a>
-        </li>
-        <li class="menu-item" th:classappend="${activePage == 'profile'} ? 'active'">
-            <a th:href="@{/profile}">
-                <i class="bi bi-person-circle"></i>
-                <span class="menu-text">Perfil</span>
-            </a>
-        </li>
-        <li class="menu-item" th:classappend="${activePage == 'notifications'} ? 'active'">
-            <a th:href="@{/notifications}">
-                <i class="bi bi-bell"></i>
-                <span class="menu-text">Notificações</span>
-                <span class="badge bg-danger rounded-pill ms-auto d-none" id="sidebarNotificationBadge">0</span>
-            </a>
-        </li>
-        <li class="menu-item">
-            <a href="#" id="themeToggle">
-                <i class="bi bi-moon-stars"></i>
-                <span class="menu-text">Tema Escuro</span>
-            </a>
-        </li>
-    </ul>
-    <div class="sidebar-footer">
-        <form method="post" th:action="@{/logout}">
-            <button class="logout-btn" type="submit">
-                <i class="bi bi-box-arrow-right"></i>
-                <span class="menu-text">Sair</span>
-            </button>
-        </form>
+
+        <i class="bi bi-chevron-right toggle"></i>
+    </header>
+
+    <div class="menu-bar">
+        <div class="menu">
+
+            <li class="search-box">
+                <i class="bi bi-search icon"></i>
+                <input type="text" placeholder="Buscar...">
+            </li>
+
+            <ul class="menu-links">
+                <!-- Dashboard -->
+                <li class="nav-link" th:classappend="${activePage == 'dashboard'} ? 'active'">
+                    <a th:href="@{/}">
+                        <i class="bi bi-speedometer2 icon"></i>
+                        <span class="text nav-text">Dashboard</span>
+                    </a>
+                </li>
+
+                <!-- Tarefas -->
+                <li class="nav-link" th:classappend="${activePage == 'tasks'} ? 'active'">
+                    <a th:href="@{/tasks}">
+                        <i class="bi bi-list-task icon"></i>
+                        <span class="text nav-text">Tarefas</span>
+                    </a>
+                </li>
+
+                <!-- Nova Tarefa -->
+                <li class="nav-link" th:classappend="${activePage == 'newTask'} ? 'active'">
+                    <a th:href="@{/tasks/new}">
+                        <i class="bi bi-plus-circle icon"></i>
+                        <span class="text nav-text">Nova Tarefa</span>
+                    </a>
+                </li>
+
+                <!-- Perfil -->
+                <li class="nav-link" th:classappend="${activePage == 'profile'} ? 'active'">
+                    <a th:href="@{/profile}">
+                        <i class="bi bi-person-circle icon"></i>
+                        <span class="text nav-text">Perfil</span>
+                    </a>
+                </li>
+
+                <!-- Notificações (Com badge ajustado) -->
+                <li class="nav-link" th:classappend="${activePage == 'notifications'} ? 'active'">
+                    <a th:href="@{/notifications}" class="d-flex align-items-center">
+                        <i class="bi bi-bell icon"></i>
+                        <span class="text nav-text">Notificações</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="bottom-content">
+            <!-- Logout (Formulário disfarçado de link) -->
+            <li class="">
+                <form method="post" th:action="@{/logout}" id="logoutForm" style="width: 100%;">
+                    <a href="#" onclick="document.getElementById('logoutForm').submit(); return false;">
+                        <i class="bi bi-box-arrow-right icon"></i>
+                        <span class="text nav-text">Logout</span>
+                    </a>
+                </form>
+            </li>
+
+            <!-- Dark Mode Toggle -->
+            <li class="mode">
+                <div class="sun-moon">
+                    <i class="bi bi-moon icon moon"></i>
+                    <i class="bi bi-sun icon sun"></i>
+                </div>
+                <span class="mode-text text">Dark mode</span>
+
+                <div class="toggle-switch">
+                    <span class="switch"></span>
+                </div>
+            </li>
+        </div>
     </div>
 </nav>

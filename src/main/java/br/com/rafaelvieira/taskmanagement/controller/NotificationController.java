@@ -28,7 +28,8 @@ public class NotificationController {
     public ResponseEntity<SseEmitter> streamNotifications() {
         var currentUser = userService.getCurrentUser();
         if (currentUser == null) {
-            // Retorna 401 sem body para que o EventSource falhe uma vez e não gere exceção de media
+            // Retorna 401 sem body para que o EventSource falhe uma vez e não gere exceção
+            // de media
             // type
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -50,9 +51,30 @@ public class NotificationController {
                                                 .type(n.getType())
                                                 .taskId(n.getTaskId())
                                                 .read(n.isRead())
+                                                .sticky(n.isSticky())
                                                 .createdAt(n.getCreatedAt())
                                                 .build());
         return ResponseEntity.ok(page);
+    }
+
+    @GetMapping("/sticky")
+    public ResponseEntity<java.util.List<NotificationResponseDTO>> getStickyNotifications() {
+        var notifications =
+                notificationService.findStickyUnreadForCurrentUser().stream()
+                        .map(
+                                n ->
+                                        NotificationResponseDTO.builder()
+                                                .id(n.getId())
+                                                .title(n.getTitle())
+                                                .message(n.getMessage())
+                                                .type(n.getType())
+                                                .taskId(n.getTaskId())
+                                                .read(n.isRead())
+                                                .sticky(n.isSticky())
+                                                .createdAt(n.getCreatedAt())
+                                                .build())
+                        .toList();
+        return ResponseEntity.ok(notifications);
     }
 
     @GetMapping("/unread-count")

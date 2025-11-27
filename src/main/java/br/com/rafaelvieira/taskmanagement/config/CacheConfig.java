@@ -8,6 +8,12 @@ import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Configuração de cache para a aplicação.
+ *
+ * @author Rafael Vieira (rafaelrok)
+ * @since 2025-11-04
+ */
 @Configuration
 @EnableCaching
 public class CacheConfig {

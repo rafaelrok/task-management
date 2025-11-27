@@ -14,5 +14,6 @@ public class NotificationResponseDTO {
     NotificationType type;
     Long taskId;
     boolean read;
+    boolean sticky;
     LocalDateTime createdAt;
 }

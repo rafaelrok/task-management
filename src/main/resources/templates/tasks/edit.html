@@ -2,55 +2,46 @@
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head('Editar Tarefa - Task Management')}"></head>
 <body class="dashboard-body">
-    <!-- Sidebar -->
-    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+<!-- Sidebar -->
+<nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
 
-    <!-- Main Content -->
-    <div class="main-content" id="mainContent">
-        <div class="top-bar">
-            <h1 class="page-title">
-                <i class="bi bi-pencil-square"></i> Editar Tarefa
-            </h1>
-            <div class="user-info" style="display: flex; gap: 1.5rem; align-items: center">
-                 <!-- Notification Dropdown -->
-                <div class="dropdown">
-                    <a href="#" class="text-decoration-none position-relative" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="color: var(--text-primary); font-size: 1.5rem;">
-                        <i class="bi bi-bell"></i>
-                        <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size: 0.65rem; padding: 0.25rem 0.5rem;">
-                            <span id="notificationCount">0</span>
-                            <span class="visually-hidden">unread messages</span>
-                        </span>
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" aria-labelledby="notificationDropdown" style="width: 320px; max-height: 400px; overflow-y: auto;">
-                        <li><h6 class="dropdown-header border-bottom py-2 mb-2">Notificações</h6></li>
-                        <div id="notificationList">
-                            <li class="dropdown-item text-center text-muted small py-3">Carregando...</li>
-                        </div>
-                        <li><hr class="dropdown-divider mt-2"></li>
-                        <li><a class="dropdown-item text-center small text-primary fw-bold py-2" th:href="@{/notifications}">Ver todas</a></li>
-                    </ul>
-                </div>
-                <a class="btn btn-secondary" th:href="@{/tasks}">
-                    <i class="bi bi-arrow-left"></i> Voltar
-                </a>
-            </div>
+<!-- Main Content -->
+<div class="main-content" id="mainContent">
+    <div class="top-bar">
+        <h1 class="page-title">
+            <i class="bi bi-pencil-square"></i> Editar Tarefa
+        </h1>
+        <div class="user-info" style="display: flex; gap: 1.5rem; align-items: center">
+            <div th:replace="~{fragments/topbar-user-info :: userInfo}"></div>
+            <a class="btn btn-secondary" th:href="@{/tasks}">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
         </div>
+    </div>
 
     <div class="content-wrapper">
         <div th:replace="fragments/alerts :: alerts"></div>
 
         <!-- Main Edit Form - Compact Layout -->
         <div class="form-card-modern" data-animate="fade-up">
-            <form method="post" th:action="@{'/tasks/' + ${taskForm.id}}" th:object="${taskForm}">
-        <div class="form-card-modern" data-animate="fade-up">
-            <form method="post" th:action="@{'/tasks/' + ${taskForm.id}}" th:object="${taskForm}">
+            <form method="post" th:action="@{'/tasks/' + ${taskForm.id}}"
+                  th:classappend="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED} ? ' cancelled-form' : ''"
+                  th:object="${taskForm}">
+                <div class="alert alert-warning"
+                     style="margin-bottom:1rem;"
+                     th:if="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED}">
+                    <i class="bi bi-info-circle"></i> Esta tarefa está cancelada. Edição desativada.
+                </div>
 
                 <!-- Title - Full Width -->
                 <div class="form-group-compact">
                     <label class="form-label-compact">
                         <i class="bi bi-card-text"></i> Título *
                     </label>
-                    <input class="form-control-modern" th:field="*{title}" type="text" placeholder="Nome da tarefa"/>
+                    <input class="form-control-modern" placeholder="Nome da tarefa"
+                           th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED}"
+                           th:field="*{title}"
+                           type="text"/>
                     <div class="form-error" th:if="${#fields.hasErrors('title')}">
                         <i class="bi bi-exclamation-circle"></i>
                         <span th:errors="*{title}"></span>
@@ -62,7 +53,9 @@
                     <div class="form-group-compact">
                         <label class="form-label-compact"><i class="bi bi-circle-fill"></i> Status *</label>
                         <div class="select-wrapper">
-                            <select class="form-control-modern" th:field="*{status}">
+                            <select class="form-control-modern" required
+                                    th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED}"
+                                    th:field="*{status}">
                                 <option th:each="s : ${allStatuses}" th:text="${s}" th:value="${s}"></option>
                             </select>
                         </div>
@@ -71,57 +64,108 @@
                     <div class="form-group-compact">
                         <label class="form-label-compact"><i class="bi bi-flag-fill"></i> Prioridade *</label>
                         <div class="select-wrapper">
-                            <select class="form-control-modern" th:field="*{priority}">
+                            <select class="form-control-modern" required
+                                    th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED}"
+                                    th:field="*{priority}">
                                 <option th:each="p : ${allPriorities}" th:text="${p}" th:value="${p}"></option>
                             </select>
+                        </div>
+                        <div class="form-error" th:if="${#fields.hasErrors('priority')}">
+                            <i class="bi bi-exclamation-circle"></i>
+                            <span th:errors="*{priority}"></span>
                         </div>
                     </div>
 
                     <div class="form-group-compact">
-                        <label class="form-label-compact"><i class="bi bi-folder2"></i> Categoria</label>
+                        <label class="form-label-compact"><i class="bi bi-folder2"></i> Categoria *</label>
                         <div class="select-wrapper">
-                            <select class="form-control-modern" th:field="*{categoryId}">
+                            <select class="form-control-modern" required
+                                    th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED}"
+                                    th:field="*{categoryId}">
                                 <option value="">Selecione...</option>
                                 <option th:each="c : ${allCategories}" th:text="${c.name}" th:value="${c.id}"></option>
                             </select>
+                        </div>
+                        <div class="form-error" th:if="${#fields.hasErrors('categoryId')}">
+                            <i class="bi bi-exclamation-circle"></i>
+                            <span th:errors="*{categoryId}"></span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Description - Full Width -->
                 <div class="form-group-compact">
-                    <label class="form-label-compact"><i class="bi bi-text-paragraph"></i> Descrição</label>
+                    <label class="form-label-compact"><i class="bi bi-text-paragraph"></i> Descrição *</label>
                     <div th:replace="~{fragments/rich-editor :: richEditor('taskDescEdit','description', *{description}, '', 'Descreva a tarefa...', '280px')}"></div>
+                    <div class="form-error" th:if="${#fields.hasErrors('description')}">
+                        <i class="bi bi-exclamation-circle"></i>
+                        <span th:errors="*{description}"></span>
+                    </div>
                 </div>
 
                 <!-- Grid 2 columns: Dates -->
                 <div class="form-grid-2">
                     <div class="form-group-compact">
-                        <label class="form-label-compact"><i class="bi bi-calendar-event"></i> Vencimento</label>
-                        <input class="form-control-modern" th:field="*{dueDate}" type="datetime-local"/>
+                        <label class="form-label-compact"><i class="bi bi-calendar-event"></i> Vencimento *</label>
+                        <input class="form-control-modern" id="editDueDateField" required
+                               th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED}"
+                               th:field="*{dueDate}"
+                               type="datetime-local"/>
+                        <div class="form-error" th:if="${#fields.hasErrors('dueDate')}">
+                            <i class="bi bi-exclamation-circle"></i>
+                            <span th:errors="*{dueDate}"></span>
+                        </div>
                     </div>
 
                     <div class="form-group-compact">
-                        <label class="form-label-compact"><i class="bi bi-alarm"></i> Agendamento</label>
-                        <input class="form-control-modern" th:field="*{scheduledStartAt}" type="datetime-local"/>
+                        <label class="form-label-compact"><i class="bi bi-alarm"></i> Agendamento *</label>
+                        <input class="form-control-modern" id="editScheduledStartField" required
+                               th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED}"
+                               th:field="*{scheduledStartAt}"
+                               type="datetime-local"/>
+                        <div class="form-error" th:if="${#fields.hasErrors('scheduledStartAt')}">
+                            <i class="bi bi-exclamation-circle"></i>
+                            <span th:errors="*{scheduledStartAt}"></span>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Grid 4 columns: Timers -->
                 <div class="form-grid-4">
                     <div class="form-group-compact">
-                        <label class="form-label-compact"><i class="bi bi-stopwatch"></i> Exec. (min)</label>
-                        <input class="form-control-modern" min="1" placeholder="120" th:field="*{executionTimeMinutes}" type="number"/>
+                        <label class="form-label-compact"><i class="bi bi-stopwatch"></i> Exec. (min) *</label>
+                        <input class="form-control-modern" min="1" placeholder="120" required
+                               th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED}"
+                               th:field="*{executionTimeMinutes}"
+                               type="number"/>
+                        <div class="form-error" th:if="${#fields.hasErrors('executionTimeMinutes')}">
+                            <i class="bi bi-exclamation-circle"></i>
+                            <span th:errors="*{executionTimeMinutes}"></span>
+                        </div>
                     </div>
 
                     <div class="form-group-compact">
-                        <label class="form-label-compact"><i class="bi bi-hourglass-split"></i> Pomodoro (min)</label>
-                        <input class="form-control-modern" min="5" placeholder="25" th:field="*{pomodoroMinutes}" type="number"/>
+                        <label class="form-label-compact"><i class="bi bi-hourglass-split"></i> Pomodoro (min) *</label>
+                        <input class="form-control-modern" min="5" placeholder="25" required
+                               th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED}"
+                               th:field="*{pomodoroMinutes}"
+                               type="number"/>
+                        <div class="form-error" th:if="${#fields.hasErrors('pomodoroMinutes')}">
+                            <i class="bi bi-exclamation-circle"></i>
+                            <span th:errors="*{pomodoroMinutes}"></span>
+                        </div>
                     </div>
 
                     <div class="form-group-compact">
-                        <label class="form-label-compact"><i class="bi bi-cup-hot"></i> Pausa (min)</label>
-                        <input class="form-control-modern" min="1" placeholder="5" th:field="*{pomodoroBreakMinutes}" type="number"/>
+                        <label class="form-label-compact"><i class="bi bi-cup-hot"></i> Pausa (min) *</label>
+                        <input class="form-control-modern" min="1" placeholder="5" required
+                               th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED}"
+                               th:field="*{pomodoroBreakMinutes}"
+                               type="number"/>
+                        <div class="form-error" th:if="${#fields.hasErrors('pomodoroBreakMinutes')}">
+                            <i class="bi bi-exclamation-circle"></i>
+                            <span th:errors="*{pomodoroBreakMinutes}"></span>
+                        </div>
                     </div>
                 </div>
 
@@ -138,7 +182,8 @@
                         </div>
                     </div>
 
-                    <div class="form-group-compact" th:if="${task.extensionJustification() != null and task.extensionJustification() != ''}">
+                    <div class="form-group-compact"
+                         th:if="${task.extensionJustification() != null and task.extensionJustification() != ''}">
                         <label class="form-label-compact">
                             <i class="bi bi-journal-text"></i> Justificativa
                         </label>
@@ -155,7 +200,10 @@
                         <i class="bi bi-arrow-left"></i>
                         <span>Voltar</span>
                     </a>
-                    <button class="btn-modern btn-primary-modern" type="submit">
+                    <button class="btn-modern btn-primary-modern"
+                            th:classappend="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED} ? ' disabled-btn' : ''"
+                            th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED}"
+                            type="submit">
                         <i class="bi bi-check-circle"></i>
                         <span>Salvar</span>
                     </button>
@@ -170,46 +218,74 @@
             </div>
 
             <div class="quick-actions-grid">
-                <!-- Start -->
+                <!-- Start (Enable if TODO, IN_PAUSE, or PENDING) -->
                 <form method="post" th:action="@{'/tasks/' + ${taskForm.id} + '/status'}">
                     <input name="status" type="hidden" value="IN_PROGRESS"/>
-                    <button class="action-btn action-btn-success" type="submit">
+                    <button class="action-btn action-btn-success" id="btnStart"
+                            th:classappend="${!(task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).TODO
+                                            or task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).IN_PAUSE
+                                            or task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).PENDING)} ? ' disabled-btn' : ''"
+                            th:disabled="${!(task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).TODO
+                                            or task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).IN_PAUSE
+                                            or task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).PENDING)}"
+                            type="submit">
                         <i class="bi bi-play-fill"></i>
-                        <span>Iniciar</span>
+                        <span th:text="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).PENDING} ? 'Retomar' : 'Iniciar'">Iniciar</span>
                     </button>
                 </form>
 
-                <!-- Pause -->
+                <!-- Pause (Enable only if IN_PROGRESS) -->
                 <form method="post" th:action="@{'/tasks/' + ${taskForm.id} + '/status'}">
                     <input name="status" type="hidden" value="IN_PAUSE"/>
-                    <button class="action-btn action-btn-warning" type="submit">
+                    <button class="action-btn action-btn-warning" id="btnPause"
+                            th:classappend="${task.status() != T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).IN_PROGRESS} ? ' disabled-btn' : ''"
+                            th:disabled="${task.status() != T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).IN_PROGRESS}"
+                            type="submit">
                         <i class="bi bi-pause-fill"></i>
                         <span>Pausar</span>
                     </button>
                 </form>
 
-                <!-- Finish -->
+                <!-- Finish (Enable only if IN_PROGRESS or PENDING) -->
                 <form method="post" th:action="@{'/tasks/' + ${taskForm.id} + '/status'}">
                     <input name="status" type="hidden" value="DONE"/>
-                    <button class="action-btn action-btn-info" type="submit">
+                    <button class="action-btn action-btn-info" id="btnFinish"
+                            th:classappend="${!(task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).IN_PROGRESS
+                                            or task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).PENDING)} ? ' disabled-btn' : ''"
+                            th:disabled="${!(task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).IN_PROGRESS
+                                            or task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).PENDING)}"
+                            type="submit">
                         <i class="bi bi-check-circle-fill"></i>
                         <span>Finalizar</span>
                     </button>
                 </form>
 
-                <!-- Cancel Task -->
+                <!-- Cancel (Enable if TODO, DONE, OVERDUE, PENDING) -->
                 <form method="post" th:action="@{'/tasks/' + ${taskForm.id} + '/status'}">
                     <input name="status" type="hidden" value="CANCELLED"/>
-                    <button class="action-btn action-btn-secondary" type="submit">
+                    <button class="action-btn action-btn-secondary" id="btnCancel"
+                            th:classappend="${!(task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).TODO
+                                            or task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).DONE
+                                            or task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).PENDING
+                                            or task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).OVERDUE)} ? ' disabled-btn' : ''"
+                            th:disabled="${!(task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).TODO
+                                            or task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).DONE
+                                            or task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).PENDING
+                                            or task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).OVERDUE)}"
+                            type="submit">
                         <i class="bi bi-x-circle-fill"></i>
                         <span>Cancelar</span>
                     </button>
                 </form>
 
-                <!-- Delete Task -->
+                <!-- Delete (Enable if TODO, OVERDUE) -->
                 <form method="post" th:action="@{'/tasks/' + ${taskForm.id} + '/delete'}">
-                    <button class="action-btn action-btn-danger"
+                    <button class="action-btn action-btn-danger" id="btnDelete"
                             onclick="return confirm('⚠️ Tem certeza que deseja excluir esta tarefa?');"
+                            th:classappend="${!(task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).TODO
+                                            or task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).OVERDUE)} ? ' disabled-btn' : ''"
+                            th:disabled="${!(task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).TODO
+                                            or task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).OVERDUE)}"
                             type="submit">
                         <i class="bi bi-trash3-fill"></i>
                         <span>Excluir</span>
@@ -225,13 +301,13 @@
             </div>
             <div id="execPanel"
                  th:data-break-min="${task.pomodoroBreakMinutes()}"
+                 th:data-extra-min="${task.extraTimeMinutes()}"
                  th:data-main-elapsed="${task.mainElapsedSeconds()}"
                  th:data-main-started="${task.mainStartedAt()}"
                  th:data-pomo-min="${task.pomodoroMinutes()}"
                  th:data-pomo-until="${task.pomodoroUntil()}"
                  th:data-status="${task.status()}"
-                 th:data-target-min="${task.executionTimeMinutes()}"
-                 th:data-extra-min="${task.extraTimeMinutes()}">
+                 th:data-target-min="${task.executionTimeMinutes()}">
                 <div class="timer-display-grid">
                     <div class="timer-display-item">
                         <div class="timer-label">⏱️ Tempo Decorrido</div>
@@ -258,849 +334,15 @@
 </div>
 
 <link rel="stylesheet" th:href="@{/css/rich-editor.css}"/>
+<link rel="stylesheet" th:href="@{/css/task-edit.css}"/>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        crossorigin="anonymous"></script>
+<script th:src="@{/js/sidebar.js}"></script>
 <script th:src="@{/js/rich-editor.js}"></script>
-<script crossorigin="anonymous"
-        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/task-edit.js}"></script>
 <script th:src="@{/js/dashboard.js}"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // Initialize rich editor
-        console.log('Initializing rich editor for edit page...');
-        if (typeof RichEditor === 'function') {
-            RichEditor('taskDescEdit', 'description');
-        } else {
-            console.error('RichEditor function not found!');
-        }
-
-        const pomoBtn = document.getElementById('pomodoroStartBtn');
-        if (pomoBtn) {
-            pomoBtn.addEventListener('click', async () => {
-                const minutesInput = document.querySelector('[name="pomodoroMinutes"]');
-                const minutes = parseInt((minutesInput && minutesInput.value) || '0', 10);
-                if (!minutes || minutes <= 0) {
-                    alert('Defina a duração do Pomodoro (minutos) antes de iniciar.');
-                    return;
-                }
-                const taskIdMatch = window.location.pathname.match(/\/tasks\/(\d+)/);
-                const targetId = taskIdMatch ? taskIdMatch[1] : null;
-                if (!targetId) return;
-
-                const showToast = (cls, msg) => {
-                    const container = document.querySelector('.toast-container');
-                    if (!container) return;
-                    const t = document.createElement('div');
-                    t.className = `toast ${cls} border-0`;
-                    t.innerHTML = `<div class="d-flex"><div class="toast-body">${msg}</div><button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
-                    container.appendChild(t);
-                    new bootstrap.Toast(t, {delay: 4000}).show();
-                };
-
-                try {
-                    await fetch(`/api/tasks/${targetId}/status?status=IN_PAUSE`, {method: 'PATCH'});
-                    showToast('text-bg-primary', `Pomodoro iniciado por ${minutes} min. A tarefa ficará em pausa.`);
-                    setTimeout(async () => {
-                        try {
-                            await fetch(`/api/tasks/${targetId}/status?status=IN_PROGRESS`, {method: 'PATCH'});
-                            showToast('text-bg-success', 'Pomodoro finalizado. Tarefa retomada.');
-                            setTimeout(() => window.location.reload(), 1000);
-                        } catch (e) {
-                            showToast('text-bg-danger', 'Falha ao retomar a tarefa após o Pomodoro.');
-                        }
-                    }, minutes * 60 * 1000);
-                } catch (e) {
-                    showToast('text-bg-danger', 'Falha ao iniciar Pomodoro.');
-                }
-            });
-        }
-
-        // Live timers
-        const panel = document.getElementById('execPanel');
-        if (panel) {
-            const status = panel.dataset.status;
-            const started = panel.dataset.mainStarted ? new Date(panel.dataset.mainStarted) : null;
-            const baseElapsed = parseInt(panel.dataset.mainElapsed || '0', 10);
-            const targetMin = parseInt(panel.dataset.targetMin || '0', 10);
-            const extraMin = parseInt(panel.dataset.extraMin || '0', 10);
-            const totalTargetMin = targetMin + extraMin;
-            const pomoUntil = panel.dataset.pomoUntil ? new Date(panel.dataset.pomoUntil) : null;
-            const pomoMin = parseInt(panel.dataset.pomoMin || '0', 10);
-            const breakMin = parseInt(panel.dataset.breakMin || '5', 10);
-
-            const mainLbl = document.getElementById('mainElapsedLabel');
-            const pomoLbl = document.getElementById('pomoRemainingLabel');
-            const pomoLabelText = document.getElementById('pomoLabelText');
-            const prog = document.getElementById('execProgress');
-            const tgtLbl = document.getElementById('targetLabel');
-
-            if (totalTargetMin > 0) {
-                if (extraMin > 0) {
-                    tgtLbl.innerHTML = `${targetMin} min <span style="color: var(--warning); font-weight: 700;">+${extraMin}</span> = ${totalTargetMin} min`;
-                } else {
-                    tgtLbl.textContent = totalTargetMin + ' min';
-                }
-            }
-
-            function fmt(sec) {
-                sec = Math.max(0, Math.floor(sec));
-                const h = String(Math.floor(sec / 3600)).padStart(2, '0');
-                const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
-                const s = String(sec % 60).padStart(2, '0');
-                return `${h}:${m}:${s}`;
-            }
-
-            let lastPomodoroState = null;
-
-            function tick() {
-                const now = new Date();
-                let elapsed = baseElapsed;
-                if (status === 'IN_PROGRESS' && started) {
-                    elapsed += Math.max(0, (now - started) / 1000);
-                }
-                mainLbl.textContent = fmt(elapsed);
-
-                if (totalTargetMin > 0) {
-                    const pct = Math.min(100, (elapsed / (totalTargetMin * 60)) * 100);
-                    prog.style.width = pct.toFixed(1) + '%';
-                }
-
-                if (pomoUntil) {
-                    const remain = Math.max(0, (pomoUntil - now) / 1000);
-                    pomoLbl.textContent = remain > 0 ? fmt(remain) : '00:00:00';
-
-                    // Detect pomodoro completion to show toast
-                    if (remain <= 0 && lastPomodoroState !== 'completed') {
-                        lastPomodoroState = 'completed';
-                        if (status === 'IN_PROGRESS') {
-                            showToast('text-bg-info', `Pomodoro de ${pomoMin} min finalizado! Pausa iniciada por ${breakMin} min.`);
-                        } else if (status === 'IN_PAUSE') {
-                            showToast('text-bg-success', `Pausa de ${breakMin} min finalizada! Retomando tarefa e novo pomodoro.`);
-                        }
-                        setTimeout(() => window.location.reload(), 2000);
-                    } else if (remain > 0) {
-                        lastPomodoroState = 'running';
-                    }
-
-                    // Update label based on status
-                    if (status === 'IN_PROGRESS') {
-                        pomoLabelText.textContent = 'Pomodoro';
-                    } else if (status === 'IN_PAUSE') {
-                        pomoLabelText.textContent = 'Pausa';
-                    }
-                } else {
-                    pomoLbl.textContent = '—';
-                    lastPomodoroState = null;
-                }
-            }
-
-            function showToast(cls, msg) {
-                const container = document.querySelector('.toast-container') || (function () {
-                    const c = document.createElement('div');
-                    c.className = 'toast-container position-fixed top-0 end-0 p-3';
-                    c.style.zIndex = '1300';
-                    document.body.appendChild(c);
-                    return c;
-                })();
-                const t = document.createElement('div');
-                t.className = 'toast ' + cls + ' border-0';
-                t.innerHTML = '<div class="d-flex"><div class="toast-body">' + msg + '</div><button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
-                container.appendChild(t);
-                new bootstrap.Toast(t, {delay: 5000}).show();
-            }
-
-            tick();
-            setInterval(tick, 1000);
-        }
-
-        // Intercept start IN_PROGRESS button to show toast if fields missing
-        document.querySelectorAll('form').forEach(f => {
-            const hidden = f.querySelector('input[name="status"][value="IN_PROGRESS"]');
-            if (hidden) {
-                f.addEventListener('submit', async e => {
-                    e.preventDefault(); // Always prevent default to handle via AJAX
-
-                    const execField = document.querySelector('[name="executionTimeMinutes"]');
-                    const pomoField = document.querySelector('[name="pomodoroMinutes"]');
-                    const execVal = execField ? parseInt(execField.value || '0', 10) : 0;
-                    const pomoVal = pomoField ? parseInt(pomoField.value || '0', 10) : 0;
-
-                    // Create or get toast container
-                    const getToastContainer = () => {
-                        let container = document.querySelector('.toast-container');
-                        if (!container) {
-                            container = document.createElement('div');
-                            container.className = 'toast-container position-fixed top-0 end-0 p-3';
-                            container.style.zIndex = '1300';
-                            document.body.appendChild(container);
-                        }
-                        return container;
-                    };
-
-                    const showToastMessage = (cls, msg) => {
-                        const container = getToastContainer();
-                        const t = document.createElement('div');
-                        t.className = 'toast ' + cls + ' border-0';
-                        t.innerHTML = '<div class="d-flex"><div class="toast-body">' + msg + '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
-                        container.appendChild(t);
-                        new bootstrap.Toast(t, {delay: 4000}).show();
-                    };
-
-                    if (execVal <= 0 || pomoVal <= 0) {
-                        showToastMessage('text-bg-warning', '<i class="bi bi-exclamation-triangle"></i> Preencha Tempo de execução e Duração do Pomodoro antes de iniciar.');
-                        return;
-                    }
-
-                    // All validations passed, submit via fetch
-                    try {
-                        const formAction = f.action;
-                        const formData = new FormData(f);
-
-                        const response = await fetch(formAction, {
-                            method: 'POST',
-                            body: formData
-                        });
-
-                        if (response.ok) {
-                            showToastMessage('text-bg-success', '<i class="bi bi-play-circle"></i> Tarefa iniciada com sucesso! Contadores em execução...');
-                            // Reload page after short delay to show updated timers
-                            setTimeout(() => window.location.reload(), 1500);
-                        } else {
-                            showToastMessage('text-bg-danger', '<i class="bi bi-exclamation-circle"></i> Erro ao iniciar tarefa. Verifique os campos obrigatórios.');
-                        }
-                    } catch (error) {
-                        console.error('Error starting task:', error);
-                        showToastMessage('text-bg-danger', '<i class="bi bi-exclamation-circle"></i> Erro ao iniciar tarefa.');
-                    }
-                });
-            }
-        });
-
-        // Helper function for toast messages
-        const createToast = (cls, msg) => {
-            let container = document.querySelector('.toast-container');
-            if (!container) {
-                container = document.createElement('div');
-                container.className = 'toast-container position-fixed top-0 end-0 p-3';
-                container.style.zIndex = '1300';
-                document.body.appendChild(container);
-            }
-            const t = document.createElement('div');
-            t.className = 'toast ' + cls + ' border-0';
-            t.innerHTML = '<div class="d-flex"><div class="toast-body">' + msg + '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
-            container.appendChild(t);
-            new bootstrap.Toast(t, {delay: 4000}).show();
-        };
-
-        // Intercept PAUSE button
-        document.querySelectorAll('form').forEach(f => {
-            const pauseHidden = f.querySelector('input[name="status"][value="IN_PAUSE"]');
-            if (pauseHidden) {
-                f.addEventListener('submit', async e => {
-                    e.preventDefault();
-                    try {
-                        const response = await fetch(f.action, {
-                            method: 'POST',
-                            body: new FormData(f)
-                        });
-                        if (response.ok) {
-                            createToast('text-bg-warning', '<i class="bi bi-pause-circle"></i> Tarefa pausada!');
-                            setTimeout(() => window.location.reload(), 1500);
-                        } else {
-                            createToast('text-bg-danger', '<i class="bi bi-exclamation-circle"></i> Erro ao pausar tarefa.');
-                        }
-                    } catch (error) {
-                        console.error('Error pausing task:', error);
-                        createToast('text-bg-danger', '<i class="bi bi-exclamation-circle"></i> Erro ao pausar tarefa.');
-                    }
-                });
-            }
-        });
-
-        // Intercept DONE button
-        document.querySelectorAll('form').forEach(f => {
-            const doneHidden = f.querySelector('input[name="status"][value="DONE"]');
-            if (doneHidden) {
-                f.addEventListener('submit', async e => {
-                    e.preventDefault();
-                    try {
-                        const response = await fetch(f.action, {
-                            method: 'POST',
-                            body: new FormData(f)
-                        });
-                        if (response.ok) {
-                            createToast('text-bg-success', '<i class="bi bi-check-circle"></i> Tarefa finalizada com sucesso!');
-                            setTimeout(() => window.location.href = '/tasks', 1500);
-                        } else {
-                            createToast('text-bg-danger', '<i class="bi bi-exclamation-circle"></i> Erro ao finalizar tarefa.');
-                        }
-                    } catch (error) {
-                        console.error('Error completing task:', error);
-                        createToast('text-bg-danger', '<i class="bi bi-exclamation-circle"></i> Erro ao finalizar tarefa.');
-                    }
-                });
-            }
-        });
-
-        // Intercept CANCELLED button
-        document.querySelectorAll('form').forEach(f => {
-            const cancelHidden = f.querySelector('input[name="status"][value="CANCELLED"]');
-            if (cancelHidden) {
-                f.addEventListener('submit', async e => {
-                    e.preventDefault();
-                    if (!confirm('⚠️ Tem certeza que deseja cancelar esta tarefa?')) {
-                        return;
-                    }
-                    try {
-                        const response = await fetch(f.action, {
-                            method: 'POST',
-                            body: new FormData(f)
-                        });
-                        if (response.ok) {
-                            createToast('text-bg-danger', '<i class="bi bi-x-circle"></i> Tarefa cancelada!');
-                            setTimeout(() => window.location.href = '/tasks', 1500);
-                        } else {
-                            createToast('text-bg-danger', '<i class="bi bi-exclamation-circle"></i> Erro ao cancelar tarefa.');
-                        }
-                    } catch (error) {
-                        console.error('Error cancelling task:', error);
-                        createToast('text-bg-danger', '<i class="bi bi-exclamation-circle"></i> Erro ao cancelar tarefa.');
-                    }
-                });
-            }
-        });
-
-        // Monitor execution time and disable buttons when finished
-        const execPanel = document.getElementById('execPanel');
-        if (execPanel) {
-            const checkTimeFinished = () => {
-                const status = execPanel.getAttribute('data-status');
-                const targetMin = parseInt(execPanel.getAttribute('data-target-min')) || 0;
-                const mainElapsed = parseInt(execPanel.getAttribute('data-main-elapsed')) || 0;
-                const mainStarted = execPanel.getAttribute('data-main-started');
-
-                let currentElapsed = mainElapsed;
-                if (status === 'IN_PROGRESS' && mainStarted) {
-                    const startDate = new Date(mainStarted);
-                    currentElapsed += Math.floor((Date.now() - startDate.getTime()) / 1000);
-                }
-
-                const timeFinished = status === 'IN_PROGRESS' && targetMin > 0 && currentElapsed >= (targetMin * 60);
-
-                if (timeFinished) {
-                    // Disable all action buttons except "Finalizar" (DONE)
-                    document.querySelectorAll('.btn-success, .btn-warning, .btn-danger, .btn-outline-primary').forEach(btn => {
-                        if (!btn.textContent.includes('Finalizar')) {
-                            btn.disabled = true;
-                            btn.style.opacity = '0.5';
-                            btn.style.cursor = 'not-allowed';
-                        }
-                    });
-
-                    // Also disable status selector
-                    const statusSelect = document.querySelector('select[name="status"]');
-                    if (statusSelect) {
-                        statusSelect.disabled = true;
-                        statusSelect.style.opacity = '0.5';
-                    }
-
-                    // Show info message
-                    let infoAlert = document.getElementById('timeFinishedAlert');
-                    if (!infoAlert) {
-                        infoAlert = document.createElement('div');
-                        infoAlert.id = 'timeFinishedAlert';
-                        infoAlert.className = 'alert alert-info';
-                        infoAlert.innerHTML = '<i class="bi bi-info-circle"></i> Tempo de execução finalizado. Por favor, finalize a tarefa ou ajuste a data/horário de início.';
-                        infoAlert.style.marginTop = '1rem';
-                        document.querySelector('.form-card[data-delay="100"]').insertBefore(infoAlert, document.querySelector('.form-card[data-delay="100"]').firstChild);
-                    }
-                } else {
-                    // Remove disabled state if time not finished
-                    document.querySelectorAll('.btn-success, .btn-warning, .btn-danger, .btn-outline-primary').forEach(btn => {
-                        btn.disabled = false;
-                        btn.style.opacity = '';
-                        btn.style.cursor = '';
-                    });
-
-                    const statusSelect = document.querySelector('select[name="status"]');
-                    if (statusSelect) {
-                        statusSelect.disabled = false;
-                        statusSelect.style.opacity = '';
-                    }
-
-                    const infoAlert = document.getElementById('timeFinishedAlert');
-                    if (infoAlert) infoAlert.remove();
-                }
-            };
-
-            // Check immediately and then every second
-            checkTimeFinished();
-            setInterval(checkTimeFinished, 1000);
-
-            // Re-enable on scheduledStartAt or dueDate change
-            document.querySelectorAll('input[name="scheduledStartAt"], input[name="dueDate"]').forEach(input => {
-                input.addEventListener('change', () => {
-                    setTimeout(checkTimeFinished, 100);
-                });
-            });
-        }
-    });
-</script>
-
-<style>
-/* Modern Compact Form Styles */
-.form-card-modern {
-    background: var(--bg-secondary);
-    border-radius: 16px;
-    padding: 1.5rem;
-    box-shadow: var(--shadow-md);
-    margin-bottom: 1rem;
-}
-
-/* Rich Editor Width Adjustment */
-.form-card-modern .rich-editor-container {
-    max-width: 100%;
-}
-
-.form-card-modern .rich-editor-content {
-    min-height: 200px;
-    max-height: 280px;
-}
-
-.form-card-modern .editor-area {
-    min-height: 180px;
-}
-
-.form-group-compact {
-    margin-bottom: 1rem;
-}
-
-.form-label-compact {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 0.5rem;
-}
-
-.form-label-compact i {
-    font-size: 1rem;
-    color: var(--primary);
-}
-
-.form-control-modern {
-    width: 100%;
-    padding: 0.625rem 0.875rem;
-    border: 1.5px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 0.875rem;
-    background: var(--input-bg);
-    color: var(--text-primary);
-    transition: all 0.2s ease;
-}
-
-.form-control-modern:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
-
-.form-control-modern::placeholder {
-    color: var(--text-secondary);
-    opacity: 0.6;
-}
-
-/* Grid Layouts */
-.form-grid-2 {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-}
-
-.form-grid-3 {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-}
-
-.form-grid-4 {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
-}
-
-@media (max-width: 768px) {
-    .form-grid-2,
-    .form-grid-3,
-    .form-grid-4 {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Modern Action Buttons */
-.form-actions-modern {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
-    margin-top: 1.5rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--border-color);
-}
-
-.btn-modern {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 10px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-decoration: none;
-}
-
-.btn-modern i {
-    font-size: 1.1rem;
-}
-
-.btn-primary-modern {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    color: white;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-}
-
-.btn-primary-modern:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
-}
-
-.btn-secondary-modern {
-    background: var(--bg-primary);
-    color: var(--text-secondary);
-    border: 1.5px solid var(--border-color);
-}
-
-.btn-secondary-modern:hover {
-    background: var(--border-color);
-    color: var(--text-primary);
-}
-
-/* Section Header */
-.section-header-compact {
-    margin-bottom: 1.25rem;
-}
-
-.section-header-compact h3 {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0;
-}
-
-.section-header-compact h3 i {
-    color: var(--warning);
-    font-size: 1.25rem;
-}
-
-/* Quick Actions Grid */
-.quick-actions-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 0.75rem;
-}
-
-@media (max-width: 768px) {
-    .quick-actions-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-/* Action Buttons */
-.action-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 1rem 0.75rem;
-    border: none;
-    border-radius: 12px;
-    font-size: 0.813rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    width: 100%;
-}
-
-.action-btn i {
-    font-size: 1.75rem;
-}
-
-.action-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.action-btn:active {
-    transform: translateY(-1px);
-}
-
-.action-btn-success {
-    background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
-    color: white;
-}
-
-.action-btn-success:hover {
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-}
-
-.action-btn-warning {
-    background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%);
-    color: white;
-}
-
-.action-btn-warning:hover {
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
-}
-
-.action-btn-info {
-    background: linear-gradient(135deg, var(--info) 0%, #0891b2 100%);
-    color: white;
-}
-
-.action-btn-info:hover {
-    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
-}
-
-.action-btn-secondary {
-    background: linear-gradient(135deg, var(--text-secondary) 0%, #475569 100%);
-    color: white;
-}
-
-.action-btn-secondary:hover {
-    box-shadow: 0 4px 12px rgba(100, 116, 139, 0.4);
-}
-
-.action-btn-danger {
-    background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
-    color: white;
-}
-
-.action-btn-danger:hover {
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
-}
-
-/* Extra Time and Justification Display */
-.extra-time-display,
-.justification-display {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.875rem 1rem;
-    background: rgba(99, 102, 241, 0.08);
-    border-left: 3px solid var(--primary);
-    border-radius: 8px;
-    font-size: 0.875rem;
-    color: var(--text-primary);
-}
-
-.extra-time-display i {
-    color: var(--warning);
-    font-size: 1.25rem;
-    flex-shrink: 0;
-}
-
-.justification-display i {
-    color: var(--info);
-    font-size: 1.25rem;
-    flex-shrink: 0;
-}
-
-.extra-time-display span {
-    font-weight: 600;
-}
-
-.justification-display span {
-    line-height: 1.5;
-    font-style: italic;
-}
-
-.badge-info-tiny {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.125rem 0.5rem;
-    background: var(--warning);
-    color: white;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    margin-left: 0.5rem;
-}
-
-/* Execution Time Card Improvements */
-#execPanel {
-    padding: 0;
-}
-
-.timer-display-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-.timer-display-item {
-    background: var(--bg-primary);
-    padding: 1.25rem;
-    border-radius: 12px;
-    border: 2px solid var(--border-color);
-    transition: all 0.3s ease;
-}
-
-.timer-display-item:hover {
-    border-color: var(--primary);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
-}
-
-.timer-label {
-    font-size: 0.813rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text-secondary);
-    margin-bottom: 0.75rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.timer-value {
-    font-family: 'Courier New', monospace;
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--primary);
-    letter-spacing: 1px;
-}
-
-.progress-section {
-    background: var(--bg-primary);
-    padding: 1.25rem;
-    border-radius: 12px;
-    border: 2px solid var(--border-color);
-}
-
-.progress-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.75rem;
-}
-
-.progress-title {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.progress-target {
-    font-size: 0.875rem;
-    font-weight: 700;
-    color: var(--primary);
-    background: rgba(99, 102, 241, 0.1);
-    padding: 0.25rem 0.75rem;
-    border-radius: 6px;
-}
-
-.progress-bar-container {
-    height: 16px;
-    background: var(--border-color);
-    border-radius: 8px;
-    overflow: hidden;
-    position: relative;
-}
-
-.progress-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--success) 0%, var(--primary) 100%);
-    border-radius: 8px;
-    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
-}
-
-@media (max-width: 768px) {
-    .timer-display-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .timer-value {
-        font-size: 1.5rem;
-    }
-}
-
-/* Dark Theme Adjustments */
-[data-theme="dark"] .form-card-modern {
-    background: var(--bg-secondary);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-}
-
-[data-theme="dark"] .extra-time-display,
-[data-theme="dark"] .justification-display {
-    background: rgba(99, 102, 241, 0.15);
-    border-left-color: var(--primary);
-}
-
-[data-theme="dark"] #execPanel {
-    background: var(--bg-secondary);
-    border-color: var(--border-color);
-}
-
-[data-theme="dark"] .form-control-modern {
-    background: var(--input-bg);
-    border-color: var(--border-color);
-    color: var(--text-primary);
-}
-
-[data-theme="dark"] .action-btn {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-}
-
-[data-theme="dark"] .action-btn:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-}
-
-/* Responsive adjustments */
-@media (max-width: 1024px) {
-    .form-grid-4 {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 640px) {
-    .form-card-modern {
-        padding: 1rem;
-    }
-
-    .form-actions-modern {
-        flex-direction: column-reverse;
-    }
-
-    .btn-modern {
-        width: 100%;
-        justify-content: center;
-    }
-}
-</style>
-    <div th:replace="~{fragments/notifications :: notifications}"></div>
+<div th:replace="~{fragments/notifications :: notifications}"></div>
 </body>
 </html>

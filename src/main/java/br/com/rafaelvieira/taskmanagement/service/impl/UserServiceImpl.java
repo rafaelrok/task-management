@@ -2,7 +2,6 @@ package br.com.rafaelvieira.taskmanagement.service.impl;
 
 import br.com.rafaelvieira.taskmanagement.domain.model.Profile;
 import br.com.rafaelvieira.taskmanagement.domain.model.User;
-import br.com.rafaelvieira.taskmanagement.exception.ResourceNotFoundException;
 import br.com.rafaelvieira.taskmanagement.repository.UserRepository;
 import br.com.rafaelvieira.taskmanagement.service.UserService;
 import br.com.rafaelvieira.taskmanagement.web.dto.UserProfileForm;
@@ -11,10 +10,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
-import java.util.Objects;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Optional;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -22,18 +22,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 @Service
+@RequiredArgsConstructor
 @Transactional
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final UserService self;
 
-    public UserServiceImpl(UserRepository userRepository, @Lazy UserService self) {
-        this.userRepository = userRepository;
-        this.self = self;
-    }
-
-    private static Path avatarsRoot() {
+    private Path avatarsRoot() {
         return Path.of("src/main/resources/static/uploads/avatars");
     }
 
@@ -41,19 +36,14 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null
-                || !auth.isAuthenticated()
-                || auth instanceof AnonymousAuthenticationToken) {
-            return null; // allow service to proceed without assignment in non-auth contexts/tests
-        }
         String username = auth.getName();
-        return userRepository.findByUsername(username).orElse(null);
+        return userRepository.findByUsername(username).orElseThrow();
     }
 
     @Override
     @Transactional(readOnly = true)
     public UserProfileForm loadProfile() {
-        User user = self.getCurrentUser(); // Call via self-injected proxy
+        User user = getCurrentUser();
         Profile p = user.getProfile();
         UserProfileForm form = new UserProfileForm();
         form.setFullName(user.getFullName());
@@ -91,8 +81,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void updateProfile(UserProfileForm form) {
-        User user = self.getCurrentUser(); // Call via self-injected proxy
-
+        User user = getCurrentUser();
+        // Não sobrescreve o nome real do usuário se githubName não está vazio
         if (form.getFullName() != null && !form.getFullName().isEmpty()) {
             user.setFullName(form.getFullName());
         }
@@ -123,27 +113,33 @@ public class UserServiceImpl implements UserService {
 
         // Parse and save GitHub dates if provided
         if (form.getGithubCreatedAt() != null && !form.getGithubCreatedAt().isEmpty()) {
-            p.setGithubCreatedAt(
-                    java.time.LocalDateTime.parse(
-                            form.getGithubCreatedAt(),
-                            java.time.format.DateTimeFormatter.ISO_DATE_TIME));
+            try {
+                p.setGithubCreatedAt(
+                        LocalDateTime.parse(
+                                form.getGithubCreatedAt(), DateTimeFormatter.ISO_DATE_TIME));
+            } catch (DateTimeParseException e) {
+                // Ignore parse errors
+            }
         }
         if (form.getGithubUpdatedAt() != null && !form.getGithubUpdatedAt().isEmpty()) {
-            p.setGithubUpdatedAt(
-                    java.time.LocalDateTime.parse(
-                            form.getGithubUpdatedAt(),
-                            java.time.format.DateTimeFormatter.ISO_DATE_TIME));
+            try {
+                p.setGithubUpdatedAt(
+                        LocalDateTime.parse(
+                                form.getGithubUpdatedAt(), DateTimeFormatter.ISO_DATE_TIME));
+            } catch (DateTimeParseException e) {
+                // Ignore parse errors
+            }
         }
 
         boolean avatarUploaded = form.getAvatar() != null && !form.getAvatar().isEmpty();
         if (avatarUploaded) {
             try {
                 Files.createDirectories(avatarsRoot());
-                String filename =
-                        StringUtils.cleanPath(
-                                Objects.requireNonNull(form.getAvatar().getOriginalFilename()));
+                String filename = StringUtils.cleanPath(form.getAvatar().getOriginalFilename());
                 String ext =
-                        filename.contains(".") ? filename.substring(filename.lastIndexOf('.')) : "";
+                        filename != null && filename.contains(".")
+                                ? filename.substring(filename.lastIndexOf('.'))
+                                : "";
                 String newName =
                         "avatar-" + user.getId() + "-" + Instant.now().toEpochMilli() + ext;
                 Path target = avatarsRoot().resolve(newName);
@@ -153,7 +149,7 @@ public class UserServiceImpl implements UserService {
                         StandardCopyOption.REPLACE_EXISTING);
                 p.setAvatarUrl("/uploads/avatars/" + newName);
             } catch (IOException e) {
-                throw new ResourceNotFoundException("Failed to store avatar image", e);
+                throw new RuntimeException("Failed to store avatar image", e);
             }
         } else if (StringUtils.hasText(form.getAvatarUrl())) {
             p.setAvatarUrl(form.getAvatarUrl());

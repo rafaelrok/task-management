@@ -8,8 +8,7 @@
   --danger: #ef4444;
   --info: #06b6d4;
 
-  --sidebar-width: 260px;
-  --sidebar-collapsed: 80px;
+  --toggle-color: #e5e7eb;
 
   --bg-primary: #f8fafc;
   --bg-secondary: #ffffff;
@@ -34,6 +33,8 @@
   --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
   --border-color: #334155;
+
+  --toggle-color: #475569;
 
   --card-bg: #1e293b;
   --input-bg: #0f172a;
@@ -76,114 +77,79 @@ html[style*="data-theme"] body {
   overflow-x: hidden;
 }
 
-/* ===== Sidebar ===== */
-.sidebar {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: var(--sidebar-width);
-  height: 100vh;
-  background: linear-gradient(
-    180deg,
-    var(--primary) 0%,
-    var(--primary-dark) 100%
-  );
-  color: white;
-  transition: var(--transition);
-  z-index: 1000;
-  display: flex;
-  flex-direction: column;
-  box-shadow: var(--shadow-xl);
-}
-
-.sidebar.collapsed {
-  width: var(--sidebar-collapsed);
-}
-
-.sidebar-header {
-  padding: 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
 .logo {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  font-size: 1.5rem;
-  font-weight: 700;
-  white-space: nowrap;
+  overflow: hidden;
 }
 
-.logo i {
-  font-size: 2rem;
-  animation: pulse 2s infinite;
-}
-
-.sidebar-toggle {
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
+.logo-icon {
+  min-width: 40px;
+  height: 40px;
+  background: var(--primary);
   color: white;
-  width: 36px;
-  height: 36px;
   border-radius: 8px;
-  cursor: pointer;
-  transition: var(--transition);
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 700;
 }
 
-.sidebar-toggle:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.05);
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  white-space: nowrap;
+  opacity: 1;
+  transition: opacity 0.3s;
 }
 
-.sidebar-menu {
-  flex: 1;
-  list-style: none;
-  padding: 1rem 0;
-  overflow-y: auto;
+.brand-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
-.menu-item {
-  margin: 0.25rem 0.75rem;
+.brand-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
 }
 
 .menu-item a {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 0.875rem 1rem;
-  color: rgba(255, 255, 255, 0.8);
+  padding: 0.75rem 1rem;
+  color: var(--text-secondary);
   text-decoration: none;
-  border-radius: 10px;
+  border-radius: 8px;
   transition: var(--transition);
   white-space: nowrap;
 }
 
 .menu-item a:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  transform: translateX(4px);
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .menu-item.active a {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--primary);
   color: white;
-  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.menu-item.active a i,
+.menu-item.active a .menu-text {
+  color: white;
 }
 
 .menu-item i {
   font-size: 1.25rem;
   min-width: 24px;
-}
-
-.sidebar-footer {
-  padding: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .logout-btn {
@@ -191,61 +157,131 @@ html[style*="data-theme"] body {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 0.875rem 1rem;
-  background: rgba(255, 255, 255, 0.1);
+  padding: 0.75rem 1rem;
+  background: transparent;
   border: none;
-  color: white;
-  border-radius: 10px;
+  color: var(--text-secondary);
+  border-radius: 8px;
   cursor: pointer;
   transition: var(--transition);
   font-size: 1rem;
+  text-align: left;
 }
 
 .logout-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
-.sidebar.collapsed .logo-text,
-.sidebar.collapsed .menu-text {
+.theme-switch-wrapper {
+  background: var(--bg-primary);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+}
+
+.theme-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-secondary);
+}
+
+.switch-toggle {
+  position: relative;
+  width: 40px;
+  height: 20px;
+}
+
+.switch-toggle input {
   opacity: 0;
   width: 0;
-  overflow: hidden;
+  height: 0;
+}
+
+.switch-toggle label {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.switch-toggle label:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked+label {
+  background-color: var(--primary);
+}
+
+input:checked+label:before {
+  transform: translateX(20px);
 }
 
 /* ===== Main Content ===== */
+/* ===== Main Content ===== */
 .main-content {
   flex: 1;
-  margin-left: var(--sidebar-width);
   transition: var(--transition);
-  height: 100vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
-.sidebar.collapsed ~ .main-content {
-  margin-left: var(--sidebar-collapsed);
-}
-
+/* Top-bar como “card” arredondado, estilo da sidebar */
 .top-bar {
   background: var(--bg-secondary);
-  padding: 1.5rem 2rem;
-  border-bottom: 1px solid var(--border-color);
+  padding: 1.25rem 1.75rem;
+  margin: 18px 24px 0 24px;
+  border-radius: 18px;
+  border: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
   flex-shrink: 0;
 }
 
+/* Sticky com espaço do topo, mantendo o estilo de card */
 .top-bar.fixed {
   position: sticky;
-  top: 0;
-  z-index: 1020;
-  width: 100%;
+  top: 18px;
+  /* mesmo “respiro” da sidebar */
+  z-index: 50;
   backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--bg-secondary);
+  /* usa o tema (claro/escuro) */
+}
+
+/* Alinhar o bloco de usuário / sininho */
+.top-bar .user-info {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+/* Sininho com o mesmo padrão visual */
+.notification-btn {
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  transition: var(--transition);
+}
+
+.notification-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 :root[data-theme="dark"] .top-bar.fixed {
@@ -305,9 +341,9 @@ html[style*="data-theme"] body {
 
 .content-wrapper {
   flex: 1;
-  padding: 2rem;
-  max-width: 1600px;
-  margin: 0 auto;
+  padding: 1.5rem 24px 2rem;
+  max-width: 100%;
+  margin: 0;
   width: 100%;
   overflow-y: auto;
   overflow-x: hidden;
@@ -491,11 +527,9 @@ html[style*="data-theme"] body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(
-    135deg,
-    rgba(99, 102, 241, 0.05),
-    rgba(139, 92, 246, 0.05)
-  );
+  background: linear-gradient(135deg,
+      rgba(99, 102, 241, 0.05),
+      rgba(139, 92, 246, 0.05));
 }
 
 .task-table-title {
@@ -629,6 +663,43 @@ html[style*="data-theme"] body {
   /*animation: pulse 2s infinite;*/
 }
 
+/* ===== Status PENDING (Azul claro - aguardando finalização) ===== */
+.badge-status.pending {
+  background: #dbeafe;
+  color: #1e40af;
+  animation: pending-pulse 2s infinite;
+}
+
+@keyframes pending-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0);
+  }
+}
+
+tr.task-pending {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  border-left: 4px solid #3b82f6 !important;
+}
+
+.status-icon-pending {
+  color: #3b82f6;
+  font-size: 1.2rem;
+  margin-right: 0.25rem;
+}
+
+/* Pending card styling */
+.task-card.pending {
+  border-left: 4px solid #3b82f6;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), transparent);
+}
+
+.task-card.pending .card-header {
+  background: rgba(59, 130, 246, 0.1);
+}
+
 tr.task-overdue {
   background-color: rgba(239, 68, 68, 0.1) !important;
   border-left: 4px solid #ef4444 !important;
@@ -704,10 +775,12 @@ tr.task-done {
 
 /* ===== Animations ===== */
 @keyframes pulse {
+
   0%,
   100% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(1.05);
   }
@@ -718,6 +791,7 @@ tr.task-done {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -729,6 +803,7 @@ tr.task-done {
     opacity: 0;
     transform: translateX(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -1053,6 +1128,13 @@ tr.task-done {
   margin: 0 auto;
 }
 
+/* Full width form card for profile pages */
+.form-card.profile-edit-wrapper,
+.form-card.profile-section-card {
+  max-width: 100%;
+  margin: 0;
+}
+
 .form-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -1325,6 +1407,15 @@ button.btn-action[disabled]:hover {
   color: var(--danger);
 }
 
+/* PENDING row style - blue */
+.task-row-pending {
+  background: rgba(59, 130, 246, 0.12) !important;
+}
+
+.task-row-pending .task-row-icon {
+  color: #3b82f6;
+}
+
 .task-row-done {
   background: rgba(34, 197, 94, 0.08) !important;
 }
@@ -1534,6 +1625,7 @@ button.btn-action[disabled]:hover {
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1644,11 +1736,9 @@ button.btn-action[disabled]:hover {
   width: 40px;
   height: 40px;
   border-radius: 8px;
-  background: linear-gradient(
-    135deg,
-    rgba(6, 182, 212, 0.1),
-    rgba(6, 182, 212, 0.2)
-  );
+  background: linear-gradient(135deg,
+      rgba(6, 182, 212, 0.1),
+      rgba(6, 182, 212, 0.2));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1730,7 +1820,8 @@ button.btn-action[disabled]:hover {
 
 .active-card:hover {
   box-shadow: var(--shadow-md);
-  transform: none; /* no vertical shift on hover to prevent misalignment */
+  transform: none;
+  /* no vertical shift on hover to prevent misalignment */
 }
 
 .active-timers {
@@ -1742,7 +1833,8 @@ button.btn-action[disabled]:hover {
   gap: 0.5rem;
   justify-content: flex-end;
   align-items: center;
-  margin-top: auto; /* stick to bottom of card */
+  margin-top: auto;
+  /* stick to bottom of card */
   padding-top: 0.75rem;
   border-top: 1px solid var(--border-color);
 }
@@ -1768,31 +1860,34 @@ button.btn-action[disabled]:hover {
 
 /* Active card state styles */
 .active-card.todo-overdue {
-  background: linear-gradient(
-    135deg,
-    rgba(239, 68, 68, 0.08),
-    rgba(220, 38, 38, 0.12)
-  );
+  background: linear-gradient(135deg,
+      rgba(239, 68, 68, 0.08),
+      rgba(220, 38, 38, 0.12));
   border-color: rgba(239, 68, 68, 0.3);
 }
 
 .active-card.in-pause {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 221, 128, 0.18),
-    rgba(255, 196, 64, 0.15)
-  ) !important;
+  background: linear-gradient(135deg,
+      rgba(255, 221, 128, 0.18),
+      rgba(255, 196, 64, 0.15)) !important;
   border-color: rgba(255, 196, 64, 0.45) !important;
   border-width: 2px !important;
 }
 
 .active-card.overdue-state {
-  background: linear-gradient(
-    135deg,
-    rgba(239, 68, 68, 0.15),
-    rgba(220, 38, 38, 0.12)
-  ) !important;
+  background: linear-gradient(135deg,
+      rgba(239, 68, 68, 0.15),
+      rgba(220, 38, 38, 0.12)) !important;
   border-color: rgba(239, 68, 68, 0.5) !important;
+  border-width: 2px !important;
+}
+
+/* PENDING state - blue background for tasks awaiting action */
+.active-card.pending-state {
+  background: linear-gradient(135deg,
+      rgba(59, 130, 246, 0.15),
+      rgba(37, 99, 235, 0.12)) !important;
+  border-color: rgba(59, 130, 246, 0.5) !important;
   border-width: 2px !important;
 }
 
@@ -1823,12 +1918,40 @@ button.btn-action[disabled]:hover {
   animation: pulse-info 2.5s infinite;
 }
 
+.status-indicator.pending {
+  color: #3b82f6;
+  animation: pulse-pending 2s infinite;
+}
+
+.status-indicator.clock {
+  color: #ef4444;
+  animation: pulse-warning 2s infinite;
+}
+
+.status-indicator.pause {
+  color: #f59e0b;
+  animation: pulse-info 2s infinite;
+}
+
+@keyframes pulse-pending {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.15);
+  }
+}
+
 @keyframes pulse-info {
+
   0%,
   100% {
     opacity: 1;
     transform: scale(1);
   }
+
   50% {
     opacity: 0.7;
     transform: scale(1.1);
@@ -1836,11 +1959,13 @@ button.btn-action[disabled]:hover {
 }
 
 @keyframes pulse-warning {
+
   0%,
   100% {
     opacity: 1;
     transform: scale(1);
   }
+
   50% {
     opacity: 0.8;
     transform: scale(1.15);
@@ -1981,21 +2106,17 @@ button.btn-action[disabled]:hover {
 }
 
 .active-card.pending-start {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 100, 100, 0.15),
-    rgba(239, 68, 68, 0.12)
-  ) !important;
+  background: linear-gradient(135deg,
+      rgba(255, 100, 100, 0.15),
+      rgba(239, 68, 68, 0.12)) !important;
   border-color: rgba(239, 68, 68, 0.5) !important;
   border-width: 2px !important;
 }
 
 .active-card.time-finished {
-  background: linear-gradient(
-    135deg,
-    rgba(59, 130, 246, 0.12),
-    rgba(99, 102, 241, 0.15)
-  ) !important;
+  background: linear-gradient(135deg,
+      rgba(59, 130, 246, 0.12),
+      rgba(99, 102, 241, 0.15)) !important;
   border-color: rgba(99, 102, 241, 0.4) !important;
   border-width: 2px !important;
 }
@@ -2042,6 +2163,89 @@ button.btn-action[disabled]:hover {
 
 .dropdown-item.text-muted {
   color: var(--text-secondary) !important;
+}
+
+/* ===== Sticky Notification Styles ===== */
+.notification-sticky {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05)) !important;
+  border-left: 4px solid #ef4444 !important;
+  animation: sticky-attention 2s ease-in-out infinite;
+}
+
+.notification-sticky.pending {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05)) !important;
+  border-left: 4px solid #3b82f6 !important;
+}
+
+@keyframes sticky-attention {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  2%, 4% {
+    transform: translateX(-2px);
+  }
+  3%, 5% {
+    transform: translateX(2px);
+  }
+}
+
+.notification-sticky-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  background: #ef4444;
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 600;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.notification-sticky-badge.pending {
+  background: #3b82f6;
+}
+
+.notification-sticky-icon {
+  font-size: 0.875rem;
+}
+
+/* Sticky notification requires manual dismissal indicator */
+.notification-requires-action {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: #dc2626;
+  margin-top: 0.5rem;
+}
+
+.notification-requires-action.pending {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+}
+
+/* Sticky notification toast that stays on screen */
+.toast.notification-toast-sticky {
+  border: 2px solid #ef4444;
+  animation: toast-pulse 2s infinite;
+}
+
+.toast.notification-toast-sticky.pending {
+  border-color: #3b82f6;
+}
+
+@keyframes toast-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+  }
 }
 
 /* Dark theme specific overrides for Bootstrap components */
@@ -2100,7 +2304,8 @@ button.btn-action[disabled]:hover {
 }
 
 [data-theme="dark"] .list-group-item.bg-light {
-  background-color: var(--bg-primary) !important; /* Unread background */
+  background-color: var(--bg-primary) !important;
+  /* Unread background */
 }
 
 [data-theme="dark"] .list-group-item:hover {

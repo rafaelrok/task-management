@@ -7,11 +7,17 @@ import br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus;
 import br.com.rafaelvieira.taskmanagement.domain.records.TaskCreateRecord;
 import br.com.rafaelvieira.taskmanagement.domain.records.TaskRecord;
 import br.com.rafaelvieira.taskmanagement.exception.ResourceNotFoundException;
+import br.com.rafaelvieira.taskmanagement.exception.TaskValidationException;
 import br.com.rafaelvieira.taskmanagement.repository.CategoryRepository;
 import br.com.rafaelvieira.taskmanagement.service.TaskService;
 import br.com.rafaelvieira.taskmanagement.web.dto.TaskFilterForm;
 import br.com.rafaelvieira.taskmanagement.web.dto.TaskForm;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,7 +84,8 @@ public class TaskViewController {
             java.util.List<TaskRecord> overdue =
                     new java.util.ArrayList<>(taskService.getOverdueTasks());
 
-            // Add TODO tasks with scheduledStartAt in the past (not started on time) -> overdue
+            // Add TODO tasks with scheduledStartAt in the past (not started on time) ->
+            // overdue
             // indicator
             for (TaskRecord t : todoTasks) {
                 if (t.scheduledStartAt() != null && t.scheduledStartAt().isBefore(now)) {
@@ -89,7 +96,8 @@ public class TaskViewController {
             }
             model.addAttribute("overdueTasks", overdue);
 
-            // Build dueToday: dueDate today OR scheduledStartAt today (even if not yet started)
+            // Build dueToday: dueDate today OR scheduledStartAt today (even if not yet
+            // started)
             java.util.List<TaskRecord> dueToday = new java.util.ArrayList<>();
             java.util.List<TaskRecord> allStatuses = taskService.getAllTasks();
             for (TaskRecord t : allStatuses) {
@@ -127,57 +135,8 @@ public class TaskViewController {
             model.addAttribute("countHigh", taskService.countTasksByPriority(Priority.HIGH));
             model.addAttribute("countUrgent", taskService.countTasksByPriority(Priority.URGENT));
 
-            // Active tasks (IN_PROGRESS + IN_PAUSE + ready-to-start scheduled TODO tasks whose
-            // scheduledStartAt <= now)
-            java.util.List<TaskRecord> active = new java.util.ArrayList<>();
-            active.addAll(taskService.getTasksByStatus(TaskStatus.IN_PROGRESS));
-            active.addAll(taskService.getTasksByStatus(TaskStatus.IN_PAUSE));
-            for (TaskRecord t : todoTasks) {
-                if (t.scheduledStartAt() != null
-                        && !t.scheduledStartAt().isAfter(now)
-                        && t.executionTimeMinutes() != null
-                        && t.pomodoroMinutes() != null) {
-                    active.add(t); // pending start
-                }
-            }
-            active.sort(
-                    (a, b) -> {
-                        java.time.LocalDateTime ua = a.updatedAt();
-                        java.time.LocalDateTime ub = b.updatedAt();
-                        if (ua == null && ub == null) {
-                            return 0;
-                        }
-                        if (ua == null) {
-                            return 1;
-                        }
-                        if (ub == null) {
-                            return -1;
-                        }
-                        return ub.compareTo(ua);
-                    });
-            model.addAttribute("activeTasks", active);
-
-            // Scheduled future tasks (scheduled start after now but still today or later)
-            java.util.List<TaskRecord> scheduled = new java.util.ArrayList<>();
-            for (TaskRecord t : todoTasks) {
-                if (t.scheduledStartAt() != null && t.scheduledStartAt().isAfter(now)) {
-                    scheduled.add(t);
-                }
-            }
-            scheduled.sort(
-                    (a, b) -> {
-                        if (a.scheduledStartAt() == null && b.scheduledStartAt() == null) {
-                            return 0;
-                        }
-                        if (a.scheduledStartAt() == null) {
-                            return 1;
-                        }
-                        if (b.scheduledStartAt() == null) {
-                            return -1;
-                        }
-                        return a.scheduledStartAt().compareTo(b.scheduledStartAt());
-                    });
-            model.addAttribute("scheduledTasks", scheduled);
+            populateActiveTasks(model, todoTasks, now);
+            populateScheduledTasks(model, todoTasks, now);
 
         } catch (ResourceNotFoundException e) {
             LOG.error("Error loading dashboard", e);
@@ -198,11 +157,161 @@ public class TaskViewController {
         return "dashboard";
     }
 
+    @GetMapping("/dashboard/active-tasks")
+    public String getActiveTasksFragment(Model model) {
+        try {
+            LocalDateTime now = LocalDateTime.now();
+            List<TaskRecord> todoTasks = taskService.getTasksByStatus(TaskStatus.TODO);
+            populateActiveTasks(model, todoTasks, now);
+        } catch (TaskValidationException e) {
+            LOG.error("Error loading active tasks fragment", e);
+            model.addAttribute("activeTasks", emptyList());
+        }
+        return "fragments/dashboard-active :: active-tasks";
+    }
+
+    @GetMapping("/dashboard/scheduled-tasks")
+    public String getScheduledTasksFragment(Model model) {
+        try {
+            LocalDateTime now = LocalDateTime.now();
+            List<TaskRecord> todoTasks = taskService.getTasksByStatus(TaskStatus.TODO);
+            populateScheduledTasks(model, todoTasks, now);
+        } catch (TaskValidationException e) {
+            LOG.error("Error loading scheduled tasks fragment", e);
+            model.addAttribute("scheduledTasks", emptyList());
+        }
+        return "fragments/dashboard-scheduled :: scheduled-tasks";
+    }
+
+    @GetMapping("/dashboard/overdue-tasks")
+    public String getOverdueTasksFragment(Model model) {
+        try {
+            LocalDateTime now = LocalDateTime.now();
+            List<TaskRecord> todoTasks = taskService.getTasksByStatus(TaskStatus.TODO);
+            List<TaskRecord> overdue = new ArrayList<>(taskService.getOverdueTasks());
+
+            for (TaskRecord t : todoTasks) {
+                if (t.scheduledStartAt() != null && t.scheduledStartAt().isBefore(now)) {
+                    if (overdue.stream().noneMatch(o -> o.id().equals(t.id()))) {
+                        overdue.add(t);
+                    }
+                }
+            }
+            model.addAttribute("overdueTasks", overdue);
+        } catch (TaskValidationException e) {
+            LOG.error("Error loading overdue tasks fragment", e);
+            model.addAttribute("overdueTasks", emptyList());
+        }
+        return "fragments/dashboard-overdue :: overdue-tasks";
+    }
+
+    @GetMapping("/dashboard/due-today-tasks")
+    public String getDueTodayTasksFragment(Model model) {
+        try {
+            LocalDate today = LocalDate.now();
+            List<TaskRecord> dueToday = new ArrayList<>();
+            List<TaskRecord> allStatuses = taskService.getAllTasks();
+
+            for (TaskRecord t : allStatuses) {
+                boolean dueDateToday =
+                        t.dueDate() != null && t.dueDate().toLocalDate().equals(today);
+                boolean scheduledToday =
+                        t.scheduledStartAt() != null
+                                && t.scheduledStartAt().toLocalDate().equals(today);
+                if (dueDateToday || scheduledToday) {
+                    dueToday.add(t);
+                }
+            }
+            dueToday.sort(
+                    (a, b) -> {
+                        LocalDateTime aKey =
+                                a.scheduledStartAt() != null ? a.scheduledStartAt() : a.dueDate();
+                        LocalDateTime bKey =
+                                b.scheduledStartAt() != null ? b.scheduledStartAt() : b.dueDate();
+                        if (aKey == null && bKey == null) {
+                            return 0;
+                        }
+                        if (aKey == null) {
+                            return 1;
+                        }
+                        if (bKey == null) {
+                            return -1;
+                        }
+                        return aKey.compareTo(bKey);
+                    });
+            model.addAttribute("dueToday", dueToday);
+        } catch (TaskValidationException e) {
+            LOG.error("Error loading due today tasks fragment", e);
+            model.addAttribute("dueToday", emptyList());
+        }
+        return "fragments/dashboard-due-today :: due-today-tasks";
+    }
+
+    private void populateActiveTasks(
+            Model model, java.util.List<TaskRecord> todoTasks, java.time.LocalDateTime now) {
+        java.util.List<TaskRecord> active = new java.util.ArrayList<>();
+        active.addAll(taskService.getTasksByStatus(TaskStatus.IN_PROGRESS));
+        active.addAll(taskService.getTasksByStatus(TaskStatus.IN_PAUSE));
+        // Incluir tarefas PENDING (tempo finalizado, aguardando ação)
+        active.addAll(taskService.getTasksByStatus(TaskStatus.PENDING));
+        // Incluir tarefas OVERDUE (atrasadas)
+        active.addAll(taskService.getTasksByStatus(TaskStatus.OVERDUE));
+        for (TaskRecord t : todoTasks) {
+            if (t.scheduledStartAt() != null
+                    && !t.scheduledStartAt().isAfter(now)
+                    && t.executionTimeMinutes() != null
+                    && t.pomodoroMinutes() != null) {
+                active.add(t); // pending start
+            }
+        }
+        active.sort(
+                (a, b) -> {
+                    java.time.LocalDateTime ua = a.updatedAt();
+                    java.time.LocalDateTime ub = b.updatedAt();
+                    if (ua == null && ub == null) {
+                        return 0;
+                    }
+                    if (ua == null) {
+                        return 1;
+                    }
+                    if (ub == null) {
+                        return -1;
+                    }
+                    return ub.compareTo(ua);
+                });
+        model.addAttribute("activeTasks", active);
+    }
+
+    private void populateScheduledTasks(
+            Model model, java.util.List<TaskRecord> todoTasks, java.time.LocalDateTime now) {
+        java.util.List<TaskRecord> scheduled = new java.util.ArrayList<>();
+        for (TaskRecord t : todoTasks) {
+            if (t.scheduledStartAt() != null && t.scheduledStartAt().isAfter(now)) {
+                scheduled.add(t);
+            }
+        }
+        scheduled.sort(
+                (a, b) -> {
+                    if (a.scheduledStartAt() == null && b.scheduledStartAt() == null) {
+                        return 0;
+                    }
+                    if (a.scheduledStartAt() == null) {
+                        return 1;
+                    }
+                    if (b.scheduledStartAt() == null) {
+                        return -1;
+                    }
+                    return a.scheduledStartAt().compareTo(b.scheduledStartAt());
+                });
+        model.addAttribute("scheduledTasks", scheduled);
+    }
+
     @GetMapping("/tasks")
     public String listTasks(
             @ModelAttribute("filter") TaskFilterForm filter,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size,
+            HttpServletRequest request,
             Model model) {
         Pageable pageable = PageRequest.of(page, size);
         Page<@NotNull TaskRecord> tasksPage = taskService.searchTasks(filter, pageable);
@@ -247,14 +356,24 @@ public class TaskViewController {
 
         model.addAttribute("tasksPage", sortedPage);
         model.addAttribute("filter", filter);
+
+        // If AJAX request, return only the fragment (partial HTML)
+        String requestedWith = request.getHeader("X-Requested-With");
+        boolean ajaxParam = request.getParameter("ajax") != null;
+        if ("XMLHttpRequest".equalsIgnoreCase(requestedWith) || ajaxParam) {
+            return "fragments/task-table :: fragment";
+        }
         return "tasks/list";
     }
 
     @GetMapping("/tasks/new")
     public String newTaskForm(Model model) {
         TaskForm form = new TaskForm();
+        // Always set status as TODO for new tasks
         form.setStatus(TaskStatus.TODO);
         form.setPriority(Priority.MEDIUM);
+        // Set default values for pomodoro
+        form.setPomodoroBreakMinutes(5);
         model.addAttribute("taskForm", form);
         return "tasks/create";
     }
@@ -263,15 +382,20 @@ public class TaskViewController {
     public String createTask(
             @Valid @ModelAttribute("taskForm") TaskForm form,
             BindingResult bindingResult,
-            RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes,
+            Model model) {
         if (bindingResult.hasErrors()) {
+            model.addAttribute("taskForm", form);
             return "tasks/create";
         }
+        // Force status to TODO for new tasks
+        form.setStatus(TaskStatus.TODO);
+
         TaskCreateRecord taskCreateRecord =
                 new TaskCreateRecord(
                         form.getTitle(),
                         form.getDescription(),
-                        form.getStatus(),
+                        TaskStatus.TODO, // Always TODO for new tasks
                         form.getPriority(),
                         form.getCategoryId(),
                         form.getAssignedUserId(),
@@ -311,25 +435,43 @@ public class TaskViewController {
             @PathVariable Long id,
             @Valid @ModelAttribute("taskForm") TaskForm form,
             BindingResult bindingResult,
-            RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes,
+            Model model) {
         if (bindingResult.hasErrors()) {
+            var task = taskService.getTaskById(id);
+            model.addAttribute("taskForm", form);
+            model.addAttribute("task", task);
             return "tasks/edit";
         }
-        TaskCreateRecord taskCreateRecord =
-                new TaskCreateRecord(
-                        form.getTitle(),
-                        form.getDescription(),
-                        form.getStatus(),
-                        form.getPriority(),
-                        form.getCategoryId(),
-                        form.getAssignedUserId(),
-                        form.getDueDate(),
-                        form.getScheduledStartAt(),
-                        form.getPomodoroMinutes(),
-                        form.getPomodoroBreakMinutes(),
-                        form.getExecutionTimeMinutes());
-        taskService.updateTask(id, taskCreateRecord);
-        redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Tarefa atualizada com sucesso!");
+        try {
+            TaskCreateRecord taskCreateRecord =
+                    new TaskCreateRecord(
+                            form.getTitle(),
+                            form.getDescription(),
+                            form.getStatus(),
+                            form.getPriority(),
+                            form.getCategoryId(),
+                            form.getAssignedUserId(),
+                            form.getDueDate(),
+                            form.getScheduledStartAt(),
+                            form.getPomodoroMinutes(),
+                            form.getPomodoroBreakMinutes(),
+                            form.getExecutionTimeMinutes());
+            taskService.updateTask(id, taskCreateRecord);
+            redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Tarefa atualizada com sucesso!");
+        } catch (TaskValidationException e) {
+            System.err.println(
+                    "❌ Error updating task "
+                            + id
+                            + " to status "
+                            + form.getStatus()
+                            + ": "
+                            + e.getMessage());
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute(
+                    "errorMessage", "Erro ao atualizar tarefa: " + e.getMessage());
+            return "redirect:/tasks/" + id;
+        }
         return REDIRECT_TASKS;
     }
 

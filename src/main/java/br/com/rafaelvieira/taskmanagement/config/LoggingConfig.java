@@ -4,6 +4,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.filter.CommonsRequestLoggingFilter;
 
+/**
+ * Configuração para logging de requisições HTTP.
+ *
+ * @author Rafael Vieira (rafaelrok)
+ * @since 2024-06-01
+ */
 @Configuration
 public class LoggingConfig {
 

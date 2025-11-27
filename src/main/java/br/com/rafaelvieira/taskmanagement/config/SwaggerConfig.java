@@ -11,6 +11,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Configuração do Swagger/OpenAPI para documentação da API.
+ *
+ * @author Rafael Vieira (rafaelrok)
+ * @since 2024-06-01
+ */
 @Configuration
 @NoArgsConstructor
 public class SwaggerConfig {

@@ -20,11 +20,10 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Testcontainers
 @Transactional
-@SuppressWarnings("resource")
 public abstract class BaseIntegrationTest {
 
     @Container @ServiceConnection
-    protected static PostgreSQLContainer<?> postgres =
+    protected static final PostgreSQLContainer<?> POSTGRES =
             new PostgreSQLContainer<>("postgres:16-alpine")
                     .withDatabaseName("test_db")
                     .withUsername("test")
@@ -43,10 +42,6 @@ public abstract class BaseIntegrationTest {
         taskRepository.deleteAll();
         categoryRepository.deleteAll();
         userRepository.deleteAll();
-    }
-
-    protected void logDebug(String message) {
-        System.out.println("[TEST] " + message);
     }
 
     protected String toJson(Object object) throws Exception {

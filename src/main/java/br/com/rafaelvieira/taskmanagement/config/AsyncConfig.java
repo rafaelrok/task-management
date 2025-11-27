@@ -6,6 +6,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+/**
+ * Configuração para execução assíncrona de tarefas.
+ *
+ * @author Rafael Vieira (rafaelrok)
+ * @since 2025-11-04
+ */
 @Configuration
 @EnableAsync
 public class AsyncConfig {

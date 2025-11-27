@@ -2,33 +2,10 @@
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head('Meu Perfil - Task Management')}"></head>
 <body class="dashboard-body">
-<nav class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-        <div class="logo">
-            <i class="bi bi-kanban"></i>
-            <span class="logo-text">TaskFlow</span>
-        </div>
-        <button class="sidebar-toggle" id="sidebarToggle">
-            <i class="bi bi-list"></i>
-        </button>
-    </div>
-    <ul class="sidebar-menu">
-        <li class="menu-item"><a th:href="@{/}"><i class="bi bi-speedometer2"></i><span
-                class="menu-text">Dashboard</span></a></li>
-        <li class="menu-item"><a th:href="@{/tasks}"><i class="bi bi-list-task"></i><span
-                class="menu-text">Tarefas</span></a></li>
-        <li class="menu-item active"><a th:href="@{/profile}"><i class="bi bi-person"></i><span
-                class="menu-text">Perfil</span></a></li>
-        <li class="menu-item"><a href="#" id="themeToggle"><i class="bi bi-moon-stars"></i><span class="menu-text">Tema Escuro</span></a>
-        </li>
-    </ul>
-    <div class="sidebar-footer">
-        <form method="post" th:action="@{/logout}">
-            <button class="logout-btn" type="submit"><i class="bi bi-box-arrow-right"></i><span
-                    class="menu-text">Sair</span></button>
-        </form>
-    </div>
-</nav>
+
+    <!-- Sidebar -->
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+
 <div class="main-content" id="mainContent">
     <div class="top-bar">
         <h1 class="page-title">Meu Perfil</h1>
@@ -36,50 +13,46 @@
             <a class="btn btn-primary" th:href="@{/profile/edit}"><i class="bi bi-pencil"></i> Editar Perfil</a>
         </div>
     </div>
-    <div class="content-wrapper" style="max-width: 1200px;">
+
+    <div class="content-wrapper profile-view-wrapper">
         <div th:replace="~{fragments/alerts :: alerts}"></div>
         
         <!-- Profile Header Card -->
-        <div class="form-card" data-animate="fade-up"
+        <div class="form-card profile-section-card" data-animate="fade-up"
              th:with="avatarPath=${#strings.isEmpty(user.profile.avatarUrl) ? '/images/avatar-placeholder.svg' : user.profile.avatarUrl}">
-            <div style="display:flex; gap:2rem; align-items:flex-start; flex-wrap:wrap;">
+            <div class="profile-header-card">
                 <div>
-                    <img alt="Avatar"
-                         style="width:160px; height:160px; border-radius:50%; object-fit:cover; border:4px solid var(--primary-color); box-shadow: 0 4px 12px rgba(0,0,0,0.1);"
+                    <img alt="Avatar" class="profile-avatar"
                          th:src="@{${avatarPath}}"/>
                 </div>
-                <div style="flex:1; min-width:300px;">
-                    <div style="display:flex; align-items:center; gap:1rem; margin-bottom:0.5rem;">
-                        <h2 style="margin:0;" th:text="${user.fullName != null ? user.fullName : user.username}">Nome</h2>
-                        <span th:if="${user.profile.githubName}" 
-                              style="font-size:1.2rem; color:var(--text-secondary);" 
-                              th:text="'(' + ${user.profile.githubName} + ')'"></span>
+                <div class="profile-info">
+                    <div style="display:flex; align-items:center; gap:1rem; margin-bottom:0.5rem; flex-wrap:wrap;">
+                        <h2 class="profile-name" th:text="${user.fullName != null ? user.fullName : user.username}">Nome</h2>
+                        <span th:if="${user.profile.githubName}" class="profile-github-name"
+                              th:text="'@' + ${user.profile.githubLogin}"></span>
                     </div>
-                    <p style="margin:0 0 0.5rem 0; color:var(--text-secondary); font-size:1.1rem;" 
-                       th:text="${user.profile.profession}">Profissão</p>
+                    <p class="profile-profession" th:text="${user.profile.profession}">Profissão</p>
                     
                     <!-- GitHub Stats -->
-                    <div th:if="${user.profile.githubLogin}" 
-                         style="display:flex; gap:1.5rem; margin-top:1rem; flex-wrap:wrap;">
-                        <div style="text-align:center;">
-                            <div style="font-size:1.5rem; font-weight:bold; color:var(--primary-color);" 
+                    <div th:if="${user.profile.githubLogin}" class="github-stats">
+                        <div class="github-stat">
+                            <div class="github-stat-value" 
                                  th:text="${user.profile.publicRepos != null ? user.profile.publicRepos : 0}">0</div>
-                            <div style="font-size:0.85rem; color:var(--text-secondary);">Repositórios</div>
+                            <div class="github-stat-label">Repositórios</div>
                         </div>
-                        <div style="text-align:center;">
-                            <div style="font-size:1.5rem; font-weight:bold; color:var(--primary-color);" 
+                        <div class="github-stat">
+                            <div class="github-stat-value" 
                                  th:text="${user.profile.followers != null ? user.profile.followers : 0}">0</div>
-                            <div style="font-size:0.85rem; color:var(--text-secondary);">Seguidores</div>
+                            <div class="github-stat-label">Seguidores</div>
                         </div>
-                        <div style="text-align:center;">
-                            <div style="font-size:1.5rem; font-weight:bold; color:var(--primary-color);" 
+                        <div class="github-stat">
+                            <div class="github-stat-value" 
                                  th:text="${user.profile.following != null ? user.profile.following : 0}">0</div>
-                            <div style="font-size:0.85rem; color:var(--text-secondary);">Seguindo</div>
+                            <div class="github-stat-label">Seguindo</div>
                         </div>
-                        <div th:if="${user.profile.publicGists != null && user.profile.publicGists > 0}" style="text-align:center;">
-                            <div style="font-size:1.5rem; font-weight:bold; color:var(--primary-color);" 
-                                 th:text="${user.profile.publicGists}">0</div>
-                            <div style="font-size:0.85rem; color:var(--text-secondary);">Gists</div>
+                        <div th:if="${user.profile.publicGists != null && user.profile.publicGists > 0}" class="github-stat">
+                            <div class="github-stat-value" th:text="${user.profile.publicGists}">0</div>
+                            <div class="github-stat-label">Gists</div>
                         </div>
                     </div>
                 </div>
@@ -87,49 +60,49 @@
         </div>
 
         <!-- Bio and Details Grid -->
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; margin-top:1.5rem;">
-            <!-- Left Column -->
-            <div class="form-card" data-animate="fade-up">
-                <h3 style="font-size:1.25rem; margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;">
-                    <i class="bi bi-person-badge" style="color:var(--primary-color);"></i> Sobre
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap:1.5rem; margin-top:1.5rem;">
+            <!-- Left Column - About -->
+            <div class="form-card profile-section-card" data-animate="fade-up">
+                <h3 class="profile-section-title">
+                    <i class="bi bi-person-badge"></i> Sobre
                 </h3>
-                <div th:if="${user.profile.bio}" style="margin-bottom:1.5rem; line-height:1.6; color:var(--text-secondary);" 
-                     th:text="${user.profile.bio}">Bio</div>
+                <p th:if="${user.profile.bio}" class="profile-bio" th:text="${user.profile.bio}">Bio</p>
                 
-                <div style="display:flex; flex-direction:column; gap:0.75rem; font-size:.9rem;">
-                    <div th:if="${user.profile.location}" style="display:flex; align-items:center; gap:0.5rem;">
-                        <i class="bi bi-geo-alt" style="color:var(--primary-color); width:20px;"></i>
+                <div class="profile-about-section">
+                    <div th:if="${user.profile.location}" class="profile-detail-row">
+                        <i class="bi bi-geo-alt"></i>
                         <strong>Local:</strong> <span th:text="${user.profile.location}"></span>
                     </div>
-                    <div th:if="${user.profile.githubCompany}" style="display:flex; align-items:center; gap:0.5rem;">
-                        <i class="bi bi-building" style="color:var(--primary-color); width:20px;"></i>
+                    <div th:if="${user.profile.githubCompany}" class="profile-detail-row">
+                        <i class="bi bi-building"></i>
                         <strong>Empresa:</strong> <span th:text="${user.profile.githubCompany}"></span>
                     </div>
-                    <div th:if="${user.profile.experienceLevel}" style="display:flex; align-items:center; gap:0.5rem;">
-                        <i class="bi bi-bar-chart" style="color:var(--primary-color); width:20px;"></i>
+                    <div th:if="${user.profile.experienceLevel}" class="profile-detail-row">
+                        <i class="bi bi-bar-chart"></i>
                         <strong>Nível:</strong> <span th:text="${user.profile.experienceLevel}"></span>
                     </div>
-                    <div th:if="${user.profile.primaryStack}" style="display:flex; align-items:center; gap:0.5rem;">
-                        <i class="bi bi-stack" style="color:var(--primary-color); width:20px;"></i>
+                    <div th:if="${user.profile.primaryStack}" class="profile-detail-row">
+                        <i class="bi bi-stack"></i>
                         <strong>Stack Principal:</strong> <span th:text="${user.profile.primaryStack}"></span>
                     </div>
-                    <div th:if="${user.profile.availability}" style="display:flex; align-items:center; gap:0.5rem;">
-                        <i class="bi bi-clock" style="color:var(--primary-color); width:20px;"></i>
+                    <div th:if="${user.profile.availability}" class="profile-detail-row">
+                        <i class="bi bi-clock"></i>
                         <strong>Disponibilidade:</strong> <span th:text="${user.profile.availability}"></span>
                     </div>
-                    <div th:if="${user.profile.hireable != null && user.profile.hireable}" style="display:flex; align-items:center; gap:0.5rem;">
-                        <i class="bi bi-briefcase-fill" style="color:var(--success-color); width:20px;"></i>
-                        <strong style="color:var(--success-color);">Disponível para contratação</strong>
+                    <div th:if="${user.profile.hireable != null && user.profile.hireable}" style="margin-top:0.5rem;">
+                        <span class="hireable-badge">
+                            <i class="bi bi-briefcase-fill"></i> Disponível para contratação
+                        </span>
                     </div>
                 </div>
             </div>
 
-            <!-- Right Column -->
-            <div class="form-card" data-animate="fade-up">
-                <h3 style="font-size:1.25rem; margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;">
-                    <i class="bi bi-link-45deg" style="color:var(--primary-color);"></i> Links
+            <!-- Right Column - Links -->
+            <div class="form-card profile-section-card" data-animate="fade-up">
+                <h3 class="profile-section-title">
+                    <i class="bi bi-link-45deg"></i> Links
                 </h3>
-                <div style="display:flex; flex-direction:column; gap:0.75rem;">
+                <div style="display:flex; flex-direction:column; gap:0.85rem;">
                     <a th:if="${user.profile.websiteUrl}" th:href="${user.profile.websiteUrl}" 
                        target="_blank" class="link-item">
                         <i class="bi bi-globe"></i> Website
@@ -145,31 +118,30 @@
                     <a th:if="${user.profile.twitterUsername}" 
                        th:href="'https://twitter.com/' + ${user.profile.twitterUsername}" 
                        target="_blank" class="link-item">
-                        <i class="bi bi-twitter"></i> Twitter/X
+                        <i class="bi bi-twitter-x"></i> Twitter/X
                     </a>
                 </div>
             </div>
         </div>
 
         <!-- Skills Section -->
-        <div th:if="${(skills != null && !skills.isEmpty()) or (softSkills != null && !softSkills.isEmpty())}" class="form-card" data-animate="fade-up" style="margin-top:1.5rem;">
+        <div th:if="${(skills != null && !skills.isEmpty()) or (softSkills != null && !softSkills.isEmpty())}" 
+             class="form-card profile-section-card" data-animate="fade-up" style="margin-top:1.5rem;">
             <div class="skills-grid">
                 <div th:if="${skills != null && !skills.isEmpty()}">
-                    <h3 style="font-size:1.25rem; margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;">
-                        <i class="bi bi-lightning-charge-fill" style="color:var(--primary-color);"></i> Hard Skills
+                    <h3 class="profile-section-title">
+                        <i class="bi bi-lightning-charge-fill"></i> Hard Skills
                     </h3>
-                    <div style="display:flex; gap:.75rem; flex-wrap:wrap;">
-                        <span class="skill-chip"
-                              th:each="s : ${skills}" th:text="${s}"></span>
+                    <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+                        <span class="skill-chip" th:each="s : ${skills}" th:text="${s}"></span>
                     </div>
                 </div>
                 <div th:if="${softSkills != null && !softSkills.isEmpty()}">
-                    <h3 style="font-size:1.25rem; margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;">
+                    <h3 class="profile-section-title" style="margin-top:0;">
                         <i class="bi bi-people" style="color:var(--accent-color);"></i> Soft Skills
                     </h3>
-                    <div style="display:flex; gap:.75rem; flex-wrap:wrap;">
-                        <span class="skill-chip soft"
-                              th:each="s : ${softSkills}" th:text="${s}"></span>
+                    <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+                        <span class="skill-chip soft" th:each="s : ${softSkills}" th:text="${s}"></span>
                     </div>
                 </div>
             </div>
@@ -177,56 +149,10 @@
     </div>
 </div>
 
-<style>
-    .link-item {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 0.75rem 1rem;
-        background: var(--bg-secondary);
-        border-radius: 8px;
-        text-decoration: none;
-        color: var(--text-primary);
-        font-weight: 500;
-        transition: all 0.2s;
-        border: 1px solid var(--border-color);
-    }
-    
-    .link-item:hover {
-        background: var(--primary-color);
-        color: white;
-        transform: translateX(5px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    
-    .link-item i {
-        font-size: 1.2rem;
-    }
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        crossorigin="anonymous"></script>
 
-    .skills-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 1.5rem;
-    }
-
-    .skill-chip {
-        padding: 0.5rem 1rem;
-        border-radius: 999px;
-        background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-        color: #fff;
-        font-size: 0.9rem;
-        font-weight: 500;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .skill-chip.soft {
-        background: linear-gradient(135deg, #ff9a8b, #fad0c4);
-        color: #4a2c2c;
-    }
-</style>
-
-<script crossorigin="anonymous"
-        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/sidebar.js}"></script>
 <script th:src="@{/js/dashboard.js}"></script>
 </body>
 </html>

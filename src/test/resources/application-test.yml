@@ -10,15 +10,15 @@ spring:
       include-message: always
 
   # ========== Datasource será provido pelo Testcontainers via @ServiceConnection ==========
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    hikari:
-      pool-name: TaskManagementTestHikariPool
-      maximum-pool-size: 5
-      minimum-idle: 1
-      connection-timeout: 10000
-      idle-timeout: 60000
-      max-lifetime: 300000
+  #  datasource:
+  #    driver-class-name: org.postgresql.Driver
+  #    hikari:
+  #      pool-name: TaskManagementTestHikariPool
+  #      maximum-pool-size: 5
+  #      minimum-idle: 1
+  #      connection-timeout: 10000
+  #      idle-timeout: 60000
+  #      max-lifetime: 300000
 
   # ========== JPA Test Configuration ==========
   jpa:
@@ -56,10 +56,10 @@ spring:
 # ========== Server Test Configuration ==========
 server:
   port: 0
-  include-message: always
-  include-binding-errors: always
-  include-stacktrace: on_param
-  include-exception: true
+#  include-message: always
+#  include-binding-errors: always
+#  include-stacktrace: on_param
+#  include-exception: true
 
 logging:
   level:

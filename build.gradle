@@ -33,6 +33,9 @@ configurations {
 repositories {
     mavenCentral()
     maven {
+        url = 'https://repo.maven.apache.org/maven2'
+    }
+    maven {
         url = 'https://repo.spring.io/milestone'
     }
     maven {
@@ -42,7 +45,9 @@ repositories {
 
 ext {
     springdocVersion = '2.8.0'
-    testcontainersVersion = '1.20.4'
+    testcontainersVersion = '2.0.2'
+    testcontainersPostgresqlVersion = '1.21.3'
+    testcontainersJunitVersion = '1.21.3'
     assertjVersion = '3.26.3'
     mockitoVersion = '5.14.2'
     junitVersion = '6.0.0'
@@ -58,6 +63,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
     // Jackson para JSON (necessário para ObjectMapper)
     implementation 'com.fasterxml.jackson.core:jackson-databind'
@@ -95,12 +101,13 @@ dependencies {
 
     // Spring Boot Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 
     // ========== Testcontainers ==========
     testImplementation "org.testcontainers:testcontainers:${testcontainersVersion}"
-    testImplementation "org.testcontainers:postgresql:${testcontainersVersion}"
-    testImplementation "org.testcontainers:junit-jupiter:${testcontainersVersion}"
+    testImplementation "org.testcontainers:postgresql:${testcontainersPostgresqlVersion}"
+    testImplementation "org.testcontainers:junit-jupiter:${testcontainersJunitVersion}"
 
     // ========== AssertJ - Fluent Assertions ==========
     testImplementation "org.assertj:assertj-core:${assertjVersion}"
@@ -204,7 +211,7 @@ tasks.named('checkstyleTest') {
 spotless {
     java {
         target 'src/**/*.java', "src/test/**/*.java"
-        googleJavaFormat('1.17.0').aosp().reflowLongStrings()
+        googleJavaFormat('1.32.0').aosp().reflowLongStrings()
         removeUnusedImports()
         trimTrailingWhitespace()
         endWithNewline()
@@ -301,11 +308,14 @@ tasks.named('test') {
             '--add-opens', 'java.base/java.time=ALL-UNNAMED'
     ]
 
+    // ADICIONE ESTAS VARIÁVEIS DE AMBIENTE
+    environment 'DOCKER_HOST', 'npipe:////./pipe/docker_engine'
+
     // Configuração de logging dos testes
     testLogging {
         events "passed", "skipped", "failed"
         exceptionFormat = "full"
-        showStandardStreams = false
+        showStandardStreams = true
         showCauses = true
         showStackTraces = true
     }

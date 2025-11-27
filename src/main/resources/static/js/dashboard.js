@@ -4,7 +4,7 @@
     const root = document.documentElement;
     const sidebar = document.getElementById('sidebar');
     const toggle = document.getElementById('sidebarToggle');
-    const themeToggle = document.getElementById('themeToggle');
+    const themeSwitch = document.getElementById('themeSwitch');
 
     if (toggle && sidebar) {
         const collapsed = localStorage.getItem('sidebarCollapsed') === 'true';
@@ -15,30 +15,19 @@
         });
     }
 
-    if (themeToggle) {
-        const icon = themeToggle.querySelector('i');
-        const label = themeToggle.querySelector('.menu-text');
+    if (themeSwitch) {
         const saved = localStorage.getItem('theme') || 'light';
         applyTheme(saved);
-        themeToggle.addEventListener('click', (e) => {
-            e.preventDefault();
-            const cur = root.getAttribute('data-theme') || 'light';
-            const next = cur === 'light' ? 'dark' : 'light';
+
+        themeSwitch.addEventListener('change', (e) => {
+            const next = e.target.checked ? 'dark' : 'light';
             applyTheme(next);
             localStorage.setItem('theme', next);
         });
 
         function applyTheme(t) {
             root.setAttribute('data-theme', t);
-            if (t === 'dark') {
-                icon?.classList.remove('bi-moon-stars');
-                icon?.classList.add('bi-sun');
-                if (label) label.textContent = 'Tema Claro';
-            } else {
-                icon?.classList.remove('bi-sun');
-                icon?.classList.add('bi-moon-stars');
-                if (label) label.textContent = 'Tema Escuro';
-            }
+            themeSwitch.checked = (t === 'dark');
         }
     }
 
@@ -142,16 +131,17 @@ function showToast(cls, msg, delay = 4000) {
 
         // Determine state flags
         const isOverdue = status === 'OVERDUE';
+        const isPending = status === 'PENDING';  // Novo status PENDING
         const pendingStart = status === 'IN_PROGRESS' && !mainStart && scheduledStart && scheduledStart < now;
         const scheduledPending = status === 'IN_PROGRESS' && !mainStart && !scheduledStart;
         const timeFinished = status === 'IN_PROGRESS' && exec > 0 && elapsed >= (exec * 60);
         const isPaused = status === 'IN_PAUSE';
 
         // Reset visual indicators
-        card.classList.remove('pending-start', 'time-finished', 'in-pause', 'overdue-state');
+        card.classList.remove('pending-start', 'time-finished', 'in-pause', 'overdue-state', 'pending-state');
         const title = card.querySelector('.active-title-text');
         if (title) title.querySelectorAll('.status-indicator').forEach(i => i.remove());
-        card.querySelectorAll('.badge-status.pending-flag, .badge-status.overdue-flag').forEach(b => b.remove());
+        card.querySelectorAll('.badge-status.pending-flag, .badge-status.overdue-flag, .badge-status.pending-state-flag').forEach(b => b.remove());
 
         // Icon + background selection (priority order)
         if (isOverdue) {
@@ -170,6 +160,26 @@ function showToast(cls, msg, delay = 4000) {
                 const flag = document.createElement('span');
                 flag.className = 'badge-status overdue-flag';
                 flag.textContent = 'PENDENTE FINALIZAÇÃO';
+                header.appendChild(flag);
+            }
+        } else if (isPending) {
+            // PENDING state: blue background, clock icon, "Aguardando ação" badge
+            card.classList.add('pending-state');
+            sticky.add(card.dataset.taskId);
+            if (title) {
+                const i = document.createElement('i');
+                i.className = 'bi bi-clock-history status-indicator pending';
+                i.title = 'Tempo finalizado - aguardando ação';
+                title.insertBefore(i, title.firstChild);
+            }
+            // Badge flag
+            const header = card.querySelector('.active-card-header');
+            if (header && !header.querySelector('.pending-state-flag')) {
+                const flag = document.createElement('span');
+                flag.className = 'badge-status pending-state-flag';
+                flag.textContent = 'AGUARDANDO AÇÃO';
+                flag.style.background = '#dbeafe';
+                flag.style.color = '#1e40af';
                 header.appendChild(flag);
             }
         } else if (isPaused) {
@@ -228,6 +238,14 @@ function showToast(cls, msg, delay = 4000) {
                 } else {
                     disabled = true;
                 }
+            } else if (isPending) {
+                // PENDING: enable finish, cancel, extend; disable start and pause
+                // Similar a OVERDUE mas com visual azul
+                if (action === 'finish' || action === 'cancel' || action === 'extend') {
+                    disabled = false;
+                } else {
+                    disabled = true;
+                }
             } else if (timeFinished) {
                 // Only finish & extend enabled
                 if (action === 'finish' || action === 'extend') disabled = false; else disabled = true;
@@ -256,7 +274,7 @@ function showToast(cls, msg, delay = 4000) {
         // Extend button visibility
         const extendBtn = card.querySelector('[data-action="extend"]');
         if (extendBtn) {
-            extendBtn.style.display = (timeFinished || isOverdue) ? 'inline-flex' : 'none';
+            extendBtn.style.display = (timeFinished || isOverdue || isPending) ? 'inline-flex' : 'none';
         }
     }
 
@@ -264,46 +282,8 @@ function showToast(cls, msg, delay = 4000) {
         return String(s ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll('\'', '&#39;');
     }
 
-    function cardTemplate(t) {
-        const data = [
-            `data-task-id="${t.id}"`,
-            `data-status="${t.status}"`,
-            `data-exec="${t.executionTimeMinutes ?? ''}"`,
-            `data-main-start="${t.mainStartedAt ?? ''}"`,
-            `data-main-elapsed="${t.mainElapsedSeconds ?? 0}"`,
-            `data-pomo-until="${t.pomodoroUntil ?? ''}"`,
-            `data-pomo-min="${t.pomodoroMinutes ?? ''}"`,
-            `data-break-min="${t.pomodoroBreakMinutes ?? ''}"`,
-            `data-scheduled-start="${t.scheduledStartAt ?? ''}"`
-        ].join(' ');
-        const disabledStart = t.status === 'IN_PROGRESS' ? 'disabled' : '';
-        const disabledPause = t.status === 'IN_PAUSE' || t.status === 'TODO' ? 'disabled' : '';
-        const statusClass = String(t.status).toLowerCase();
-        let icon = '';
-        if (t.status === 'TODO') icon = '<i class="bi bi-exclamation-triangle status-indicator warning" title="Tarefa em atraso"></i>';
-        if (t.status === 'IN_PAUSE') icon = '<i class="bi bi-pause-circle status-indicator pause" title="Em pausa"></i>';
-        return `
-      <div class="active-card" ${data}>
-        <div class="active-card-header">
-          <div class="active-title-text">${icon}${esc(t.title)}</div>
-          <span class="badge-status ${statusClass}">${t.status}</span>
-        </div>
-        <div class="active-timers">
-          <div class="timer-row"><span class="timer-label">Principal</span><span class="timer-value" data-role="main-timer">00:00:00</span></div>
-          <div class="progress progress-compact"><div class="progress-bar" role="progressbar" style="width: 0%" aria-valuemin="0" aria-valuemax="100" data-role="main-progress"></div></div>
-          <div class="timer-row" data-role="pomo-row"><span class="timer-label">Pomodoro</span><span class="timer-value" data-role="pomo-timer">--:--</span></div>
-          <div class="timer-row" data-role="break-row" style="display:none;"><span class="timer-label">Intervalo</span><span class="timer-value" data-role="break-timer">--:--</span></div>
-        </div>
-        <div class="active-actions">
-          <a href="/tasks/${t.id}" class="btn-icon-sm btn-outline" title="Abrir tarefa"><i class="bi bi-box-arrow-up-right"></i></a>
-          <button class="btn-icon-sm btn-outline" data-action="start" data-id="${t.id}" title="Iniciar" ${disabledStart}><i class="bi bi-play-fill"></i></button>
-          <button class="btn-icon-sm btn-outline" data-action="pause" data-id="${t.id}" title="Pausar" ${disabledPause}><i class="bi bi-pause-fill"></i></button>
-          <button class="btn-icon-sm btn-outline text-warning" data-action="extend" data-id="${t.id}" title="Estender Tempo" style="display:none;"><i class="bi bi-clock-history"></i></button>
-          <button class="btn-icon-sm btn-outline text-danger" data-action="cancel" data-id="${t.id}" title="Cancelar"><i class="bi bi-x-lg"></i></button>
-          <button class="btn-icon-sm btn-outline text-success" data-action="finish" data-id="${t.id}" title="Finalizar"><i class="bi bi-check-lg"></i></button>
-        </div>
-      </div>`;
-    }
+    // cardTemplate removed as we use server-side fragments
+    // function cardTemplate(t) { ... }
 
     function wireActions(scope) {
         scope.querySelectorAll('.active-card [data-action]').forEach(btn => {
@@ -361,42 +341,8 @@ function showToast(cls, msg, delay = 4000) {
         });
     }
 
-    async function getActive() {
-        const settled = await Promise.allSettled([
-            fetch('/api/tasks/status/IN_PROGRESS').then(r => r.json()),
-            fetch('/api/tasks/status/IN_PAUSE').then(r => r.json()),
-            fetch('/api/tasks/status/TODO').then(r => r.json()),
-            fetch('/api/tasks/status/OVERDUE').then(r => r.json())
-        ]);
-        const [p1, p2, p3, p4] = settled.map(s => s.status === 'fulfilled' ? s.value : []);
-        const now = new Date();
-        const list = [...p1, ...p2, ...(p4 || [])];
-        (p3 || []).forEach(t => {
-            if (t.scheduledStartAt && new Date(t.scheduledStartAt) <= now && t.executionTimeMinutes && t.pomodoroMinutes) list.push(t);
-        });
-        // Keep stickies if API stops returning them
-        sticky.forEach(id => {
-            if (!list.find(x => String(x.id) === String(id))) {
-                const dom = grid.querySelector(`.active-card[data-task-id="${id}"]`);
-                if (dom) {
-                    const t = {
-                        id,
-                        status: dom.dataset.status || 'IN_PROGRESS',
-                        title: dom.querySelector('.active-title-text')?.textContent?.trim() || `#${id}`,
-                        executionTimeMinutes: parseInt(dom.dataset.exec || '0', 10) || undefined,
-                        mainStartedAt: dom.dataset.mainStart || undefined,
-                        mainElapsedSeconds: parseInt(dom.dataset.mainElapsed || '0', 10) || 0,
-                        pomodoroUntil: dom.dataset.pomoUntil || undefined,
-                        pomodoroMinutes: parseInt(dom.dataset.pomoMin || '0', 10) || undefined,
-                        pomodoroBreakMinutes: parseInt(dom.dataset.breakMin || '0', 10) || undefined,
-                        scheduledStartAt: dom.dataset.scheduledStart || undefined
-                    };
-                    list.push(t);
-                }
-            }
-        });
-        return list;
-    }
+    // Replaced getActive with server-side fragment fetching
+    // async function getActive() { ... }
 
     async function autoStartTasks(tasks) {
         const now = new Date();
@@ -420,35 +366,104 @@ function showToast(cls, msg, delay = 4000) {
     }
 
     async function refresh() {
+        console.log('[Dashboard] 🔄 Executando refresh das tarefas ativas e agendadas...');
         try {
-            const tasks = await getActive();
-            const section = document.querySelector('.active-section');
-            if (!tasks || tasks.length === 0) {
-                if (section) section.style.display = 'none';
-                grid.innerHTML = '';
-                return;
+            // Refresh Active Tasks
+            const responseActive = await fetch('/dashboard/active-tasks');
+            if (responseActive.ok) {
+                const html = await responseActive.text();
+                const container = document.getElementById('active-tasks-container');
+                if (container) {
+                    container.innerHTML = html;
+                    const newGrid = document.getElementById('activeGrid');
+                    if (newGrid) {
+                        wireActions(newGrid);
+                        newGrid.querySelectorAll('.active-card').forEach(updateCard);
+                        console.log('[Dashboard] ✅ Active tasks atualizadas');
+                    }
+                }
             }
 
-            // Auto-start eligible tasks
-            await autoStartTasks(tasks);
-
-            // Fetch again after auto-start to get updated states
-            const updatedTasks = await getActive();
-
-            if (section) section.style.display = '';
-            grid.innerHTML = updatedTasks.map(cardTemplate).join('');
-            wireActions(grid);
-            grid.querySelectorAll('.active-card').forEach(updateCard);
+            // Refresh Scheduled Tasks (exposed for consistency)
+            if (window.refreshScheduledTasks) {
+                await window.refreshScheduledTasks();
+            }
         } catch (e) {
-            console.error('Failed to refresh active tasks', e);
+            console.error('[Dashboard] ❌ Erro no refresh:', e);
         }
     }
 
     setInterval(() => {
-        grid.querySelectorAll('.active-card').forEach(updateCard);
+        const currentGrid = document.getElementById('activeGrid');
+        if (currentGrid) {
+            currentGrid.querySelectorAll('.active-card').forEach(updateCard);
+        }
     }, 1000);
-    setInterval(refresh, 8000);
+    setInterval(refresh, 5000); // Sync with WebSocket every 5 seconds
     setTimeout(refresh, 500);
+    // Expor a função de refresh para outros scripts (ex: notifications.js)
+    if (typeof window !== 'undefined') {
+        window.refreshActiveTasks = refresh;
+        
+        window.refreshScheduledTasks = async function() {
+             console.log('[Dashboard] 🔄 Executando refresh das tarefas agendadas...');
+             try {
+                const response = await fetch('/dashboard/scheduled-tasks');
+                if (response.ok) {
+                    const html = await response.text();
+                    const container = document.getElementById('scheduled-tasks-container');
+                    if (container) {
+                        container.innerHTML = html;
+                        console.log('[Dashboard] ✅ Scheduled tasks atualizadas');
+                    }
+                }
+            } catch (e) {
+                console.error('[Dashboard] ❌ Erro no refresh scheduled:', e);
+            }
+        };
+
+        window.refreshOverdueTasks = async function() {
+            console.log('[Dashboard] 🔄 Executando refresh das tarefas atrasadas...');
+            try {
+                const response = await fetch('/dashboard/overdue-tasks');
+                if (response.ok) {
+                    const html = await response.text();
+                    const tbody = document.getElementById('overdueTableBody');
+                    if (tbody) {
+                        tbody.outerHTML = html;
+                        console.log('[Dashboard] ✅ Overdue tasks atualizadas');
+                    }
+                }
+            } catch (e) {
+                console.error('[Dashboard] ❌ Erro no refresh overdue:', e);
+            }
+        };
+
+        window.refreshDueTodayTasks = async function() {
+            console.log('[Dashboard] 🔄 Executando refresh das tarefas de hoje...');
+            try {
+                const response = await fetch('/dashboard/due-today-tasks');
+                if (response.ok) {
+                    const html = await response.text();
+                    const tbody = document.getElementById('dueTodayTableBody');
+                    if (tbody) {
+                        tbody.outerHTML = html;
+                        console.log('[Dashboard] ✅ Due today tasks atualizadas');
+                    }
+                }
+            } catch (e) {
+                console.error('[Dashboard] ❌ Erro no refresh due today:', e);
+            }
+        };
+
+        // Função para atualizar todas as tabelas
+        window.refreshAllTables = async function() {
+            await Promise.all([
+                window.refreshOverdueTasks(),
+                window.refreshDueTodayTasks()
+            ]);
+        };
+    }
 })();
 
 // Task Modal

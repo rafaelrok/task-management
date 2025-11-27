@@ -15,6 +15,12 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+/**
+ * Configuração de segurança para a aplicação.
+ *
+ * @author Rafael Vieira (rafaelrok)
+ * @since 2024-06-01
+ */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {

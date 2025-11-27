@@ -1,7 +1,7 @@
 spring:
   application:
     name: task-management-test
-  
+
   # ========== Multipart Configuration ==========
   servlet:
     multipart:
@@ -25,7 +25,7 @@ spring:
       max-lifetime: 600000
       auto-commit: true
       leak-detection-threshold: 30000
-  
+
   # ========== JPA Test Configuration ==========
   jpa:
     hibernate:
@@ -48,7 +48,7 @@ spring:
           use_jdbc_metadata_defaults: false
         connection:
           provider_disables_autocommit: false
-  
+
   # ========== Flyway Test Configuration ==========
   flyway:
     enabled: false
@@ -61,28 +61,30 @@ spring:
       fail-on-unknown-properties: false
     default-property-inclusion: non_null
     time-zone: UTC
-  
+
   # ========== Cache Configuration (Desabilitado em testes) ==========
   cache:
     type: none
-  
+
   # ========== Security Test Configuration ==========
   security:
     user:
       name: test-admin
       password: test-password
-  
+
   # ========== Test Transaction Configuration ==========
   test:
     database:
       replace: none
+  web:
+    error:
+      include-message: always
+      include-binding-errors: always
 
 # ========== Server Test Configuration ==========
 server:
   port: 0
   error:
-    include-message: always
-    include-binding-errors: always
     include-stacktrace: always
     include-exception: true
   tomcat:
@@ -108,7 +110,7 @@ logging:
     org.springframework.test: INFO
     org.hibernate.SQL: WARN
     org.hibernate.type.descriptor.sql.BasicBinder: WARN
-    org.testcontainers: INFO
+    org.testcontainers: DEBUG
     com.zaxxer.hikari: WARN
     org.springframework.boot.test: DEBUG
     org.springframework.test.context: DEBUG

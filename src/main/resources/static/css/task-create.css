@@ -1,0 +1,12 @@
+/* CSS extraído de create.html */
+/* Modern Compact Form Styles - Same as edit.html */
+.form-card-modern {
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-md);
+    margin-bottom: 1rem;
+}
+
+/* ...restante do CSS conforme extraído... */
+

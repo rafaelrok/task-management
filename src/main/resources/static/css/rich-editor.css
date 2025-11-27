@@ -168,13 +168,13 @@
 }
 
 .btn-save {
-    background: #2e7d32;
-    color: #fff;
-    border: 1px solid #2e7d32;
+    background: transparent;
+    color: var(--primary);
+    border: 2px solid var(--primary);
 }
 
 .btn-save:hover {
-    background: #1b5e20;
+    background: var(--bg-secondary);
 }
 
 /* Estilos para código */
@@ -369,13 +369,13 @@
 
 /* Dark theme adaptations */
 :root[data-theme='dark'] .rich-editor-container {
-    background: #1f1f23;
+    background: var(--bg-primary);
     box-shadow: 0 2px 8px rgba(0, 0, 0, .6);
 }
 
 :root[data-theme='dark'] .rich-editor-header {
-    background: #26262b;
-    border-color: #34343a;
+    background-color: var(--bg-primary);
+    border-color: var(--border-color);
 }
 
 :root[data-theme='dark'] .rich-editor-title {
@@ -387,38 +387,38 @@
 }
 
 :root[data-theme='dark'] .rich-editor-close:hover {
-    background: #2f2f34;
+    background: var(--bg-primary);
 }
 
 :root[data-theme='dark'] .rich-editor-toolbar {
-    background: #26262b;
-    border-color: #34343a;
+    background-color: var(--bg-primary);
+    border-color: var(--border-color);
 }
 
 :root[data-theme='dark'] .toolbar-btn {
-    background: #2b2b31;
-    border-color: #3a3a42;
+    background-color: var(--bg-primary);
+    border-color: var(--border-color);
     color: #ddd;
 }
 
 :root[data-theme='dark'] .toolbar-btn:hover {
-    background: #34343a;
-    border-color: #565660;
+    background-color: var(--bg-primary);
+    border-color: var(--border-color);
 }
 
 :root[data-theme='dark'] .toolbar-select {
-    background: #2b2b31;
-    border-color: #3a3a42;
+    background-color: var(--bg-primary);
+    border-color: var(--border-color);
     color: #ddd;
 }
 
 :root[data-theme='dark'] .toolbar-select:hover {
-    background: #34343a;
-    border-color: #565660;
+    background-color: var(--bg-primary);
+    border-color: var(--border-color);
 }
 
 :root[data-theme='dark'] .rich-editor-content {
-    background: #1f1f23;
+    background-color: var(--bg-primary);
 }
 
 :root[data-theme='dark'] .editor-area {
@@ -430,32 +430,34 @@
 }
 
 :root[data-theme='dark'] .rich-editor-footer {
-    background: #26262b;
-    border-color: #34343a;
+    background-color: var(--bg-primary);
+    border-color: var(--border-color);
 }
 
 :root[data-theme='dark'] .btn-cancel {
-    background: #2b2b31;
+    background-color: var(--bg-primary);
+    border-color: var(--border-color);
     color: #bbb;
-    border-color: #3a3a42;
 }
 
 :root[data-theme='dark'] .btn-cancel:hover {
-    background: #34343a;
-    border-color: #565660;
+    background-color: var(--bg-primary);
+    border-color: var(--border-color);
 }
 
 :root[data-theme='dark'] .btn-save {
-    background: #357a38;
-    border-color: #357a38;
+    background-color: var(--bg-primary);
+    border-color: var(--border-color);
 }
 
 :root[data-theme='dark'] .btn-save:hover {
-    background: #2b5d2c;
+    background: transparent;
+    color: var(--primary);
+    border: 2px solid var(--primary);
 }
 
 :root[data-theme='dark'] .code-modal-content {
-    background: #26262b;
+    background-color: var(--bg-primary);
 }
 
 :root[data-theme='dark'] .code-modal-header {
@@ -464,8 +466,8 @@
 
 :root[data-theme='dark'] .code-modal-select,
 :root[data-theme='dark'] .code-modal-textarea {
-    background: #2b2b31;
-    border-color: #3a3a42;
+    background-color: var(--bg-primary);
+    border-color: var(--border-color);
     color: #ddd;
 }
 

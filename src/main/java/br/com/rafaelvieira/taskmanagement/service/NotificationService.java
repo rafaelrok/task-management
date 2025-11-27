@@ -16,9 +16,19 @@ public interface NotificationService {
     Notification createNotification(
             String title, String message, NotificationType type, Long taskId, User user);
 
+    /**
+     * Cria uma notificação sticky (persistente) que requer ação manual do usuário. Usada para
+     * alertas críticos como PENDING e OVERDUE.
+     */
+    Notification createStickyNotification(
+            String title, String message, NotificationType type, Long taskId, User user);
+
     Page<Notification> findAllForCurrentUser(Pageable pageable);
 
     List<Notification> findUnreadForCurrentUser();
+
+    /** Retorna todas as notificações sticky não lidas do usuário atual. */
+    List<Notification> findStickyUnreadForCurrentUser();
 
     long countUnreadForCurrentUser();
 

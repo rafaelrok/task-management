@@ -2,6 +2,7 @@ package br.com.rafaelvieira.taskmanagement.config;
 
 import br.com.rafaelvieira.taskmanagement.domain.enums.Priority;
 import br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
@@ -17,7 +18,8 @@ public final class EnumConverters {
     private EnumConverters() {}
 
     @Component
-    public static class StringToTaskStatusConverter implements Converter<String, TaskStatus> {
+    public static class StringToTaskStatusConverter
+            implements Converter<@NotNull String, @NotNull TaskStatus> {
         @Override
         public TaskStatus convert(String source) {
             if (source == null || source.trim().isEmpty() || "null".equalsIgnoreCase(source)) {
@@ -32,7 +34,8 @@ public final class EnumConverters {
     }
 
     @Component
-    public static class StringToPriorityConverter implements Converter<String, Priority> {
+    public static class StringToPriorityConverter
+            implements Converter<@NotNull String, @NotNull Priority> {
         @Override
         public Priority convert(String source) {
             if (source == null || source.trim().isEmpty() || "null".equalsIgnoreCase(source)) {

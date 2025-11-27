@@ -1,0 +1,86 @@
+/* Task List Page Specific Styles */
+
+/* Loading state placeholder (optional future use) */
+#taskTableInner.loading {
+    opacity: .4;
+    pointer-events: none;
+    transition: opacity .2s ease;
+}
+
+/* Compact pagination spacing */
+.page-link-fade {
+    transition: background-color .15s ease, color .15s ease;
+}
+
+.page-link-fade:hover:not(.disabled) {
+    background-color: var(--primary);
+    color: #fff;
+}
+
+.page-link-fade.disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+/* Timer progress bar enhancement */
+.timer-progress-compact {
+    position: relative;
+    height: 4px;
+    background: var(--border-color);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.timer-progress-bar {
+    background: var(--accent, var(--primary));
+    height: 100%;
+    transition: width 1s linear;
+}
+
+/* Empty state styling */
+.empty-state {
+    text-align: center;
+    padding: 2rem 0;
+    color: var(--text-secondary);
+    font-size: .9rem;
+}
+
+.empty-state i {
+    display: block;
+    font-size: 2rem;
+    margin-bottom: .5rem;
+    opacity: .6;
+}
+
+/* Table row animations */
+.task-list-row {
+    transition: background-color .25s ease;
+}
+
+.task-list-row:hover {
+    background-color: var(--hover-bg, rgba(0, 0, 0, 0.05));
+}
+
+/* Status badges compact tweaks */
+.badge-status-compact {
+    font-size: .65rem;
+    padding: .25rem .4rem;
+    letter-spacing: .5px;
+}
+
+.badge-priority-compact {
+    font-size: .65rem;
+    padding: .25rem .4rem;
+}
+
+/* Icon alignment */
+.task-title-with-icon {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+}
+
+.task-row-icon {
+    font-size: 1rem;
+}
+

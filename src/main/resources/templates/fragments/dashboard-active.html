@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="active-tasks" class="active-section" th:if="${not #lists.isEmpty(activeTasks)}">
+    <h2 class="section-title" style="display: flex; align-items: center; gap: 0.5rem">
+        <i class="bi bi-lightning-charge"></i>
+        Em execução agora
+        <span class="badge-status in_progress" style="margin-left: 0.5rem" th:text="${#lists.size(activeTasks)}"></span>
+    </h2>
+    <div class="active-grid-wrapper">
+        <div class="active-grid" id="activeGrid">
+            <div class="active-card"
+                 th:attr="data-task-id=${t.id()},data-status=${t.status()},data-exec=${t.executionTimeMinutes()},data-main-start=${t.mainStartedAt()},data-main-elapsed=${t.mainElapsedSeconds()},data-pomo-until=${t.pomodoroUntil()},data-pomo-min=${t.pomodoroMinutes()},data-break-min=${t.pomodoroBreakMinutes()},data-scheduled-start=${t.scheduledStartAt()}"
+                 th:classappend="${t.status().name() == 'TODO' and t.scheduledStartAt() != null and t.scheduledStartAt().isBefore(T(java.time.LocalDateTime).now())} ? ' pending-start' : 
+                                 (${t.status().name() == 'PENDING'} ? ' pending-state' : 
+                                 (${t.status().name() == 'OVERDUE'} ? ' overdue-state' : ''))"
+                 th:each="t : ${activeTasks}">
+                <div class="active-card-header">
+                    <div class="active-title-text">
+                        <!-- Ícone para PENDING (aguardando finalizar) -->
+                        <span class="status-indicator pending"
+                              th:if="${t.status().name() == 'PENDING'}"
+                              title="Tempo finalizado - Aguardando ação">
+                            <i class="bi bi-clock-history"></i>
+                        </span>
+                        <!-- Ícone para OVERDUE -->
+                        <span class="status-indicator warning"
+                              th:if="${t.status().name() == 'OVERDUE'}"
+                              title="Tarefa atrasada">
+                            <i class="bi bi-alarm"></i>
+                        </span>
+                        <!-- Ícone para pendente iniciar -->
+                        <span class="status-indicator warning"
+                              th:if="${t.status().name() == 'TODO' and t.scheduledStartAt() != null and t.scheduledStartAt().isBefore(T(java.time.LocalDateTime).now())}"
+                              title="Pendente iniciar">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                        </span>
+                        <span th:text="${t.title()}">Título</span>
+                    </div>
+                    <!-- Badge de status -->
+                    <span class="badge-status" th:classappend="${t.status().name().toLowerCase()}" th:text="${t.status()}">IN_PROGRESS</span>
+                    <!-- Badge AGUARDANDO FINALIZAR para PENDING -->
+                    <span class="badge-status pending-state-flag" style="background: #dbeafe; color: #1e40af; margin-left: 0.25rem;"
+                          th:if="${t.status().name() == 'PENDING'}">AGUARDANDO FINALIZAR</span>
+                    <!-- Badge ATRASADO para OVERDUE -->
+                    <span class="badge-status overdue-flag" style="background: #fee2e2; color: #991b1b; margin-left: 0.25rem;"
+                          th:if="${t.status().name() == 'OVERDUE'}">PENDENTE FINALIZAÇÃO</span>
+                    <!-- Badge PENDENTE INICIAR -->
+                    <span class="badge-status pending-flag"
+                          th:if="${t.status().name() == 'TODO' and t.scheduledStartAt() != null and t.scheduledStartAt().isBefore(T(java.time.LocalDateTime).now())}">PENDENTE INICIAR</span>
+                </div>
+                <div class="active-timers">
+                    <div class="timer-row">
+                        <span class="timer-label">Principal</span>
+                        <span class="timer-value" data-role="main-timer">00:00:00</span>
+                    </div>
+                    <div class="progress progress-compact">
+                        <div aria-valuemax="100" aria-valuemin="0" class="progress-bar" data-role="main-progress" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <div class="timer-row" data-role="pomo-row">
+                        <span class="timer-label">Pomodoro</span>
+                        <span class="timer-value" data-role="pomo-timer">--:--</span>
+                    </div>
+                    <div class="timer-row" data-role="break-row" style="display: none">
+                        <span class="timer-label">Intervalo</span>
+                        <span class="timer-value" data-role="break-timer">--:--</span>
+                    </div>
+                </div>
+                <div class="active-actions">
+                    <a class="btn-icon-sm btn-outline" th:href="@{'/tasks/' + ${t.id()}}" title="Abrir tarefa">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                    </a>
+                    <button class="btn-icon-sm btn-outline" data-action="start" th:attr="data-id=${t.id()}" th:disabled="${t.status().name() == 'IN_PROGRESS'}" title="Iniciar">
+                        <i class="bi bi-play-fill"></i>
+                    </button>
+                    <button class="btn-icon-sm btn-outline" data-action="pause" th:attr="data-id=${t.id()}" th:disabled="${t.status().name() == 'IN_PAUSE'}" title="Pausar">
+                        <i class="bi bi-pause-fill"></i>
+                    </button>
+                    <button class="btn-icon-sm btn-outline text-warning" data-action="extend" style="display: none" th:attr="data-id=${t.id()}" title="Estender Tempo">
+                        <i class="bi bi-clock-history"></i>
+                    </button>
+                    <button class="btn-icon-sm btn-outline text-danger" data-action="cancel" th:attr="data-id=${t.id()}" title="Cancelar">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                    <button class="btn-icon-sm btn-outline text-success" data-action="finish" th:attr="data-id=${t.id()}" title="Finalizar">
+                        <i class="bi bi-check-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

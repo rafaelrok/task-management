@@ -3,6 +3,7 @@
 <head th:replace="~{fragments/head :: head('Cadastro - Task Management')}"></head>
 <body class="auth-body">
 <div class="auth-container auth-container--wide">
+    <div th:replace="~{fragments/alerts :: alerts}"></div>
 
     <div class="auth-card">
         <div class="auth-logo">
@@ -83,12 +84,7 @@
                 <button class="btn btn-primary" type="submit">
                     <i class="bi bi-check-circle"></i> Criar Conta
                 </button>
-                <!-- Open modal instead of prompt -->
-                <button
-                        class="btn btn-outline github"
-                        data-bs-target="#githubImportModal"
-                        data-bs-toggle="modal"
-                        type="button">
+                <button class="btn btn-outline github" onclick="registerWithGithub()" type="button">
                     <i class="bi bi-github"></i> Importar do GitHub
                 </button>
             </div>
@@ -105,63 +101,6 @@
     <div class="auth-footer">
         <p>&copy; <span th:text="${#dates.format(#dates.createNow(),'yyyy')}">2025</span> TaskFlow - Gestão Inteligente
             de Tarefas</p>
-    </div>
-</div>
-
-<!-- GitHub Import Modal -->
-<div aria-hidden="true" aria-labelledby="githubImportModalLabel" class="modal fade" id="githubImportModal"
-     tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="githubImportModalLabel">
-                    <i class="bi bi-github"></i> Importar do GitHub
-                </h5>
-                <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
-            </div>
-            <div class="modal-body">
-                <label class="form-label" for="githubUsername">Informe seu usuário do GitHub</label>
-                <input autocomplete="off" class="form-control" id="githubUsername" placeholder="ex.: octocat"
-                       type="text"/>
-                <div class="form-text mt-2">
-                    Vamos usar essas informações para preencher o formulário automaticamente.
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Cancelar</button>
-                <button class="btn btn-dark" id="confirmGithubImportBtn" type="button">
-                    <i class="bi bi-cloud-download"></i> Importar
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Toasts container -->
-<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080">
-    <div aria-atomic="true" aria-live="assertive" class="toast align-items-center text-bg-success border-0"
-         id="toastSuccess"
-         role="alert">
-        <div class="d-flex">
-            <div class="toast-body">
-                <i class="bi bi-check-circle-fill me-1"></i>
-                <span id="toastSuccessMsg">Operação realizada com sucesso.</span>
-            </div>
-            <button aria-label="Close" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-                    type="button"></button>
-        </div>
-    </div>
-
-    <div aria-atomic="true" aria-live="assertive" class="toast align-items-center text-bg-danger border-0 mt-2"
-         id="toastError" role="alert">
-        <div class="d-flex">
-            <div class="toast-body">
-                <i class="bi bi-x-circle-fill me-1"></i>
-                <span id="toastErrorMsg">Ocorreu um erro.</span>
-            </div>
-            <button aria-label="Close" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-                    type="button"></button>
-        </div>
     </div>
 </div>
 
@@ -241,90 +180,39 @@
 </style>
 <script th:src="@{/js/dashboard.js}"></script>
 <script>
-    // Bootstrap toast helpers
-    function showToast(type, message) {
-        const successEl = document.getElementById('toastSuccess');
-        const errorEl = document.getElementById('toastError');
-        if (type === 'success') {
-            document.getElementById('toastSuccessMsg').textContent = message;
-            new bootstrap.Toast(successEl, {delay: 4000}).show();
-        } else {
-            document.getElementById('toastErrorMsg').textContent = message;
-            new bootstrap.Toast(errorEl, {delay: 5000}).show();
+    async function registerWithGithub() {
+        const username = prompt('Digite seu nome de usuário do GitHub:');
+        if (!username || username.trim() === '') {
+            alert('Nome de usuário é obrigatório!');
+            return;
         }
-    }
-
-    async function importFromGithub(username, closeModal) {
-        const btn = document.getElementById('confirmGithubImportBtn');
+        
         try {
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Importando...';
-
+            // Buscar dados do GitHub
             const resp = await fetch(`/api/github/user?username=${encodeURIComponent(username.trim())}`);
             if (!resp.ok) {
-                let msg = 'Não foi possível importar dados do GitHub.';
-                try {
-                    const err = await resp.json();
-                    if (err && err.message) msg = err.message;
-                } catch (_) { /* ignore */
-                }
-                throw new Error(msg);
+                throw new Error('Usuário não encontrado no GitHub');
             }
             const data = await resp.json();
-
+            
             // Preencher o formulário com os dados do GitHub
             document.querySelector('[name="username"]').value = data.login || username;
-            document.querySelector('[name="fullName"]').value = data.name || data.login || username;
-            document.querySelector('[name="email"]').value = (data.email && data.email.trim()) ? data.email : `${(data.login || username)}@github.local`;
-
+            document.querySelector('[name="fullName"]').value = data.name || data.login;
+            document.querySelector('[name="email"]').value = data.login + '@github.local'; // Email temporário
+            
             // Gerar senha aleatória (usuário pode alterar depois)
-            const randomPassword = (Math.random().toString(36).slice(-8)) + (Math.random().toString(36).slice(-8));
+            const randomPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
             document.querySelector('[name="password"]').value = randomPassword;
-
-            showToast('success', 'Dados importados do GitHub! Revise as informações antes de criar a conta.');
-            if (typeof closeModal === 'function') closeModal();
-            window.scrollTo({top: 0, behavior: 'smooth'});
+            
+            alert(`Dados importados do GitHub!\n\nPor favor, revise as informações e altere a senha antes de criar a conta.\n\nNota: Você precisará configurar um email válido depois do cadastro.`);
+            
+            // Scroll para o topo do formulário
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (e) {
+            alert('Não foi possível importar dados do GitHub: ' + e.message);
             console.error(e);
-            showToast('error', e.message || 'Falha ao importar dados do GitHub.');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-cloud-download"></i> Importar';
         }
     }
-
-    // Modal confirm handler
-    document.addEventListener('DOMContentLoaded', function () {
-        const modalEl = document.getElementById('githubImportModal');
-        const usernameInput = document.getElementById('githubUsername');
-        const confirmBtn = document.getElementById('confirmGithubImportBtn');
-        const modal = new bootstrap.Modal(modalEl);
-
-        modalEl.addEventListener('shown.bs.modal', () => {
-            usernameInput.focus();
-            usernameInput.select();
-        });
-        modalEl.addEventListener('hidden.bs.modal', () => {
-            usernameInput.value = '';
-        });
-
-        confirmBtn.addEventListener('click', async () => {
-            const username = usernameInput.value;
-            if (!username || username.trim() === '') {
-                showToast('error', 'Informe o nome de usuário do GitHub.');
-                usernameInput.focus();
-                return;
-            }
-            await importFromGithub(username, () => modal.hide());
-        });
-        // Trigger import on Enter key
-        usernameInput.addEventListener('keydown', (ev) => {
-            if (ev.key === 'Enter') {
-                ev.preventDefault();
-                confirmBtn.click();
-            }
-        });
-    });
 </script>
 </body>
 </html>

@@ -7,6 +7,12 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+/**
+ * Listener para eventos de tarefas que cria notificações para usuários atribuídos
+ *
+ * @author Rafael Vieira (rafaelrok)
+ * @since 2024-06-15
+ */
 @Component
 @RequiredArgsConstructor
 public class TaskEventListener {
@@ -17,7 +23,6 @@ public class TaskEventListener {
     @EventListener
     public void onTaskEvent(TaskEvent event) {
         if (event.getTask().getAssignedUser() == null) {
-            // Sem usuário atribuído, ignorar notificação para evitar violação de constraint
             return;
         }
         String richMessage =

@@ -1,0 +1,396 @@
+/* ========== SIDEBAR LAYOUT ========== */
+
+.sidebar {
+    position: fixed;
+    top: 18px;
+    bottom: 18px;
+    left: 18px;
+    width: 260px;
+    padding: 22px 18px 18px;
+    box-sizing: border-box;
+    background: var(--bg-secondary);
+    border-radius: 22px;
+    box-shadow: var(--shadow-xl);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    transition: var(--transition);
+}
+
+.sidebar.close {
+    width: 92px;
+    /* modo “slim” */
+}
+
+/* ========== HEADER: LOGO + TOGGLE ========== */
+
+.sidebar header {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.sidebar header .image-text {
+    display: flex;
+    align-items: center;
+}
+
+/* “Pílula” roxa do logo */
+.sidebar header .image {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* box-shadow: 0 12px 26px rgba(99, 102, 241, 0.6); */
+}
+
+.sidebar header .image i {
+    font-size: 24px;
+    color: #ffffff;
+}
+
+/* Texto do logo */
+.sidebar header .logo-text {
+    margin-left: 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+header .image-text .name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+header .image-text .profession {
+    font-size: 13px;
+    margin-top: -2px;
+    color: var(--text-secondary);
+}
+
+/* Textos genéricos */
+.sidebar .text {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    opacity: 1;
+    transition: var(--transition);
+}
+
+.sidebar .icon {
+    min-width: 48px;
+    height: 100%;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: var(--text-secondary);
+    transition: var(--transition);
+}
+
+/* Botão de collapse – exatamente metade pra fora */
+.sidebar header .toggle {
+    position: absolute;
+    top: 50%;
+    right: -35px;
+    /* metade do width: 34px -> 17px pra fora */
+    transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background-color: var(--primary);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+    /* box-shadow: 0 12px 24px rgba(99, 102, 241, 0.75); */
+    transition: var(--transition);
+}
+
+.sidebar.close .toggle {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+/* ========== ÁREA SCROLLÁVEL (MENU + RODAPÉ) ========== */
+
+.sidebar .menu-bar {
+    margin-top: 22px;
+    height: calc(100% - 50px);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow-y: auto;
+}
+
+.menu-bar::-webkit-scrollbar {
+    display: none;
+}
+
+.sidebar .menu {
+    margin-top: 6px;
+}
+
+.sidebar ul {
+    margin: 0;
+    padding-left: 0;
+}
+
+/* Itens de lista */
+.sidebar li {
+    list-style: none;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    margin-top: 6px;
+}
+
+/* Links */
+.sidebar li a {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    padding: 0 10px;
+    text-decoration: none;
+    background: transparent;
+    transition: var(--transition);
+}
+
+/* Hover */
+.sidebar li a:hover {
+    background-color: var(--bg-primary);
+}
+
+.sidebar li a:hover .icon,
+.sidebar li a:hover .text {
+    color: var(--primary);
+}
+
+/* Ativo (Thymeleaf: li.nav-link.active) */
+.sidebar li.active a {
+    background: var(--primary);
+}
+
+.sidebar li.active a .icon,
+.sidebar li.active a .text {
+    color: #ffffff;
+}
+
+/* ========== SEARCH BOX ========== */
+
+.sidebar .search-box {
+    height: 46px;
+    border-radius: 12px;
+    background-color: var(--bg-primary);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    margin-bottom: 10px;
+}
+
+.sidebar .search-box input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    padding-left: 4px;
+}
+
+/* ========== RODAPÉ: LOGOUT + DARK MODE ========== */
+
+.sidebar .bottom-content {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Logout como item de menu */
+form#logoutForm {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+form#logoutForm a {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    border-radius: 12px;
+    padding: 0 10px;
+}
+
+/* Card do modo escuro */
+.sidebar .menu-bar .mode {
+    margin-top: 10px;
+    border-radius: 12px;
+    background-color: var(--bg-primary);
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    position: relative;
+}
+
+.menu-bar .mode .sun-moon {
+    width: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mode .sun-moon i {
+    position: absolute;
+    font-size: 18px;
+}
+
+/* Alternância sol/lua com tema global */
+.mode .sun-moon i.sun {
+    opacity: 0;
+}
+
+[data-theme="dark"] .mode .sun-moon i.sun {
+    opacity: 1;
+}
+
+[data-theme="dark"] .mode .sun-moon i.moon {
+    opacity: 0;
+}
+
+.menu-bar .mode .mode-text {
+    flex: 1;
+}
+
+.menu-bar .mode .toggle-switch {
+    width: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.toggle-switch .switch {
+    position: relative;
+    width: 38px;
+    height: 20px;
+    border-radius: 25px;
+    background-color: var(--toggle-color);
+    transition: var(--transition);
+}
+
+.toggle-switch .switch::before {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    top: 50%;
+    left: 4px;
+    transform: translateY(-50%);
+    background-color: var(--bg-secondary);
+    transition: var(--transition);
+}
+
+/* bolinha vai pra direita no dark */
+[data-theme="dark"] .toggle-switch .switch::before {
+    left: 20px;
+}
+
+/* Badge some quando fechado */
+.sidebar.close .sidebar-badge {
+    display: none;
+}
+
+/* ========== COMPORTAMENTO “COLLAPSED” ========== */
+
+/* Esconder texto do logo e centralizar logo */
+.sidebar.close .logo-text,
+.sidebar.close .nav-text,
+.sidebar.close .mode-text {
+    display: none;
+    /* some do layout */
+}
+
+.sidebar.close header {
+    justify-content: center;
+}
+
+.sidebar.close li {
+    justify-content: center;
+}
+
+/* Ícones centralizados no modo fechado */
+.sidebar.close li a {
+    justify-content: center;
+    padding: 0;
+}
+
+/* Ícone sem largura mínima extra */
+.sidebar.close .icon {
+    min-width: 0;
+}
+
+/* Textos gerais somem (sem ocupar espaço) */
+.sidebar.close .text {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Search-box no colapsado: vira um botão redondo com ícone centralizado */
+.sidebar.close .search-box {
+    width: 46px;
+    height: 46px;
+    margin: 0 auto 12px;
+    padding: 0;
+    justify-content: center;
+}
+
+.sidebar.close .search-box i.icon {
+    margin: 0;
+}
+
+.sidebar.close .search-box input {
+    display: none;
+}
+
+/* Modo colapsado: esconder ícone de tema e centralizar só o switch */
+.sidebar.close .menu-bar .mode {
+    justify-content: center;
+    padding: 0;
+}
+
+.sidebar.close .menu-bar .mode .sun-moon {
+    display: none;
+    /* some o ícone de tema */
+}
+
+.sidebar.close .menu-bar .mode .mode-text {
+    display: none;
+    /* garante que o texto não apareça */
+}
+
+.sidebar.close .menu-bar .mode .toggle-switch {
+    width: 100%;
+    justify-content: center;
+}
+
+/* ========== MAIN CONTENT AO LADO DA SIDEBAR ========== */
+
+.main-content {
+    margin-left: 320px;
+    /* 260px da sidebar + margem */
+    transition: var(--transition);
+}
+
+.sidebar.close~.main-content {
+    margin-left: 160px;
+}

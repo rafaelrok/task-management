@@ -17,7 +17,7 @@ spring:
 
   # Database Configuration
   datasource:
-    url: jdbc:postgresql://localhost:5433/task_db?characterEncoding=UTF-8&useUnicode=true
+    url: jdbc:postgresql://localhost:5433/tasks?characterEncoding=UTF-8&useUnicode=true
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver

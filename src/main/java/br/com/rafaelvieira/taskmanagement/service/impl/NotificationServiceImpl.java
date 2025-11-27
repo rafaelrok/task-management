@@ -70,6 +70,23 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     public Notification createNotification(
             String title, String message, NotificationType type, Long taskId, User user) {
+        return createNotificationInternal(title, message, type, taskId, user, false);
+    }
+
+    @Override
+    @Transactional
+    public Notification createStickyNotification(
+            String title, String message, NotificationType type, Long taskId, User user) {
+        return createNotificationInternal(title, message, type, taskId, user, true);
+    }
+
+    private Notification createNotificationInternal(
+            String title,
+            String message,
+            NotificationType type,
+            Long taskId,
+            User user,
+            boolean sticky) {
         if (user == null) {
             log.debug("Skipping notification creation for task {} because user is null", taskId);
             return null; // evita constraint violation
@@ -82,6 +99,7 @@ public class NotificationServiceImpl implements NotificationService {
                         .taskId(taskId)
                         .user(user)
                         .read(false)
+                        .sticky(sticky)
                         .createdAt(LocalDateTime.now())
                         .build();
 
@@ -107,6 +125,16 @@ public class NotificationServiceImpl implements NotificationService {
             throw new UnauthorizedException("User not authenticated");
         }
         return notificationRepository.findByUserAndReadFalseOrderByCreatedAtDesc(currentUser);
+    }
+
+    @Override
+    public List<Notification> findStickyUnreadForCurrentUser() {
+        var currentUser = userService.getCurrentUser();
+        if (currentUser == null) {
+            throw new UnauthorizedException("User not authenticated");
+        }
+        return notificationRepository.findByUserAndReadFalseAndStickyTrueOrderByCreatedAtDesc(
+                currentUser);
     }
 
     @Override
@@ -173,6 +201,7 @@ public class NotificationServiceImpl implements NotificationService {
                                 .type(notification.getType())
                                 .taskId(notification.getTaskId())
                                 .read(notification.isRead())
+                                .sticky(notification.isSticky())
                                 .createdAt(notification.getCreatedAt())
                                 .build();
                 emitter.send(SseEmitter.event().name("notification").data(dto));

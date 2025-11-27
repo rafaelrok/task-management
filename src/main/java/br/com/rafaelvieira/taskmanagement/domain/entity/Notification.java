@@ -60,6 +60,15 @@ public class Notification {
     @Column(name = "is_read", nullable = false)
     private boolean read = false;
 
+    /**
+     * Indica se a notificação é "sticky" (persistente). Notificações sticky não desaparecem
+     * automaticamente e requerem ação manual do usuário. Usadas para alertas críticos como PENDING
+     * e OVERDUE.
+     */
+    @Builder.Default
+    @Column(name = "is_sticky", nullable = false)
+    private boolean sticky = false;
+
     @Builder.Default
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();

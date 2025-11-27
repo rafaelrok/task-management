@@ -4,6 +4,12 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Classe de configuração para propriedades da aplicação.
+ *
+ * @author Rafael Vieira (rafaelrok)
+ * @since 2025-11-04
+ */
 @Configuration
 @ConfigurationProperties(prefix = "app")
 @Data

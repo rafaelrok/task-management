@@ -1,0 +1,36 @@
+.graphic-task-container {
+    margin-top: 2rem;
+    animation: fadeUp 0.6s ease-out forwards;
+}
+
+.graphic-task-container .card {
+    border-radius: 16px;
+    background: var(--surface-card, #ffffff);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+[data-theme="dark"] .graphic-task-container .card {
+    background: var(--surface-card, #1e1e1e);
+}
+
+.graphic-task-container .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
+}
+
+.graphic-task-container .card-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.25rem;
+    color: var(--text-primary);
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

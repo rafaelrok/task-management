@@ -9,6 +9,39 @@ const NotificationSystem = {
         this.connect();
         this.loadUnreadCount();
         this.setupBadge();
+        // Carregar notificações sticky ao iniciar
+        this.loadStickyNotifications();
+    },
+
+    /**
+     * Carrega e exibe notificações sticky (persistentes) não lidas.
+     * Estas notificações aparecem automaticamente e não desaparecem até serem marcadas como lidas.
+     */
+    loadStickyNotifications: function() {
+        fetch("/api/notifications/sticky")
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        return []; // Não autenticado, retorna lista vazia
+                    }
+                    throw new Error("Failed to load sticky notifications: " + response.status);
+                }
+                return response.json();
+            })
+            .then(notifications => {
+                if (notifications && notifications.length > 0) {
+                    console.log(`📌 Carregando ${notifications.length} notificação(ões) sticky`);
+                    // Mostrar cada notificação sticky com delay para não sobrecarregar
+                    notifications.forEach((notification, index) => {
+                        setTimeout(() => {
+                            this.showToast(notification);
+                        }, index * 500); // 500ms entre cada toast
+                    });
+                }
+            })
+            .catch(error => {
+                console.warn("Erro ao carregar notificações sticky:", error.message);
+            });
     },
 
     connect: function () {
@@ -23,6 +56,8 @@ const NotificationSystem = {
             this.showToast(notification);
             this.updateBadgeCount(1, true); // Increment count
             this.addNotificationToDropdown(notification);
+            // Atualização imediata de KPIs e seções sensíveis a tarefas sem reload completo
+            this.refreshTaskRelatedSections(notification);
         });
 
         this.eventSource.onerror = (error) => {
@@ -95,6 +130,12 @@ const NotificationSystem = {
             ? "bg-dark text-white border-secondary"
             : "bg-white text-dark";
 
+        // Determina se é uma notificação sticky (da API ou do tipo)
+        const isSticky = notification.sticky || typeConfig.isSticky || !typeConfig.autohide;
+        const stickyClass = isSticky ? 'notification-toast-sticky' : '';
+        const isPendingType = notification.type === 'TASK_PENDING';
+        const pendingClass = isPendingType ? 'pending' : '';
+
         // Parse rich message if available (format: Message | Status: X | Priority: Y)
         let message = notification.message;
         let details = "";
@@ -111,21 +152,31 @@ const NotificationSystem = {
                 .join("");
         }
 
+        // Adiciona indicador sticky se necessário
+        const stickyIndicator = isSticky ? `
+            <div class="notification-requires-action ${pendingClass}">
+                <i class="bi bi-pin-angle-fill"></i>
+                <span>Esta notificação requer sua ação e não desaparecerá automaticamente</span>
+            </div>
+        ` : '';
+
         const toastHtml = `
-            <div id="${toastId}" class="toast ${toastClass}" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="${
+            <div id="${toastId}" class="toast ${toastClass} ${stickyClass} ${pendingClass}" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="${
             typeConfig.duration
-        }">
+        }" data-sticky="${isSticky}">
                 <div class="toast-header ${typeConfig.headerClass} text-white">
                     <i class="${typeConfig.icon} me-2"></i>
                     <strong class="me-auto">${notification.title}</strong>
+                    ${isSticky ? '<span class="notification-sticky-badge ' + pendingClass + '"><i class="bi bi-pin-fill notification-sticky-icon"></i> Fixada</span>' : ''}
                     <small class="${
             isDark ? "text-light" : "text-muted"
-        }">${this.formatTime(notification.createdAt)}</small>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        } ms-2">${this.formatTime(notification.createdAt)}</small>
+                    <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="toast" aria-label="Close"></button>
                 </div>
                 <div class="toast-body">
                     <p class="mb-1">${message}</p>
                     ${details ? `<div class="mb-2">${details}</div>` : ""}
+                    ${stickyIndicator}
                     <div class="mt-2 pt-2 border-top ${
             isDark ? "border-secondary" : ""
         } d-flex justify-content-between align-items-center">
@@ -153,7 +204,7 @@ const NotificationSystem = {
         container.appendChild(toastElement);
 
         const toast = new bootstrap.Toast(toastElement, {
-            autohide: typeConfig.autohide,
+            autohide: !isSticky && typeConfig.autohide,
             delay: typeConfig.duration,
         });
 
@@ -222,6 +273,55 @@ const NotificationSystem = {
             .catch((err) => console.error("Background refresh failed", err));
     },
 
+    refreshTaskRelatedSections: function (notification) {
+        // Apenas tenta atualizar se estamos na dashboard
+        if (window.location.pathname !== '/' && window.location.pathname !== '') return;
+        // Atualizar seção de tarefas ativas se função global disponível
+        if (typeof window.refreshActiveTasks === 'function') {
+            window.refreshActiveTasks();
+        }
+        // Recarregar KPIs e tabelas específicas via fetch parcial
+        fetch(window.location.href, {cache: 'no-store'})
+            .then(r => r.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const kpiMap = {
+                    '.kpi-todo .kpi-value': null,
+                    '.kpi-progress .kpi-value': null,
+                    '.kpi-done .kpi-value': null,
+                    '.kpi-cancelled .kpi-value': null,
+                    '.priority-low .priority-value': null,
+                    '.priority-medium .priority-value': null,
+                    '.priority-high .priority-value': null,
+                    '.priority-urgent .priority-value': null
+                };
+                Object.keys(kpiMap).forEach(sel => {
+                    const newEl = doc.querySelector(sel);
+                    const curEl = document.querySelector(sel);
+                    if (newEl && curEl && newEl.innerText !== curEl.innerText) {
+                        curEl.innerText = newEl.innerText;
+                        curEl.style.transition = 'color .3s';
+                        curEl.style.color = 'var(--primary)';
+                        setTimeout(() => curEl.style.color = '', 600);
+                    }
+                });
+                // Atualizar tabela Overdue
+                const newOverdueBody = doc.querySelector('#overdueTableBody');
+                const curOverdueBody = document.querySelector('#overdueTableBody');
+                if (newOverdueBody && curOverdueBody) {
+                    curOverdueBody.innerHTML = newOverdueBody.innerHTML;
+                }
+                // Atualizar tabela Due Today
+                const newDueTodayBody = doc.querySelector('#dueTodayTableBody');
+                const curDueTodayBody = document.querySelector('#dueTodayTableBody');
+                if (newDueTodayBody && curDueTodayBody) {
+                    curDueTodayBody.innerHTML = newDueTodayBody.innerHTML;
+                }
+            })
+            .catch(err => console.warn('Falha ao atualizar KPIs/tabelas', err));
+    },
+
     getTypeConfig: function (type) {
         // Default config
         let config = {
@@ -255,6 +355,22 @@ const NotificationSystem = {
                 config.icon = "bi bi-exclamation-triangle";
                 config.headerClass = "bg-danger";
                 config.autohide = false; // Sticky
+                break;
+            case "TASK_PENDING":
+                config.icon = "bi bi-clock-history";
+                config.headerClass = "bg-primary";
+                config.autohide = false; // Sticky - requer ação do usuário
+                config.isSticky = true;
+                break;
+            case "TASK_STARTING_SOON":
+                config.icon = "bi bi-alarm";
+                config.headerClass = "bg-info";
+                config.duration = 30000; // 30 segundos para alerta de início próximo
+                break;
+            case "TASK_DUE_SOON":
+                config.icon = "bi bi-hourglass-split";
+                config.headerClass = "bg-warning";
+                config.duration = 20000; // 20 segundos para alerta de prazo
                 break;
             case "TASK_TODO":
                 config.icon = "bi bi-list-task";
@@ -405,6 +521,17 @@ const NotificationSystem = {
                 if (response.ok) {
                     // Update badge count globally (decrement 1)
                     this.updateBadgeCount(-1, true);
+
+                    // Fechar o toast associado se existir
+                    const toastElement = document.getElementById(`toast-${id}`);
+                    if (toastElement) {
+                        const bsToast = bootstrap.Toast.getInstance(toastElement);
+                        if (bsToast) {
+                            bsToast.hide();
+                        } else {
+                            toastElement.remove();
+                        }
+                    }
 
                     if (btnElement) {
                         // Detect context: dropdown item vs full list item

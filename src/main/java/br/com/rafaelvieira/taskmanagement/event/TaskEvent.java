@@ -5,6 +5,12 @@ import br.com.rafaelvieira.taskmanagement.domain.model.Task;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
+/**
+ * Evento relacionado a tarefas
+ *
+ * @author Rafael Vieira (rafaelrok)
+ * @since 2024-06-15
+ */
 @Getter
 public class TaskEvent extends ApplicationEvent {
 
