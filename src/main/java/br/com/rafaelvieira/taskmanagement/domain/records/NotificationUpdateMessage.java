@@ -3,11 +3,17 @@ package br.com.rafaelvieira.taskmanagement.domain.records;
 import java.time.LocalDateTime;
 
 public record NotificationUpdateMessage(
-        String type, Long notificationId, String title, String message, LocalDateTime timestamp) {
+        Long id,
+        String title,
+        String message,
+        String type,
+        Long taskId,
+        boolean sticky,
+        LocalDateTime createdAt) {
 
     public static NotificationUpdateMessage create(
-            Long notificationId, String title, String message) {
+            Long id, String title, String message, String type, Long taskId, boolean sticky) {
         return new NotificationUpdateMessage(
-                "NOTIFICATION_UPDATE", notificationId, title, message, LocalDateTime.now());
+                id, title, message, type, taskId, sticky, LocalDateTime.now());
     }
 }

@@ -26,13 +26,12 @@ public class WebSocketService {
     }
 
     /** Envia notificação para um utilizador específico */
-    public void sendNotificationToUser(Long userId, NotificationUpdateMessage message) {
+    public void sendNotificationToUser(String username, NotificationUpdateMessage message) {
         try {
-            messagingTemplate.convertAndSendToUser(
-                    userId.toString(), "/queue/notifications", message);
-            log.debug("Notification sent to user {}: {}", userId, message);
+            messagingTemplate.convertAndSendToUser(username, "/queue/notifications", message);
+            log.debug("Notification sent to user {}: {}", username, message);
         } catch (MessagingException e) {
-            log.error("Error sending notification to user {} via WebSocket", userId, e);
+            log.error("Error sending notification to user {} via WebSocket", username, e);
         }
     }
 

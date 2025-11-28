@@ -102,7 +102,7 @@ public class TaskController implements SwaggerTaskController {
 
     @PatchMapping("/{id}/extend")
     public ResponseEntity<@NotNull TaskRecord> extendTask(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @org.springframework.web.bind.annotation.RequestBody @jakarta.validation.Valid
                     br.com.rafaelvieira.taskmanagement.domain.records.TaskExtensionRecord
                             extension) {

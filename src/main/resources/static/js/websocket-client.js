@@ -67,17 +67,27 @@ class WebSocketClient {
             }
         });
 
-        // Subscreve ao tópico de notificações
+        // Subscreve ao tópico de notificações (Broadcast)
         this.stompClient.subscribe('/topic/notifications', (message) => {
             try {
                 const data = JSON.parse(message.body);
                 this.onNotificationReceived(data);
             } catch (e) {
-                console.error('[WebSocket] Erro ao parsear notificação:', e);
+                console.error('[WebSocket] Erro ao parsear notificação broadcast:', e);
             }
         });
 
-        console.log('[WebSocket] 📡 Subscrito aos tópicos: /topic/dashboard, /topic/notifications');
+        // Subscreve à fila de notificações do usuário (Pessoal)
+        this.stompClient.subscribe('/user/queue/notifications', (message) => {
+            try {
+                const data = JSON.parse(message.body);
+                this.onNotificationReceived(data);
+            } catch (e) {
+                console.error('[WebSocket] Erro ao parsear notificação pessoal:', e);
+            }
+        });
+
+        console.log('[WebSocket] 📡 Subscrito aos tópicos: /topic/dashboard, /topic/notifications, /user/queue/notifications');
         
         // Força refresh imediato após conectar
         this.forceRefreshAll();
@@ -193,30 +203,15 @@ class WebSocketClient {
     /**
      * Força refresh de todos os componentes
      */
+    /**
+     * Força refresh de todos os componentes
+     */
     forceRefreshAll() {
-        // Active Tasks
-        if (typeof window.refreshActiveTasks === 'function') {
+        if (typeof window.refreshDashboard === 'function') {
+            window.refreshDashboard();
+        } else if (typeof window.refreshActiveTasks === 'function') {
+            // Fallback para compatibilidade
             window.refreshActiveTasks();
-        }
-        
-        // Scheduled Tasks
-        if (typeof window.refreshScheduledTasks === 'function') {
-            window.refreshScheduledTasks();
-        }
-
-        // Overdue Tasks Table
-        if (typeof window.refreshOverdueTasks === 'function') {
-            window.refreshOverdueTasks();
-        }
-
-        // Due Today Tasks Table
-        if (typeof window.refreshDueTodayTasks === 'function') {
-            window.refreshDueTodayTasks();
-        }
-
-        // Task list timers
-        if (typeof window.updateAllTimers === 'function') {
-            window.updateAllTimers();
         }
     }
 

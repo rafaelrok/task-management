@@ -160,6 +160,21 @@ const NotificationSystem = {
             </div>
         ` : '';
 
+        // Botões de ação para TASK_TIME_UP
+        const isTimeUp = notification.type === 'TASK_TIME_UP';
+        const actionButtons = isTimeUp ? `
+            <div class="d-flex gap-2 mt-2">
+                <button onclick="NotificationSystem.finishTaskFromNotification(${notification.taskId}, ${notification.id})" 
+                        class="btn btn-sm btn-success flex-fill">
+                    <i class="bi bi-check-circle"></i> Finalizar
+                </button>
+                <button onclick="NotificationSystem.cancelTaskFromNotification(${notification.taskId}, ${notification.id})" 
+                        class="btn btn-sm btn-danger flex-fill">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </button>
+            </div>
+        ` : '';
+
         const toastHtml = `
             <div id="${toastId}" class="toast ${toastClass} ${stickyClass} ${pendingClass}" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="${
             typeConfig.duration
@@ -177,12 +192,15 @@ const NotificationSystem = {
                     <p class="mb-1">${message}</p>
                     ${details ? `<div class="mb-2">${details}</div>` : ""}
                     ${stickyIndicator}
+                    ${actionButtons}
                     <div class="mt-2 pt-2 border-top ${
             isDark ? "border-secondary" : ""
         } d-flex justify-content-between align-items-center">
                         <a href="/tasks/${
             notification.taskId
-        }" class="btn btn-sm ${
+        }" onclick="NotificationSystem.markAsRead(${
+            notification.id
+        }, this); return true;" class="btn btn-sm ${
             isDark ? "btn-outline-light" : "btn-light"
         } notification-btn">Ver Tarefa</a>
                         <button onclick="NotificationSystem.markAsRead(${
@@ -493,13 +511,13 @@ const NotificationSystem = {
             })
             .then((data) => {
                 list.innerHTML = "";
-                const unreadNotifications = data.content.filter((n) => !n.read);
-                if (unreadNotifications.length === 0) {
+                const notifications = data.content;
+                if (notifications.length === 0) {
                     list.innerHTML =
                         '<li class="dropdown-item text-center text-muted small empty-notification">Nenhuma notificação</li>';
                     return;
                 }
-                unreadNotifications.forEach((notification) => {
+                notifications.forEach((notification) => {
                     this.addNotificationToDropdown(notification);
                 });
             })
@@ -639,9 +657,117 @@ const NotificationSystem = {
             btn.addEventListener("click", () => this.markAllAsRead());
         }
     },
+
+    /**
+     * Finaliza uma tarefa diretamente da notificação
+     */
+    finishTaskFromNotification: async function(taskId, notificationId) {
+        try {
+            const response = await fetch(`/api/tasks/${taskId}/status?status=DONE`, {
+                method: 'PATCH'
+            });
+
+            if (response.ok) {
+                // Mark notification as read
+                this.markAsRead(notificationId);
+                
+                // Close the toast
+                const toastElement = document.getElementById(`toast-${notificationId}`);
+                if (toastElement) {
+                    const bsToast = bootstrap.Toast.getInstance(toastElement);
+                    if (bsToast) bsToast.hide();
+                }
+
+                // Show success message
+                alert('✅ Tarefa finalizada com sucesso!');
+                
+                // Refresh dashboard if available
+                if (typeof window.refreshDashboard === 'function') {
+                    window.refreshDashboard();
+                }
+            } else {
+                alert('❌ Erro ao finalizar tarefa. Tente novamente.');
+            }
+        } catch (error) {
+            console.error('Error finishing task:', error);
+            alert('❌ Erro ao finalizar tarefa. Tente novamente.');
+        }
+    },
+
+    /**
+     * Cancela uma tarefa com confirmação
+     */
+    cancelTaskFromNotification: async function(taskId, notificationId) {
+        // Show confirmation modal
+        const confirmed = confirm(
+            '⚠️ Atenção!\n\n' +
+            'Você tem certeza que deseja CANCELAR esta tarefa?\n\n' +
+            'Esta ação NÃO PODE ser revertida e a tarefa será marcada como CANCELADA permanentemente.\n\n' +
+            'Deseja continuar?'
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/tasks/${taskId}/status?status=CANCELLED`, {
+                method: 'PATCH'
+            });
+
+            if (response.ok) {
+                // Mark notification as read
+                this.markAsRead(notificationId);
+                
+                // Close the toast
+                const toastElement = document.getElementById(`toast-${notificationId}`);
+                if (toastElement) {
+                    const bsToast = bootstrap.Toast.getInstance(toastElement);
+                    if (bsToast) bsToast.hide();
+                }
+
+                // Show success message
+                alert('✅ Tarefa cancelada com sucesso!');
+                
+                // Refresh dashboard if available
+                if (typeof window.refreshDashboard === 'function') {
+                    window.refreshDashboard();
+                }
+            } else {
+                alert('❌ Erro ao cancelar tarefa. Tente novamente.');
+            }
+        } catch (error) {
+            console.error('Error cancelling task:', error);
+            alert('❌ Erro ao cancelar tarefa. Tente novamente.');
+        }
+    },
 };
 
 document.addEventListener("DOMContentLoaded", () => {
     NotificationSystem.init();
     NotificationSystem.setupMarkAllButton();
 });
+
+// Expose handler for WebSocket notifications
+window.handleWebSocketNotification = function(data) {
+    console.log('[NotificationSystem] Recebida via WebSocket:', data);
+    if (NotificationSystem && typeof NotificationSystem.showToast === 'function') {
+        // Show toast notification
+        NotificationSystem.showToast(data);
+        
+        // Update badge count (increment by 1)
+        NotificationSystem.updateBadgeCount(1, true);
+        
+        // Add to dropdown
+        NotificationSystem.addNotificationToDropdown(data);
+        
+        // Refresh task-related sections
+        if (typeof NotificationSystem.refreshTaskRelatedSections === 'function') {
+            NotificationSystem.refreshTaskRelatedSections(data);
+        }
+        
+        console.log('[NotificationSystem] ✅ Notificação processada com sucesso');
+    } else {
+        console.error('[NotificationSystem] Sistema de notificações não disponível');
+    }
+};

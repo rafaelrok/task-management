@@ -105,7 +105,6 @@ server:
     # Fix FileCountLimitExceededException - permite múltiplos campos de formulário
     max-file-count: 100
 
-
 # Management/Actuator Configuration
 management:
   endpoints:

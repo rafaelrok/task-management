@@ -18,6 +18,10 @@ import org.springframework.transaction.annotation.Transactional;
  * Job responsável pelo gerenciamento automático de timers das tarefas. Executa a cada 5 segundos
  * para: - Auto-iniciar tarefas agendadas - Atualizar tempo decorrido - Gerenciar ciclos
  * pomodoro/break - Verificar tempo excedido (PENDING/OVERDUE) - Monitorar datas de vencimento
+ *
+ * @author Rafael Vieira
+ * @see <a href='https://rafaelvieira.com.br'>Rafael Vieira</a>
+ * @since 14/06/2024
  */
 @Component
 @RequiredArgsConstructor
@@ -210,7 +214,7 @@ public class TaskTimerJob {
 
             if (t.getAssignedUser() != null) {
                 notificationService.createStickyNotification(
-                        "⏰ Tempo de Execução Finalizado",
+                        "Tempo de Execução Finalizado",
                         "A tarefa '"
                                 + t.getTitle()
                                 + "' completou o tempo de execução. "
@@ -230,7 +234,7 @@ public class TaskTimerJob {
 
             if (t.getAssignedUser() != null) {
                 notificationService.createStickyNotification(
-                        "🚨 Tarefa Atrasada",
+                        "Tarefa Atrasada",
                         "A tarefa '"
                                 + t.getTitle()
                                 + "' está atrasada! O tempo de execução foi excedido e o prazo de"
@@ -270,7 +274,7 @@ public class TaskTimerJob {
 
             if (t.getAssignedUser() != null) {
                 notificationService.createStickyNotification(
-                        "🚨 Tarefa Agora Atrasada",
+                        "Tarefa Vencida",
                         "A tarefa '"
                                 + t.getTitle()
                                 + "' estava aguardando finalização, mas o prazo de vencimento"

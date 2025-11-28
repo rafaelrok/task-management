@@ -12,9 +12,6 @@ import br.com.rafaelvieira.taskmanagement.repository.TaskRepository;
 import br.com.rafaelvieira.taskmanagement.service.NotificationService;
 import br.com.rafaelvieira.taskmanagement.service.UserService;
 import br.com.rafaelvieira.taskmanagement.web.dto.NotificationResponseDTO;
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -23,6 +20,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -33,18 +34,19 @@ public class NotificationServiceImpl implements NotificationService {
     private final TaskRepository taskRepository;
     private final UserService userService;
     private final NotificationRepository notificationRepository;
+    private final br.com.rafaelvieira.taskmanagement.service.WebSocketService webSocketService;
     private final java.util.Map<Long, SseEmitter> emitters =
-            new java.util.concurrent.ConcurrentHashMap<>();
+        new java.util.concurrent.ConcurrentHashMap<>();
 
     @Override
     public long countOverdueForCurrentUser() {
         var user = userService.getCurrentUser();
         return taskRepository.findOverdueTasks(LocalDateTime.now()).stream()
-                .filter(
-                        t ->
-                                t.getAssignedUser() != null
-                                        && t.getAssignedUser().getId().equals(user.getId()))
-                .count();
+            .filter(
+                t ->
+                    t.getAssignedUser() != null
+                        && t.getAssignedUser().getId().equals(user.getId()))
+            .count();
     }
 
     @Override
@@ -53,58 +55,75 @@ public class NotificationServiceImpl implements NotificationService {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime window = now.plusHours(48);
         return taskRepository.findAll().stream()
-                .filter(
-                        t ->
-                                t.getAssignedUser() != null
-                                        && t.getAssignedUser().getId().equals(user.getId()))
-                .filter(t -> t.getStatus() != TaskStatus.DONE)
-                .filter(
-                        t ->
-                                t.getDueDate() != null
-                                        && !t.getDueDate().isBefore(now)
-                                        && t.getDueDate().isBefore(window))
-                .count();
+            .filter(
+                t ->
+                    t.getAssignedUser() != null
+                        && t.getAssignedUser().getId().equals(user.getId()))
+            .filter(t -> t.getStatus() != TaskStatus.DONE)
+            .filter(
+                t ->
+                    t.getDueDate() != null
+                        && !t.getDueDate().isBefore(now)
+                        && t.getDueDate().isBefore(window))
+            .count();
     }
 
     @Override
     @Transactional
     public Notification createNotification(
-            String title, String message, NotificationType type, Long taskId, User user) {
+        String title, String message, NotificationType type, Long taskId, User user) {
         return createNotificationInternal(title, message, type, taskId, user, false);
     }
 
     @Override
     @Transactional
     public Notification createStickyNotification(
-            String title, String message, NotificationType type, Long taskId, User user) {
+        String title, String message, NotificationType type, Long taskId, User user) {
         return createNotificationInternal(title, message, type, taskId, user, true);
     }
 
     private Notification createNotificationInternal(
-            String title,
-            String message,
-            NotificationType type,
-            Long taskId,
-            User user,
-            boolean sticky) {
+        String title,
+        String message,
+        NotificationType type,
+        Long taskId,
+        User user,
+        boolean sticky) {
         if (user == null) {
             log.debug("Skipping notification creation for task {} because user is null", taskId);
             return null; // evita constraint violation
         }
         var notification =
-                Notification.builder()
-                        .title(title)
-                        .message(message)
-                        .type(type)
-                        .taskId(taskId)
-                        .user(user)
-                        .read(false)
-                        .sticky(sticky)
-                        .createdAt(LocalDateTime.now())
-                        .build();
+            Notification.builder()
+                .title(title)
+                .message(message)
+                .type(type)
+                .taskId(taskId)
+                .user(user)
+                .read(false)
+                .sticky(sticky)
+                .createdAt(LocalDateTime.now())
+                .build();
 
         var saved = notificationRepository.save(notification);
         sendSseNotification(user.getId(), saved);
+
+        // Send via WebSocket
+        try {
+            webSocketService.sendNotificationToUser(
+                user.getUsername(),
+                br.com.rafaelvieira.taskmanagement.domain.records.NotificationUpdateMessage
+                    .create(
+                        saved.getId(),
+                        saved.getTitle(),
+                        saved.getMessage(),
+                        saved.getType().name(),
+                        saved.getTaskId(),
+                        saved.isSticky()));
+        } catch (ResourceNotFoundException e) {
+            log.error("Failed to send WebSocket notification", e);
+        }
+
         return saved;
     }
 
@@ -134,7 +153,7 @@ public class NotificationServiceImpl implements NotificationService {
             throw new UnauthorizedException("User not authenticated");
         }
         return notificationRepository.findByUserAndReadFalseAndStickyTrueOrderByCreatedAtDesc(
-                currentUser);
+            currentUser);
     }
 
     @Override
@@ -150,19 +169,19 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     public void markAsRead(Long notificationId) {
         var notification =
-                notificationRepository
-                        .findById(notificationId)
-                        .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
+            notificationRepository
+                .findById(notificationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
         var currentUser = userService.getCurrentUser();
         if (currentUser == null) {
             throw new UnauthorizedException("User not authenticated");
         }
         if (!notification.getUser().getId().equals(currentUser.getId())) {
             log.warn(
-                    "User {} attempted to access notification {} of user {}",
-                    currentUser.getId(),
-                    notificationId,
-                    notification.getUser().getId());
+                "User {} attempted to access notification {} of user {}",
+                currentUser.getId(),
+                notificationId,
+                notification.getUser().getId());
             throw new ForbiddenException("Unauthorized access to notification");
         }
         notification.setRead(true);
@@ -194,24 +213,24 @@ public class NotificationServiceImpl implements NotificationService {
         if (emitter != null) {
             try {
                 NotificationResponseDTO dto =
-                        NotificationResponseDTO.builder()
-                                .id(notification.getId())
-                                .title(notification.getTitle())
-                                .message(notification.getMessage())
-                                .type(notification.getType())
-                                .taskId(notification.getTaskId())
-                                .read(notification.isRead())
-                                .sticky(notification.isSticky())
-                                .createdAt(notification.getCreatedAt())
-                                .build();
+                    NotificationResponseDTO.builder()
+                        .id(notification.getId())
+                        .title(notification.getTitle())
+                        .message(notification.getMessage())
+                        .type(notification.getType())
+                        .taskId(notification.getTaskId())
+                        .read(notification.isRead())
+                        .sticky(notification.isSticky())
+                        .createdAt(notification.getCreatedAt())
+                        .build();
                 emitter.send(SseEmitter.event().name("notification").data(dto));
             } catch (IOException e) {
                 emitters.remove(userId);
                 log.warn(
-                        "Failed to send SSE notification {} for user {}: {}",
-                        notification.getId(),
-                        userId,
-                        e.getMessage());
+                    "Failed to send SSE notification {} for user {}: {}",
+                    notification.getId(),
+                    userId,
+                    e.getMessage());
             }
         }
     }

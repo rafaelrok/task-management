@@ -1,0 +1,16 @@
+/* ===== Scheduled Tasks Styles ===== */
+.scheduled-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.scheduled-actions {
+    display: flex;
+    /* match active card actions spacing/alignment */
+    gap: 0.5rem;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: auto; /* stick to bottom of card like active cards */
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-color);
+}

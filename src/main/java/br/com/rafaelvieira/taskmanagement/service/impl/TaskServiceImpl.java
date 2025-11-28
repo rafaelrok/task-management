@@ -567,11 +567,35 @@ public class TaskServiceImpl implements TaskService {
             task.setDueDate(extension.dueDate());
         }
 
-        // Reset status from OVERDUE to IN_PROGRESS to restart the task
-        if (task.getStatus() == TaskStatus.OVERDUE) {
-            task.setStatus(TaskStatus.TODO);
-            // Reset timer for restart
-            task.setPomodoroUntil(null);
+        // Determine status based on scheduledStartAt
+        if (task.getStatus() == TaskStatus.OVERDUE || task.getStatus() == TaskStatus.PENDING) {
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime scheduledStart = task.getScheduledStartAt();
+
+            if (scheduledStart != null && scheduledStart.isAfter(now)) {
+                // Nova data de início é no futuro -> TODO (aguardar iniciar)
+                task.setStatus(TaskStatus.TODO);
+                task.setPomodoroUntil(null);
+                task.setMainStartedAt(null);
+            } else {
+                // Nova data de início é agora ou no passado -> IN_PROGRESS (iniciar
+                // imediatamente)
+                task.setStatus(TaskStatus.IN_PROGRESS);
+                task.setPomodoroUntil(null);
+                // Start main timer if not already started
+                if (task.getMainStartedAt() == null) {
+                    startMainTimer(task);
+                    maybeStartPomodoro(task);
+                }
+
+                eventPublisher.publishEvent(
+                        new br.com.rafaelvieira.taskmanagement.event.TaskEvent(
+                                this,
+                                task,
+                                br.com.rafaelvieira.taskmanagement.domain.enums.NotificationType
+                                        .TASK_STARTED,
+                                "Tarefa estendida e iniciada: " + task.getTitle()));
+            }
         }
 
         Task savedTask = taskRepository.save(task);

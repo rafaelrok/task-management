@@ -410,7 +410,7 @@ public class TaskViewController {
     }
 
     @GetMapping("/tasks/{id}")
-    public String editTaskForm(@PathVariable Long id, Model model) {
+    public String editTaskForm(@PathVariable("id") Long id, Model model) {
         var task = taskService.getTaskById(id);
         TaskForm form = new TaskForm();
         form.setId(task.id());
@@ -432,7 +432,7 @@ public class TaskViewController {
 
     @PostMapping("/tasks/{id}")
     public String updateTask(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @ModelAttribute("taskForm") TaskForm form,
             BindingResult bindingResult,
             RedirectAttributes redirectAttributes,
@@ -477,7 +477,7 @@ public class TaskViewController {
 
     @PostMapping("/tasks/{id}/status")
     public String changeStatus(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @RequestParam("status") TaskStatus status,
             RedirectAttributes redirectAttributes) {
         try {
@@ -491,7 +491,7 @@ public class TaskViewController {
     }
 
     @PostMapping("/tasks/{id}/delete")
-    public String deleteTask(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String deleteTask(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
         taskService.deleteTask(id);
         redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Tarefa excluída com sucesso!");
         return REDIRECT_TASKS;
