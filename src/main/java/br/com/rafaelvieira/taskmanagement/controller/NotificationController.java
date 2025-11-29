@@ -37,39 +37,43 @@ public class NotificationController {
     }
 
     @GetMapping
-    public ResponseEntity<org.springframework.data.domain.Page<NotificationResponseDTO>> getNotifications(
-            @PageableDefault(size = 20) Pageable pageable) {
-        var page = notificationService
-                .findAllForCurrentUser(pageable)
-                .map(
-                        n -> NotificationResponseDTO.builder()
-                                .id(n.getId())
-                                .title(n.getTitle())
-                                .message(n.getMessage())
-                                .type(n.getType())
-                                .taskId(n.getTaskId())
-                                .read(n.isRead())
-                                .sticky(n.isSticky())
-                                .createdAt(n.getCreatedAt())
-                                .build());
+    public ResponseEntity<org.springframework.data.domain.Page<NotificationResponseDTO>>
+            getNotifications(@PageableDefault(size = 20) Pageable pageable) {
+        var page =
+                notificationService
+                        .findAllForCurrentUser(pageable)
+                        .map(
+                                n ->
+                                        NotificationResponseDTO.builder()
+                                                .id(n.getId())
+                                                .title(n.getTitle())
+                                                .message(n.getMessage())
+                                                .type(n.getType())
+                                                .taskId(n.getTaskId())
+                                                .read(n.isRead())
+                                                .sticky(n.isSticky())
+                                                .createdAt(n.getCreatedAt())
+                                                .build());
         return ResponseEntity.ok(page);
     }
 
     @GetMapping("/sticky")
     public ResponseEntity<java.util.List<NotificationResponseDTO>> getStickyNotifications() {
-        var notifications = notificationService.findStickyUnreadForCurrentUser().stream()
-                .map(
-                        n -> NotificationResponseDTO.builder()
-                                .id(n.getId())
-                                .title(n.getTitle())
-                                .message(n.getMessage())
-                                .type(n.getType())
-                                .taskId(n.getTaskId())
-                                .read(n.isRead())
-                                .sticky(n.isSticky())
-                                .createdAt(n.getCreatedAt())
-                                .build())
-                .toList();
+        var notifications =
+                notificationService.findStickyUnreadForCurrentUser().stream()
+                        .map(
+                                n ->
+                                        NotificationResponseDTO.builder()
+                                                .id(n.getId())
+                                                .title(n.getTitle())
+                                                .message(n.getMessage())
+                                                .type(n.getType())
+                                                .taskId(n.getTaskId())
+                                                .read(n.isRead())
+                                                .sticky(n.isSticky())
+                                                .createdAt(n.getCreatedAt())
+                                                .build())
+                        .toList();
         return ResponseEntity.ok(notifications);
     }
 

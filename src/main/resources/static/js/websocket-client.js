@@ -201,17 +201,63 @@ class WebSocketClient {
     }
 
     /**
-     * Força refresh de todos os componentes
+     * Força refresh de todos os componentes do sistema
      */
-    /**
-     * Força refresh de todos os componentes
-     */
-    forceRefreshAll() {
-        if (typeof window.refreshDashboard === 'function') {
-            window.refreshDashboard();
-        } else if (typeof window.refreshActiveTasks === 'function') {
-            // Fallback para compatibilidade
-            window.refreshActiveTasks();
+    async forceRefreshAll() {
+        console.log('[WebSocket] 🔄 Iniciando refresh completo do sistema...');
+        
+        try {
+            // 1. Refresh do Dashboard completo (se disponível)
+            if (typeof window.refreshDashboard === 'function') {
+                await window.refreshDashboard();
+                console.log('[WebSocket] ✅ Dashboard refreshed');
+            }
+
+            // 2. Refresh de Active Tasks (fallback)
+            if (typeof window.refreshActiveTasks === 'function') {
+                await window.refreshActiveTasks();
+                console.log('[WebSocket] ✅ Active tasks refreshed');
+            }
+
+            // 3. Refresh de Scheduled Tasks
+            if (typeof window.refreshScheduledTasks === 'function') {
+                await window.refreshScheduledTasks();
+                console.log('[WebSocket] ✅ Scheduled tasks refreshed');
+            }
+
+            // 4. Refresh de Overdue Tasks
+            if (typeof window.refreshOverdueTasks === 'function') {
+                await window.refreshOverdueTasks();
+                console.log('[WebSocket] ✅ Overdue tasks refreshed');
+            }
+
+            // 5. Refresh de Due Today Tasks
+            if (typeof window.refreshDueTodayTasks === 'function') {
+                await window.refreshDueTodayTasks();
+                console.log('[WebSocket] ✅ Due today tasks refreshed');
+            }
+
+            // 6. Atualiza gráficos (se disponível)
+            if (typeof window.refreshCharts === 'function') {
+                window.refreshCharts();
+                console.log('[WebSocket] ✅ Charts refreshed');
+            }
+
+            // 7. Recarrega notificações sticky
+            if (typeof NotificationManager !== 'undefined' && NotificationManager.loadStickyNotifications) {
+                NotificationManager.loadStickyNotifications();
+                console.log('[WebSocket] ✅ Sticky notifications reloaded');
+            }
+
+            // 8. Atualiza badge de notificações
+            if (typeof NotificationSystem !== 'undefined' && NotificationSystem.loadUnreadCount) {
+                NotificationSystem.loadUnreadCount();
+                console.log('[WebSocket] ✅ Notification badge updated');
+            }
+
+            console.log('[WebSocket] ✅ Refresh completo finalizado');
+        } catch (error) {
+            console.error('[WebSocket] ❌ Erro durante refresh:', error);
         }
     }
 

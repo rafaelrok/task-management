@@ -61,7 +61,62 @@ function showToast(cls, msg, delay = 4000) {
     '</div><button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
   container.appendChild(t);
   new bootstrap.Toast(t, { delay }).show();
+  t.addEventListener('hidden.bs.toast', () => t.remove());
 }
+
+// Modal de confirmação reutilizável
+async function showConfirmationModal(title, message, type = 'warning') {
+  return new Promise((resolve) => {
+    const modalId = 'confirmModal_' + Date.now();
+    const iconClass = type === 'danger' ? 'bi-exclamation-triangle-fill' : 'bi-question-circle-fill';
+    const btnClass = type === 'danger' ? 'btn-danger' : 'btn-warning';
+    const iconColor = type === 'danger' ? 'text-danger' : 'text-warning';
+
+    const modalHTML = `
+      <div class="modal fade" id="${modalId}" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">
+                <i class="bi ${iconClass} me-2 ${iconColor}"></i>${title}
+              </h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <div class="text-center mb-3">
+                <i class="bi ${iconClass} ${iconColor}" style="font-size: 3rem;"></i>
+              </div>
+              <p class="text-center">${message}</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="button" class="btn ${btnClass}" id="${modalId}_confirm">Confirmar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    const modalEl = document.getElementById(modalId);
+    const modal = new bootstrap.Modal(modalEl);
+
+    document.getElementById(`${modalId}_confirm`).addEventListener('click', () => {
+      modal.hide();
+      resolve(true);
+    });
+
+    modalEl.addEventListener('hidden.bs.modal', () => {
+      modalEl.remove();
+      if (!modalEl.dataset.resolved) {
+        resolve(false);
+      }
+    });
+
+    modal.show();
+  });
+}
+
 
 // Active Tasks live behavior
 (function () {
@@ -346,6 +401,26 @@ function showToast(cls, msg, delay = 4000) {
           return;
         }
 
+        // Confirmação para PAUSE
+        if (action === "pause") {
+          const confirmed = await showConfirmationModal(
+            'Pausar Tarefa',
+            'Deseja realmente pausar esta tarefa? Você entrará em um período de pausa.',
+            'warning'
+          );
+          if (!confirmed) return;
+        }
+
+        // Confirmação para CANCEL
+        if (action === "cancel") {
+          const confirmed = await showConfirmationModal(
+            'Cancelar Tarefa',
+            'Tem certeza que deseja CANCELAR esta tarefa? Esta ação NÃO PODE ser revertida e a tarefa será marcada como CANCELADA permanentemente.',
+            'danger'
+          );
+          if (!confirmed) return;
+        }
+
         let status;
         if (action === "start") status = "IN_PROGRESS";
         else if (action === "pause") status = "IN_PAUSE";
@@ -386,10 +461,20 @@ function showToast(cls, msg, delay = 4000) {
           console.log("✅ Task updated successfully:", result);
 
           if (status === "DONE" || status === "CANCELLED") sticky.delete(id);
-          showToast(
-            "text-bg-success",
-            action === "start" ? "✅ Tarefa iniciada!" : "✅ Status atualizado!"
-          );
+          
+          // Toasts com durações específicas
+          if (status === "DONE") {
+            showToast("text-bg-success toast-success-complete", "✅ Tarefa finalizada com sucesso!", 10000);
+          } else if (status === "CANCELLED") {
+            showToast("text-bg-danger toast-cancel-confirm", "✅ Tarefa cancelada", 10000);
+          } else if (status === "IN_PAUSE") {
+            showToast("text-bg-warning toast-pause-confirm", "⏸️ Tarefa pausada", 7000);
+          } else if (action === "start") {
+            showToast("text-bg-success", "✅ Tarefa iniciada!", 4000);
+          } else {
+            showToast("text-bg-success", "✅ Status atualizado!", 4000);
+          }
+          
           await refreshDashboard();
         } catch (e) {
           console.error("💥 Exception during request:", e);
@@ -786,7 +871,14 @@ if (typeof window !== "undefined") {
       const taskId = btn.getAttribute('data-task-id');
       if (!taskId) return;
 
-      if (!confirm('Tem certeza que deseja cancelar esta tarefa agendada?')) {
+      // Modal de confirmação
+      const confirmed = await showConfirmationModal(
+        'Cancelar Tarefa Agendada',
+        'Tem certeza que deseja CANCELAR esta tarefa agendada? Esta ação NÃO PODE ser revertida!',
+        'danger'
+      );
+
+      if (!confirmed) {
           return;
       }
 
@@ -801,7 +893,7 @@ if (typeof window !== "undefined") {
           });
 
           if (response.ok) {
-              showToast("text-bg-success", "✅ Tarefa agendada cancelada!");
+              showToast("text-bg-danger toast-cancel-confirm", "✅ Tarefa agendada cancelada!", 10000);
               if (typeof window.refreshDashboard === 'function') {
                   await window.refreshDashboard();
               } else {
