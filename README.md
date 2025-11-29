@@ -1200,8 +1200,8 @@ Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 
 <div align="center">
 
-**Feito com ❤️ e ☕ por [Rafael Vieira](https://www.rafaelvieiradev.com.br)**
+**Feito por [Rafael Vieira](https://www.rafaelvieiradev.com.br)**
 
-⭐ Se este projeto foi útil, deixe uma estrela! ⭐
+Se este projeto foi útil, deixe uma estrela!
 
 </div>
