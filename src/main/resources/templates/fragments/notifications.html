@@ -1,8 +1,9 @@
 <div th:fragment="notifications">
     <!-- Toast Container -->
-    <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer" style="z-index: 1055;"></div>
+    <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer" style="z-index: 2000;"></div>
 
     <!-- Notification Scripts -->
+    <script th:src="@{/js/websocket-client.js}"></script>
     <script th:src="@{/js/notifications.js}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
