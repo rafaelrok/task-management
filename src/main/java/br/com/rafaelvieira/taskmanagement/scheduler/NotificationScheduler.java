@@ -16,12 +16,16 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Agenda para verificar tarefas e enviar notificações proativas. Executa a cada minuto para: -
- * Identificar tarefas que passaram do prazo e atualizar status para OVERDUE - Alertar sobre tarefas
- * que vão começar em 5 minutos (TASK_STARTING_SOON) - Alertar sobre tarefas com prazo próximo de
+ * Agenda para verificar tarefas e enviar notificações proativas. Executa a cada
+ * minuto para: -
+ * Identificar tarefas que passaram do prazo e atualizar status para OVERDUE -
+ * Alertar sobre tarefas
+ * que vão começar em 5 minutos (TASK_STARTING_SOON) - Alertar sobre tarefas com
+ * prazo próximo de
  * vencer (TASK_DUE_SOON)
  *
- * <p>Author: Rafael Vieira Since: 25/11/2025
+ * <p>
+ * Author: Rafael Vieira Since: 25/11/2025
  */
 @Slf4j
 @Component
@@ -30,11 +34,7 @@ public class NotificationScheduler {
 
     private final TaskRepository taskRepository;
     private final NotificationService notificationService;
-
-    // Track tasks that already received starting soon notifications (to avoid
-    // duplicates)
     private final Set<Long> notifiedStartingSoon = new HashSet<>();
-    // Track tasks that already received due soon notifications
     private final Set<Long> notifiedDueSoon = new HashSet<>();
 
     @Scheduled(fixedRate = 60000)
@@ -70,10 +70,6 @@ public class NotificationScheduler {
         }
     }
 
-    /**
-     * Verifica tarefas agendadas que vão começar em 5 minutos. Notifica o usuário para se preparar
-     * para o início da tarefa.
-     */
     @Scheduled(fixedRate = 60000)
     @Transactional(readOnly = true)
     public void checkTasksStartingSoon() {
@@ -83,19 +79,16 @@ public class NotificationScheduler {
         List<Task> allTasks = taskRepository.findAll();
 
         for (Task task : allTasks) {
-            // Só verifica tarefas TODO com scheduledStartAt definido
             if (task.getStatus() != TaskStatus.TODO) {
                 continue;
             }
             if (task.getScheduledStartAt() == null) {
                 continue;
             }
-            // Já notificou sobre esta tarefa?
             if (notifiedStartingSoon.contains(task.getId())) {
                 continue;
             }
 
-            // Verifica se vai começar nos próximos 5 minutos
             LocalDateTime scheduledStart = task.getScheduledStartAt();
             if (scheduledStart.isAfter(now) && scheduledStart.isBefore(fiveMinutesFromNow)) {
                 log.info(
@@ -105,8 +98,7 @@ public class NotificationScheduler {
                         scheduledStart);
 
                 if (task.getAssignedUser() != null) {
-                    long minutesUntilStart =
-                            java.time.Duration.between(now, scheduledStart).toMinutes();
+                    long minutesUntilStart = java.time.Duration.between(now, scheduledStart).toMinutes();
                     notificationService.createNotification(
                             "⏱️ Tarefa Começando em Breve",
                             "A tarefa '"
@@ -122,16 +114,10 @@ public class NotificationScheduler {
                 }
             }
         }
-
-        // Limpa notificações antigas (tarefas que já começaram ou foram removidas)
         cleanupStartingSoonNotifications();
     }
 
-    /**
-     * Verifica tarefas com prazo de vencimento próximo (próximas 2 horas). Apenas para tarefas
-     * ativas (TODO, IN_PROGRESS, IN_PAUSE, PENDING).
-     */
-    @Scheduled(fixedRate = 300000) // A cada 5 minutos
+    @Scheduled(fixedRate = 300000)
     @Transactional(readOnly = true)
     public void checkTasksDueSoon() {
         LocalDateTime now = LocalDateTime.now();
@@ -140,7 +126,6 @@ public class NotificationScheduler {
         List<Task> allTasks = taskRepository.findAll();
 
         for (Task task : allTasks) {
-            // Só verifica tarefas ativas
             if (task.getStatus() == TaskStatus.DONE
                     || task.getStatus() == TaskStatus.CANCELLED
                     || task.getStatus() == TaskStatus.OVERDUE) {
@@ -149,12 +134,10 @@ public class NotificationScheduler {
             if (task.getDueDate() == null) {
                 continue;
             }
-            // Já notificou sobre esta tarefa?
             if (notifiedDueSoon.contains(task.getId())) {
                 continue;
             }
 
-            // Verifica se vai vencer nas próximas 2 horas
             LocalDateTime dueDate = task.getDueDate();
             if (dueDate.isAfter(now) && dueDate.isBefore(twoHoursFromNow)) {
                 log.info(
@@ -169,8 +152,7 @@ public class NotificationScheduler {
                     if (minutesUntilDue >= 60) {
                         long hours = minutesUntilDue / 60;
                         long mins = minutesUntilDue % 60;
-                        timeStr =
-                                hours + " hora(s)" + (mins > 0 ? " e " + mins + " minuto(s)" : "");
+                        timeStr = hours + " hora(s)" + (mins > 0 ? " e " + mins + " minuto(s)" : "");
                     } else {
                         timeStr = minutesUntilDue + " minuto(s)";
                     }
@@ -191,36 +173,32 @@ public class NotificationScheduler {
             }
         }
 
-        // Limpa notificações antigas
         cleanupDueSoonNotifications();
     }
 
-    /** Limpa o cache de tarefas notificadas sobre início próximo. */
     private void cleanupStartingSoonNotifications() {
         LocalDateTime now = LocalDateTime.now();
         notifiedStartingSoon.removeIf(
                 taskId -> {
                     Task task = taskRepository.findById(taskId).orElse(null);
                     if (task == null) {
-                        return true; // Task foi removida
+                        return true;
                     }
-                    // Remove se já começou ou não é mais TODO
                     return task.getStatus() != TaskStatus.TODO
                             || task.getScheduledStartAt() == null
                             || task.getScheduledStartAt().isBefore(now);
                 });
     }
 
-    /** Limpa o cache de tarefas notificadas sobre prazo próximo. */
     private void cleanupDueSoonNotifications() {
         LocalDateTime now = LocalDateTime.now();
         notifiedDueSoon.removeIf(
                 taskId -> {
                     Task task = taskRepository.findById(taskId).orElse(null);
                     if (task == null) {
-                        return true; // Task foi removida
+                        return true;
                     }
-                    // Remove se já venceu ou status final
+
                     return task.getStatus() == TaskStatus.DONE
                             || task.getStatus() == TaskStatus.CANCELLED
                             || task.getStatus() == TaskStatus.OVERDUE

@@ -22,20 +22,25 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Transactional
 public abstract class BaseIntegrationTest {
 
-    @Container @ServiceConnection
-    protected static final PostgreSQLContainer<?> POSTGRES =
-            new PostgreSQLContainer<>("postgres:16-alpine")
-                    .withDatabaseName("test_db")
-                    .withUsername("test")
-                    .withPassword("test");
+    @SuppressWarnings("resource")
+    @Container
+    @ServiceConnection
+    protected static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine")
+            .withDatabaseName("test_db")
+            .withUsername("test")
+            .withPassword("test");
 
-    @Autowired protected TaskRepository taskRepository;
+    @Autowired
+    protected TaskRepository taskRepository;
 
-    @Autowired protected CategoryRepository categoryRepository;
+    @Autowired
+    protected CategoryRepository categoryRepository;
 
-    @Autowired protected UserRepository userRepository;
+    @Autowired
+    protected UserRepository userRepository;
 
-    @Autowired protected ObjectMapper objectMapper;
+    @Autowired
+    protected ObjectMapper objectMapper;
 
     @BeforeEach
     void cleanDatabase() {

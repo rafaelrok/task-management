@@ -15,9 +15,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Job responsável pelo gerenciamento automático de timers das tarefas. Executa a cada 5 segundos
- * para: - Auto-iniciar tarefas agendadas - Atualizar tempo decorrido - Gerenciar ciclos
- * pomodoro/break - Verificar tempo excedido (PENDING/OVERDUE) - Monitorar datas de vencimento
+ * Job responsável pelo gerenciamento automático de timers das tarefas. Executa
+ * a cada 5 segundos
+ * para: - Auto-iniciar tarefas agendadas - Atualizar tempo decorrido -
+ * Gerenciar ciclos
+ * pomodoro/break - Verificar tempo excedido (PENDING/OVERDUE) - Monitorar datas
+ * de vencimento
  *
  * @author Rafael Vieira
  * @see <a href='https://rafaelvieira.com.br'>Rafael Vieira</a>
@@ -72,10 +75,6 @@ public class TaskTimerJob {
         }
     }
 
-    /**
-     * Auto-starts a task when its scheduled start time has arrived. Only starts if task is TODO,
-     * has executionTimeMinutes and pomodoroMinutes configured.
-     */
     private boolean autoStartScheduledTask(Task t, LocalDateTime now) {
         if (t.getStatus() != TaskStatus.TODO) {
             return false;
@@ -96,7 +95,6 @@ public class TaskTimerJob {
         t.setMainElapsedSeconds(0L);
         t.setPomodoroUntil(now.plusMinutes(t.getPomodoroMinutes()));
 
-        // Notificação de início automático
         if (t.getAssignedUser() != null) {
             notificationService.createNotification(
                     "Tarefa Iniciada Automaticamente",
@@ -131,17 +129,17 @@ public class TaskTimerJob {
                 || now.isBefore(t.getPomodoroUntil())) {
             return false;
         }
-        // Pomodoro ended: auto-pause and start break
+
         t.setPomodoroUntil(null);
         t.setStatus(TaskStatus.IN_PAUSE);
-        // Pause main timer
+
         if (t.getMainStartedAt() != null) {
             long delta = java.time.Duration.between(t.getMainStartedAt(), now).getSeconds();
             t.setMainElapsedSeconds(
                     (t.getMainElapsedSeconds() == null ? 0L : t.getMainElapsedSeconds()) + delta);
             t.setMainStartedAt(null);
         }
-        // Start break timer
+
         int breakMin = t.getPomodoroBreakMinutes() != null ? t.getPomodoroBreakMinutes() : 5;
         t.setPomodoroUntil(now.plusMinutes(breakMin));
         return true;
@@ -153,7 +151,7 @@ public class TaskTimerJob {
                 || now.isBefore(t.getPomodoroUntil())) {
             return false;
         }
-        // Break ended: auto-resume IN_PROGRESS and start new pomodoro
+
         t.setStatus(TaskStatus.IN_PROGRESS);
         t.setMainStartedAt(now);
         int pomoMin = t.getPomodoroMinutes() != null ? t.getPomodoroMinutes() : 25;
@@ -162,11 +160,12 @@ public class TaskTimerJob {
     }
 
     /**
-     * Verifica se o tempo de execução foi completado. Se dueDate ainda não passou -> PENDING (azul,
-     * aguardando finalização) Se dueDate já passou ou não existe -> OVERDUE (vermelho)
+     * Verifica se o tempo de execução foi completado. Se dueDate ainda não passou
+     * -> PENDING (azul,
+     * aguardando finalização) Se dueDate já passou ou não existe -> OVERDUE
+     * (vermelho)
      */
     private boolean checkTimeCompleted(Task t, LocalDateTime now) {
-        // Só processa tarefas IN_PROGRESS ou IN_PAUSE com tempo de execução definido
         if (t.getStatus() != TaskStatus.IN_PROGRESS && t.getStatus() != TaskStatus.IN_PAUSE) {
             return false;
         }
@@ -174,25 +173,21 @@ public class TaskTimerJob {
             return false;
         }
 
-        // Calcula tempo total (incluindo tempo extra se houver)
         int totalMinutes = t.getExecutionTimeMinutes();
         if (t.getExtraTimeMinutes() != null) {
             totalMinutes += t.getExtraTimeMinutes();
         }
         long targetSeconds = totalMinutes * 60L;
 
-        // Calcula tempo decorrido
         long elapsed = t.getMainElapsedSeconds() == null ? 0L : t.getMainElapsedSeconds();
         if (t.getMainStartedAt() != null) {
             elapsed += java.time.Duration.between(t.getMainStartedAt(), now).getSeconds();
         }
 
-        // Se ainda não atingiu o tempo alvo, não faz nada
         if (elapsed < targetSeconds) {
             return false;
         }
 
-        // Tempo de execução atingido! Atualiza o elapsed e para o timer
         if (t.getMainStartedAt() != null) {
             long delta = java.time.Duration.between(t.getMainStartedAt(), now).getSeconds();
             t.setMainElapsedSeconds(
@@ -201,11 +196,9 @@ public class TaskTimerJob {
         }
         t.setPomodoroUntil(null);
 
-        // Verifica se ainda está no prazo (dueDate)
         boolean withinDueDate = t.getDueDate() != null && now.isBefore(t.getDueDate());
 
         if (withinDueDate) {
-            // Dentro do prazo -> PENDING (azul)
             t.setStatus(TaskStatus.PENDING);
             LOGGER.info(
                     "Task ID {} '{}' completed execution time, set to PENDING (within due date)",
@@ -224,7 +217,6 @@ public class TaskTimerJob {
                         t.getAssignedUser());
             }
         } else {
-            // Fora do prazo ou sem dueDate -> OVERDUE (vermelho)
             t.setStatus(TaskStatus.OVERDUE);
             LOGGER.info(
                     "Task ID {} '{}' completed execution time, set to OVERDUE (past due date or no"
@@ -248,13 +240,11 @@ public class TaskTimerJob {
         return true;
     }
 
-    /** Verifica se uma tarefa PENDING deve virar OVERDUE quando a data de vencimento passa. */
     private boolean checkPendingToOverdue(Task t, LocalDateTime now) {
         if (t.getStatus() != TaskStatus.PENDING) {
             return false;
         }
 
-        // Se não tem dueDate, já deveria estar OVERDUE
         if (t.getDueDate() == null) {
             t.setStatus(TaskStatus.OVERDUE);
             LOGGER.info(
@@ -264,7 +254,6 @@ public class TaskTimerJob {
             return true;
         }
 
-        // Se dueDate passou, muda para OVERDUE
         if (now.isAfter(t.getDueDate())) {
             t.setStatus(TaskStatus.OVERDUE);
             LOGGER.info(
