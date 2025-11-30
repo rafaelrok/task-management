@@ -15,12 +15,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Job responsável pelo gerenciamento automático de timers das tarefas. Executa
- * a cada 5 segundos
- * para: - Auto-iniciar tarefas agendadas - Atualizar tempo decorrido -
- * Gerenciar ciclos
- * pomodoro/break - Verificar tempo excedido (PENDING/OVERDUE) - Monitorar datas
- * de vencimento
+ * Job responsável pelo gerenciamento automático de timers das tarefas. Executa a cada 5 segundos
+ * para: - Auto-iniciar tarefas agendadas - Atualizar tempo decorrido - Gerenciar ciclos
+ * pomodoro/break - Verificar tempo excedido (PENDING/OVERDUE) - Monitorar datas de vencimento
  *
  * @author Rafael Vieira
  * @see <a href='https://rafaelvieira.com.br'>Rafael Vieira</a>
@@ -160,10 +157,8 @@ public class TaskTimerJob {
     }
 
     /**
-     * Verifica se o tempo de execução foi completado. Se dueDate ainda não passou
-     * -> PENDING (azul,
-     * aguardando finalização) Se dueDate já passou ou não existe -> OVERDUE
-     * (vermelho)
+     * Verifica se o tempo de execução foi completado. Se dueDate ainda não passou -> PENDING (azul,
+     * aguardando finalização) Se dueDate já passou ou não existe -> OVERDUE (vermelho)
      */
     private boolean checkTimeCompleted(Task t, LocalDateTime now) {
         if (t.getStatus() != TaskStatus.IN_PROGRESS && t.getStatus() != TaskStatus.IN_PAUSE) {

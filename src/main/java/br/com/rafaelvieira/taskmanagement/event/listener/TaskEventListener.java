@@ -8,8 +8,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
- * Listener para eventos de tarefas que cria notificações para usuários
- * atribuídos
+ * Listener para eventos de tarefas que cria notificações para usuários atribuídos
  *
  * @author Rafael Vieira (rafaelrok)
  * @since 2024-06-15
@@ -26,13 +25,15 @@ public class TaskEventListener {
         if (event.getTask().getAssignedUser() == null) {
             return;
         }
-        String richMessage = String.format(
-                "%s | Status: %s | Prioridade: %s",
-                event.getMessage(),
-                event.getTask().getStatus(),
-                event.getTask().getPriority());
+        String richMessage =
+                String.format(
+                        "%s | Status: %s | Prioridade: %s",
+                        event.getMessage(),
+                        event.getTask().getStatus(),
+                        event.getTask().getPriority());
 
-        if (event.getTask().getStatus() == br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus.TODO) {
+        if (event.getTask().getStatus()
+                == br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus.TODO) {
             notificationService.createStickyNotification(
                     event.getTask().getTitle(),
                     richMessage,

@@ -16,16 +16,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Agenda para verificar tarefas e enviar notificações proativas. Executa a cada
- * minuto para: -
- * Identificar tarefas que passaram do prazo e atualizar status para OVERDUE -
- * Alertar sobre tarefas
- * que vão começar em 5 minutos (TASK_STARTING_SOON) - Alertar sobre tarefas com
- * prazo próximo de
+ * Agenda para verificar tarefas e enviar notificações proativas. Executa a cada minuto para: -
+ * Identificar tarefas que passaram do prazo e atualizar status para OVERDUE - Alertar sobre tarefas
+ * que vão começar em 5 minutos (TASK_STARTING_SOON) - Alertar sobre tarefas com prazo próximo de
  * vencer (TASK_DUE_SOON)
  *
- * <p>
- * Author: Rafael Vieira Since: 25/11/2025
+ * <p>Author: Rafael Vieira Since: 25/11/2025
  */
 @Slf4j
 @Component
@@ -98,7 +94,8 @@ public class NotificationScheduler {
                         scheduledStart);
 
                 if (task.getAssignedUser() != null) {
-                    long minutesUntilStart = java.time.Duration.between(now, scheduledStart).toMinutes();
+                    long minutesUntilStart =
+                            java.time.Duration.between(now, scheduledStart).toMinutes();
                     notificationService.createNotification(
                             "⏱️ Tarefa Começando em Breve",
                             "A tarefa '"
@@ -152,7 +149,8 @@ public class NotificationScheduler {
                     if (minutesUntilDue >= 60) {
                         long hours = minutesUntilDue / 60;
                         long mins = minutesUntilDue % 60;
-                        timeStr = hours + " hora(s)" + (mins > 0 ? " e " + mins + " minuto(s)" : "");
+                        timeStr =
+                                hours + " hora(s)" + (mins > 0 ? " e " + mins + " minuto(s)" : "");
                     } else {
                         timeStr = minutesUntilDue + " minuto(s)";
                     }
