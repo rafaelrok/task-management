@@ -1,8 +1,12 @@
 <!DOCTYPE html>
-<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html
+  lang="pt-BR"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
   <head th:replace="~{fragments/head :: head('Minhas Squads')}"></head>
   <body class="dashboard-body">
-    <link rel="stylesheet" th:href="@{/css/squads.css}">
+    <link rel="stylesheet" th:href="@{/css/squads.css}" />
     <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
     <div class="main-content">
       <div class="top-bar fixed">
@@ -13,14 +17,15 @@
       </div>
       <div class="content-wrapper">
         <div th:replace="~{fragments/alerts :: alerts}"></div>
-        
+
         <!-- Modern Page Header -->
         <div class="squad-page-header">
           <div class="header-content">
             <div>
               <h2><i class="bi bi-people-fill"></i> Squads que Lidero</h2>
               <p class="subtitle">
-                <span th:text="${#lists.size(squads)}">0</span> squad(s) encontrada(s) • Gerencie suas equipes de desenvolvimento
+                <span th:text="${#lists.size(squads)}">0</span> squad(s)
+                encontrada(s) • Gerencie suas equipes de desenvolvimento
               </p>
             </div>
             <a th:href="@{/squads/create}" class="btn-create">
@@ -31,29 +36,47 @@
 
         <!-- Filters Card (Admin only) -->
         <div class="squad-filters" sec:authorize="hasRole('ADMIN')">
-          <form th:action="@{/squads}" method="get" class="row g-3 align-items-end">
+          <form
+            th:action="@{/squads}"
+            method="get"
+            class="row g-3 align-items-end"
+          >
             <div class="col-md-3">
               <label for="type" class="form-label">Tipo de Squad</label>
               <select class="form-select" id="type" name="type">
                 <option value="">Todos os tipos</option>
-                <option th:each="squadType : ${squadTypes}" 
-                        th:value="${squadType}" 
-                        th:text="${squadType.displayName}"
-                        th:selected="${filterType == squadType}">Tipo</option>
+                <option
+                  th:each="squadType : ${squadTypes}"
+                  th:value="${squadType}"
+                  th:text="${squadType.displayName}"
+                  th:selected="${filterType == squadType}"
+                >
+                  Tipo
+                </option>
               </select>
             </div>
             <div class="col-md-2">
               <label for="active" class="form-label">Status</label>
               <select class="form-select" id="active" name="active">
                 <option value="">Todos</option>
-                <option value="true" th:selected="${filterActive == true}">Ativas</option>
-                <option value="false" th:selected="${filterActive == false}">Inativas</option>
+                <option value="true" th:selected="${filterActive == true}">
+                  Ativas
+                </option>
+                <option value="false" th:selected="${filterActive == false}">
+                  Inativas
+                </option>
               </select>
             </div>
             <div class="col-md-4">
               <label for="search" class="form-label">Buscar</label>
-              <input type="text" class="form-control" id="search" name="search" 
-                     th:value="${filterSearch}" placeholder="Nome, tecnologia ou descrição...">
+              <input
+                type="text"
+                class="form-control"
+                id="search"
+                name="search"
+                th:value="${filterSearch}"
+                placeholder="Nome, tecnologia ou descrição..."
+              />
             </div>
             <div class="col-md-3 d-flex gap-2">
               <button type="submit" class="btn-filter">
@@ -68,79 +91,123 @@
 
         <!-- Squads Grid -->
         <div class="squads-grid" th:unless="${#lists.isEmpty(squads)}">
-          <div th:each="squad : ${squads}" class="squad-card" th:classappend="${!squad.active ? 'inactive' : ''}">
+          <div
+            th:each="squad : ${squads}"
+            class="squad-card"
+            th:classappend="${!squad.active ? 'inactive' : ''}"
+          >
             <!-- Card Header -->
             <div class="squad-card-header">
-              <span class="squad-type-badge" 
-                    th:classappend="${squad.type?.name()?.toLowerCase() ?: 'fullstack'}"
-                    th:text="${squad.type?.displayName ?: 'Fullstack'}">Tipo</span>
-              <span class="squad-status-badge" th:classappend="${squad.active ? 'active' : 'inactive'}">
+              <span
+                class="squad-type-badge"
+                th:classappend="${squad.type?.name()?.toLowerCase() ?: 'fullstack'}"
+                th:text="${squad.type?.displayName ?: 'Fullstack'}"
+                >Tipo</span
+              >
+              <span
+                class="squad-status-badge"
+                th:classappend="${squad.active ? 'active' : 'inactive'}"
+              >
                 <span class="status-dot"></span>
-                <span th:text="${squad.active ? 'Ativa' : 'Inativa'}">Status</span>
+                <span th:text="${squad.active ? 'Ativa' : 'Inativa'}"
+                  >Status</span
+                >
               </span>
             </div>
-            
+
             <!-- Card Body -->
             <div class="squad-card-body">
               <h3 class="squad-name" th:text="${squad.name}">Nome da Squad</h3>
-              <p class="squad-description" th:text="${squad.description ?: 'Sem descrição disponível.'}">
+              <p
+                class="squad-description"
+                th:text="${squad.description ?: 'Sem descrição disponível.'}"
+              >
                 Descrição da squad...
               </p>
-              
+
               <!-- Tech Stack Pills -->
               <div class="squad-tech-stack" th:if="${squad.techStack}">
-                <span th:each="tech, iterStat : ${#strings.arraySplit(squad.techStack, ',')}" 
-                      th:if="${iterStat.index < 4}">
-                  <span class="tech-pill" th:text="${#strings.trim(tech)}">Tech</span>
+                <span
+                  th:each="tech, iterStat : ${#strings.arraySplit(squad.techStack, ',')}"
+                  th:if="${iterStat.index < 4}"
+                >
+                  <span class="tech-pill" th:text="${#strings.trim(tech)}"
+                    >Tech</span
+                  >
                 </span>
-                <span class="tech-pill more" 
-                      th:if="${#strings.arraySplit(squad.techStack, ',').length > 4}"
-                      th:text="'+' + (${#strings.arraySplit(squad.techStack, ',').length} - 4)">+n</span>
+                <span
+                  class="tech-pill more"
+                  th:if="${#strings.arraySplit(squad.techStack, ',').length > 4}"
+                  th:text="'+' + (${#strings.arraySplit(squad.techStack, ',').length} - 4)"
+                  >+n</span
+                >
               </div>
 
               <!-- Meta Info -->
               <div class="squad-meta">
                 <div class="squad-meta-item">
                   <i class="bi bi-people"></i>
-                  <span><strong th:text="${memberCountMap[squad.id] ?: 0}">0</strong> membros</span>
+                  <span
+                    ><strong th:text="${memberCountMap[squad.id] ?: 0}"
+                      >0</strong
+                    >
+                    membros</span
+                  >
                   <span th:if="${squad.maxMembers}" class="text-muted">
                     / <span th:text="${squad.maxMembers}">10</span>
                   </span>
                 </div>
-                <div class="squad-meta-item business-area" th:if="${squad.businessArea}">
+                <div
+                  class="squad-meta-item business-area"
+                  th:if="${squad.businessArea}"
+                >
                   <i class="bi bi-briefcase"></i>
                   <span th:text="${squad.businessArea}">Área</span>
                 </div>
               </div>
             </div>
-            
+
             <!-- Card Actions -->
             <div class="squad-card-actions">
-              <a th:href="@{/squads/{id}/dashboard(id=${squad.id})}" 
-                 class="squad-btn squad-btn-primary" th:if="${squad.active}">
+              <a
+                th:href="@{/squads/{id}/dashboard(id=${squad.id})}"
+                class="squad-btn squad-btn-primary"
+                th:if="${squad.active && memberSquadIds.contains(squad.id)}"
+              >
                 <i class="bi bi-speedometer2"></i> Dashboard
               </a>
-              <a th:href="@{/squads/{id}(id=${squad.id})}" class="squad-btn squad-btn-secondary">
+              <a
+                th:href="@{/squads/{id}(id=${squad.id})}"
+                class="squad-btn squad-btn-secondary"
+                th:if="${squad.lead.id == currentUser.id}"
+              >
                 <i class="bi bi-gear"></i> Gerenciar
               </a>
             </div>
           </div>
         </div>
-        
+
         <!-- Empty State -->
         <div class="squad-empty-state" th:if="${#lists.isEmpty(squads)}">
           <div class="empty-icon">
             <i class="bi bi-people"></i>
           </div>
           <h4>Nenhuma squad encontrada</h4>
-          <p>Você ainda não lidera nenhuma squad ou os filtros aplicados não retornaram resultados.</p>
-          <a th:href="@{/squads/create}" class="btn-create" style="display: inline-flex;">
+          <p>
+            Você ainda não lidera nenhuma squad ou os filtros aplicados não
+            retornaram resultados.
+          </p>
+          <a
+            th:href="@{/squads/create}"
+            class="btn-create"
+            style="display: inline-flex"
+          >
             <i class="bi bi-plus-lg"></i> Criar Primeira Squad
           </a>
         </div>
       </div>
     </div>
-    
+
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script th:src="@{/js/sidebar.js}"></script>

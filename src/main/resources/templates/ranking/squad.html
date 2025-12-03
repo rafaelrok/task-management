@@ -198,7 +198,9 @@
                 <a th:href="@{/squads/{id}/dashboard(id=${squad.id})}" class="ranking-btn ranking-btn-primary">
                     <i class="bi bi-speedometer2"></i> Dashboard
                 </a>
-                <a th:href="@{/squads/{id}(id=${squad.id})}" class="ranking-btn ranking-btn-outline">
+                <a th:href="@{/squads/{id}(id=${squad.id})}" 
+                   class="ranking-btn ranking-btn-outline"
+                   th:if="${squad.lead.id == currentUser.id}">
                     <i class="bi bi-gear"></i> Gerenciar Squad
                 </a>
             </div>

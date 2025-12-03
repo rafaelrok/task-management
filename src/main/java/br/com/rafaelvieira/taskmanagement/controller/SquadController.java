@@ -16,6 +16,8 @@ import br.com.rafaelvieira.taskmanagement.service.TaskService;
 import br.com.rafaelvieira.taskmanagement.service.UserService;
 import java.security.Principal;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -86,6 +88,11 @@ public class SquadController {
             memberCountMap.put(squad.getId(), squadService.getMemberCount(squad.getId()));
         }
 
+        // Get IDs of squads where the user is a member
+        Set<Long> memberSquadIds = squadService.getSquadsByMember(user).stream()
+                .map(Squad::getId)
+                .collect(Collectors.toSet());
+
         model.addAttribute("squads", squads);
         model.addAttribute("memberCountMap", memberCountMap);
         model.addAttribute("squadTypes", SquadType.values());
@@ -93,6 +100,8 @@ public class SquadController {
         model.addAttribute("filterActive", active);
         model.addAttribute("filterSearch", search);
         model.addAttribute("activePage", "squads");
+        model.addAttribute("currentUser", user);
+        model.addAttribute("memberSquadIds", memberSquadIds);
         return "squads/list";
     }
 
@@ -140,7 +149,7 @@ public class SquadController {
             RedirectAttributes redirectAttributes) {
         try {
             User user = userService.findByUsername(principal.getName());
-            Squad squad = validateSquadAccess(id, user);
+            Squad squad = validateSquadManagementAccess(id, user);
 
             model.addAttribute("squad", squad);
             model.addAttribute("members", squadService.getSquadMembers(squad));
@@ -212,7 +221,7 @@ public class SquadController {
             RedirectAttributes redirectAttributes) {
         try {
             User user = userService.findByUsername(principal.getName());
-            Squad squad = validateSquadAccess(id, user);
+            Squad squad = validateSquadManagementAccess(id, user);
 
             model.addAttribute("squad", squad);
             model.addAttribute("memberCount", squadService.getMemberCount(id));
@@ -243,6 +252,8 @@ public class SquadController {
             User user = userService.findByUsername(principal.getName());
             SquadUpdateDTO dto = new SquadUpdateDTO(
                     name, description, type, techStack, businessArea, goal, maxMembers);
+            // Validate management access before updating
+            validateSquadManagementAccess(id, user);
             squadService.updateSquad(id, dto, user);
             redirectAttributes.addFlashAttribute("successMessage", "Squad atualizada com sucesso!");
             return "redirect:/squads/" + id;
@@ -262,6 +273,8 @@ public class SquadController {
             RedirectAttributes redirectAttributes) {
         try {
             User user = userService.findByUsername(principal.getName());
+            // Validate management access before deactivating
+            validateSquadManagementAccess(id, user);
             squadService.deactivateSquad(id, user);
             redirectAttributes.addFlashAttribute("successMessage", "Squad desativada com sucesso!");
             return "redirect:/squads";
@@ -301,6 +314,8 @@ public class SquadController {
             RedirectAttributes redirectAttributes) {
         try {
             User user = userService.findByUsername(principal.getName());
+            // Validate management access before inviting
+            validateSquadManagementAccess(id, user);
             squadService.inviteUser(id, email, user);
             redirectAttributes.addFlashAttribute("successMessage", "Convite enviado com sucesso!");
         } catch (ResourceNotFoundException e) {
@@ -326,6 +341,8 @@ public class SquadController {
             RedirectAttributes redirectAttributes) {
         try {
             User user = userService.findByUsername(principal.getName());
+            // Validate management access before removing member
+            validateSquadManagementAccess(id, user);
             squadService.removeMember(id, userId, user);
             redirectAttributes.addFlashAttribute("successMessage", "Membro removido com sucesso!");
         } catch (ResourceNotFoundException e) {
@@ -336,28 +353,15 @@ public class SquadController {
         return "redirect:/squads/" + id;
     }
 
-    private Squad validateSquadAccess(Long squadId, User user) {
+    private Squad validateSquadManagementAccess(Long squadId, User user) {
         Squad squad = squadService
                 .getSquadById(squadId)
                 .orElseThrow(() -> new ResourceNotFoundException("Squad not found"));
 
-        if (user.getRole() == Role.ADMIN) {
-            return squad;
+        // Strict check: Only the lead (creator) can manage
+        if (!squad.getLead().getId().equals(user.getId())) {
+            throw new ForbiddenException("Apenas o criador da squad pode gerenciá-la.");
         }
-
-        // LEAD pode acessar squads que lidera
-        if (squad.getLead().getId().equals(user.getId())) {
-            return squad;
-        }
-
-        // MEMBER pode acessar squads onde é membro
-        if (user.getRole() == Role.MEMBER) {
-            boolean isMember = squadService.isUserMemberOfSquad(user, squad);
-            if (isMember) {
-                return squad;
-            }
-        }
-
-        throw new UnauthorizedException("Access denied to this squad");
+        return squad;
     }
 }
