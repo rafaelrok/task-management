@@ -2,8 +2,8 @@
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <body>
 <div th:fragment="richEditor(rootId, fieldName, fieldValue, label, placeholder, height)">
-    <input th:attr="id=${rootId} + '_hidden'" th:name="${fieldName}" th:value="${fieldValue}" type="hidden"/>
-    <div class="rich-editor-container" th:attr="id=${rootId}" th:data-field="${fieldName}" th:data-height="${height}">
+    <input th:id="${rootId} + '_hidden'" th:name="${fieldName}" th:value="${fieldValue}" type="hidden"/>
+    <div class="rich-editor-container" th:id="${rootId}" th:data-field="${fieldName}" th:data-height="${height}">
         <div class="rich-editor-header">
             <h2 class="rich-editor-title" th:text="${label}">Descrição</h2>
             <button class="rich-editor-close" title="Limpar" type="button">&times;</button>
@@ -87,10 +87,10 @@
                 </select>
                 <textarea class="code-modal-textarea" placeholder="Cole seu código aqui..."
                           th:attr="id='codeTextarea_' + ${rootId}"></textarea>
-                <div class="code-modal-footer">
+                <!-- <div class="code-modal-footer">
                     <button class="footer-btn btn-cancel" data-action="cancelCode" type="button">Cancelar</button>
                     <button class="footer-btn btn-save" data-action="insertCodeBlock" type="button">Inserir</button>
-                </div>
+                </div> -->
             </div>
         </div>
     </div>

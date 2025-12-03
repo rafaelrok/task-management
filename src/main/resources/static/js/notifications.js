@@ -157,6 +157,25 @@ const NotificationSystem = {
         `
       : "";
 
+    // Botões de ação para SQUAD_INVITE
+    const isSquadInvite = notification.type === "SQUAD_INVITE";
+    const squadInviteButtons = isSquadInvite
+      ? `
+            <div class="d-flex gap-2 mt-2">
+                <button onclick="NotificationSystem.acceptInviteFromNotification(${notification.taskId}, ${notification.id})" 
+                        class="btn btn-sm btn-success flex-fill">
+                    <i class="bi bi-check-lg"></i> Aceitar
+                </button>
+                <button onclick="NotificationSystem.rejectInviteFromNotification(${notification.taskId}, ${notification.id})" 
+                        class="btn btn-sm btn-danger flex-fill">
+                    <i class="bi bi-x-lg"></i> Recusar
+                </button>
+            </div>
+        `
+      : "";
+
+    const finalActionButtons = actionButtons || squadInviteButtons;
+
     const toastHtml = `
             <div id="${toastId}" class="toast ${toastClass} ${stickyClass} ${pendingClass}" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="${
       typeConfig.duration
@@ -180,7 +199,8 @@ const NotificationSystem = {
                     <p class="mb-1">${message}</p>
                     ${details ? `<div class="mb-2">${details}</div>` : ""}
                     ${stickyIndicator}
-                    ${actionButtons}
+                    ${stickyIndicator}
+                    ${finalActionButtons}
                     <div class="mt-2 pt-2 border-top ${
                       isDark ? "border-secondary" : ""
                     } d-flex justify-content-between align-items-center">
@@ -382,6 +402,16 @@ const NotificationSystem = {
       case "TASK_TODO":
         config.icon = "bi bi-list-task";
         config.headerClass = "bg-secondary";
+        break;
+      case "TASK_TODO":
+        config.icon = "bi bi-list-task";
+        config.headerClass = "bg-secondary";
+        break;
+      case "SQUAD_INVITE":
+        config.icon = "bi bi-envelope-paper-heart-fill";
+        config.headerClass = "bg-primary";
+        config.autohide = false; // Sticky
+        config.isSticky = true;
         break;
     }
 
@@ -735,6 +765,68 @@ const NotificationSystem = {
     } catch (error) {
       console.error("Error cancelling task:", error);
       alert("❌ Erro ao cancelar tarefa. Tente novamente.");
+    }
+  },
+
+
+  /**
+   * Aceita um convite de squad diretamente da notificação
+   */
+  acceptInviteFromNotification: async function (inviteId, notificationId) {
+    try {
+      const response = await fetch(`/squads/invites/${inviteId}/accept`, {
+        method: "POST",
+      });
+
+      if (response.ok) {
+        this.markAsRead(notificationId);
+        const toastElement = document.getElementById(`toast-${notificationId}`);
+        if (toastElement) {
+          const bsToast = bootstrap.Toast.getInstance(toastElement);
+          if (bsToast) bsToast.hide();
+        }
+        alert("✅ Convite aceito com sucesso!");
+        // Reload page if we are on the invites page
+        if (window.location.pathname.includes("/squads/invites")) {
+          window.location.reload();
+        }
+      } else {
+        alert("❌ Erro ao aceitar convite.");
+      }
+    } catch (error) {
+      console.error("Error accepting invite:", error);
+      alert("❌ Erro ao aceitar convite.");
+    }
+  },
+
+  /**
+   * Recusa um convite de squad diretamente da notificação
+   */
+  rejectInviteFromNotification: async function (inviteId, notificationId) {
+    if (!confirm("Tem certeza que deseja recusar este convite?")) return;
+
+    try {
+      const response = await fetch(`/squads/invites/${inviteId}/reject`, {
+        method: "POST",
+      });
+
+      if (response.ok) {
+        this.markAsRead(notificationId);
+        const toastElement = document.getElementById(`toast-${notificationId}`);
+        if (toastElement) {
+          const bsToast = bootstrap.Toast.getInstance(toastElement);
+          if (bsToast) bsToast.hide();
+        }
+        alert("Convite recusado.");
+        if (window.location.pathname.includes("/squads/invites")) {
+          window.location.reload();
+        }
+      } else {
+        alert("❌ Erro ao recusar convite.");
+      }
+    } catch (error) {
+      console.error("Error rejecting invite:", error);
+      alert("❌ Erro ao recusar convite.");
     }
   },
 };

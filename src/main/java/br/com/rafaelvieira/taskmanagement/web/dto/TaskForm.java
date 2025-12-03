@@ -53,4 +53,7 @@ public class TaskForm {
     @NotNull(message = "O tempo de execucao e obrigatorio")
     @Positive(message = "O tempo de execucao deve ser maior que zero")
     private Integer executionTimeMinutes;
+
+    // Squad ID (opcional - para LEAD/ADMIN atribuir task a squad)
+    private Long squadId;
 }

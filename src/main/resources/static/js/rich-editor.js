@@ -378,17 +378,27 @@
 
         // Auto-save on input
         editor.addEventListener('input', save);
+        
+        // Also save on blur (when user clicks outside)
+        editor.addEventListener('blur', save);
+        
+        // Save on keyup for immediate sync
+        editor.addEventListener('keyup', save);
 
-        // Save on form submit
+        // Save on form submit - use capturing phase to run first
         const form = root.closest('form');
         if (form) {
-            form.addEventListener('submit', save);
+            form.addEventListener('submit', function(e) {
+                // Sync content before form submission
+                save();
+                console.log('Rich Editor: synced on form submit, value:', hiddenField?.value?.substring(0, 100));
+            }, true); // Use capturing phase
         }
 
         // Initial save
         save();
 
-        console.log('Rich Editor initialized:', rootId);
+        console.log('Rich Editor initialized:', rootId, 'hidden field:', hiddenField?.id);
     };
 })();
 

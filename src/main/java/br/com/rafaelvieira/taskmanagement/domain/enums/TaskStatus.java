@@ -9,11 +9,22 @@ package br.com.rafaelvieira.taskmanagement.domain.enums;
  * excedido e/ou prazo vencido)
  */
 public enum TaskStatus {
-    TODO,
-    IN_PROGRESS,
-    IN_PAUSE,
-    PENDING,
-    DONE,
-    CANCELLED,
-    OVERDUE
+    TODO("A Fazer"),
+    IN_PROGRESS("Em Progresso"),
+    IN_PAUSE("Pausada"),
+    PENDING("Pendente"),
+    DONE("Concluída"),
+    CANCELLED("Cancelada"),
+    OVERDUE("Atrasada"),
+    AUTH_PENDING("Aguardando Autorização");
+
+    private final String displayName;
+
+    TaskStatus(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
 }

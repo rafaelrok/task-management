@@ -1,0 +1,408 @@
+/**
+ * Gamification & Badge Styles
+ * Styles for monthly badges, squad gamification, and achievement displays
+ */
+
+/* ========== Badge Levels ========== */
+.badge-none {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    color: #fff;
+}
+
+.badge-bronze {
+    background: linear-gradient(135deg, #CD7F32 0%, #8B4513 100%);
+    color: #fff;
+    box-shadow: 0 2px 4px rgba(205, 127, 50, 0.3);
+}
+
+.badge-prata,
+.badge-silver {
+    background: linear-gradient(135deg, #C0C0C0 0%, #A8A8A8 100%);
+    color: #333;
+    box-shadow: 0 2px 4px rgba(192, 192, 192, 0.4);
+}
+
+.badge-ouro,
+.badge-gold {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    color: #333;
+    box-shadow: 0 2px 4px rgba(255, 215, 0, 0.4);
+}
+
+.badge-diamante,
+.badge-diamond {
+    background: linear-gradient(135deg, #b9f2ff 0%, #89CFF0 50%, #00BFFF 100%);
+    color: #1a365d;
+    box-shadow: 0 2px 8px rgba(0, 191, 255, 0.4);
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0%, 100% {
+        box-shadow: 0 2px 8px rgba(0, 191, 255, 0.4);
+    }
+    50% {
+        box-shadow: 0 4px 16px rgba(0, 191, 255, 0.6);
+    }
+}
+
+/* ========== Badge Card ========== */
+.badge-card {
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.badge-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+.badge-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.badge-icon-small {
+    font-size: 1.5rem;
+}
+
+.badge-level-name {
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin-bottom: 0.25rem;
+}
+
+.badge-tasks-count {
+    font-size: 0.875rem;
+    opacity: 0.9;
+}
+
+/* ========== Monthly Badge Display ========== */
+.monthly-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.375rem 0.75rem;
+    border-radius: 50px;
+    font-weight: 500;
+}
+
+.monthly-badge .badge-icon {
+    font-size: 1.25rem;
+    margin-right: 0.375rem;
+}
+
+.monthly-badge-lg {
+    padding: 0.5rem 1rem;
+    font-size: 1.1rem;
+}
+
+.monthly-badge-lg .badge-icon {
+    font-size: 1.5rem;
+}
+
+/* ========== Progress Indicators ========== */
+.badge-progress {
+    height: 8px;
+    border-radius: 4px;
+    background-color: rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin-top: 0.5rem;
+}
+
+.badge-progress-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.badge-progress-bronze {
+    background: linear-gradient(90deg, #CD7F32 0%, #8B4513 100%);
+}
+
+.badge-progress-prata {
+    background: linear-gradient(90deg, #C0C0C0 0%, #A8A8A8 100%);
+}
+
+.badge-progress-ouro {
+    background: linear-gradient(90deg, #FFD700 0%, #FFA500 100%);
+}
+
+.badge-progress-diamante {
+    background: linear-gradient(90deg, #b9f2ff 0%, #00BFFF 100%);
+}
+
+/* ========== Gamification Stats ========== */
+.gamification-stats {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #333;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ========== Achievement List ========== */
+.achievement-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.achievement-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    transition: border-color 0.2s ease;
+}
+
+.achievement-item:hover {
+    border-color: #007bff;
+}
+
+.achievement-item.locked {
+    opacity: 0.5;
+    filter: grayscale(100%);
+}
+
+.achievement-icon {
+    font-size: 2rem;
+    margin-right: 0.75rem;
+}
+
+.achievement-info {
+    flex: 1;
+}
+
+.achievement-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.achievement-description {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+/* ========== Ranking List ========== */
+.ranking-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.ranking-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.ranking-item:last-child {
+    border-bottom: none;
+}
+
+.ranking-position {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    border-radius: 50%;
+    margin-right: 0.75rem;
+}
+
+.ranking-position-1 {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    color: #333;
+}
+
+.ranking-position-2 {
+    background: linear-gradient(135deg, #C0C0C0 0%, #A8A8A8 100%);
+    color: #333;
+}
+
+.ranking-position-3 {
+    background: linear-gradient(135deg, #CD7F32 0%, #8B4513 100%);
+    color: #fff;
+}
+
+.ranking-user {
+    flex: 1;
+}
+
+.ranking-user-name {
+    font-weight: 600;
+}
+
+.ranking-user-squad {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+.ranking-score {
+    font-weight: 700;
+    color: #007bff;
+}
+
+/* ========== Squad Type Badges ========== */
+.squad-type-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.squad-type-backend {
+    background-color: #1a1a2e;
+    color: #fff;
+}
+
+.squad-type-frontend {
+    background-color: #17a2b8;
+    color: #fff;
+}
+
+.squad-type-fullstack {
+    background-color: #6f42c1;
+    color: #fff;
+}
+
+.squad-type-devops {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.squad-type-mobile {
+    background-color: #28a745;
+    color: #fff;
+}
+
+.squad-type-qa {
+    background-color: #6c757d;
+    color: #fff;
+}
+
+.squad-type-data {
+    background-color: #fd7e14;
+    color: #fff;
+}
+
+.squad-type-security {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+.squad-type-platform {
+    background-color: #20c997;
+    color: #fff;
+}
+
+/* ========== Timer Styles ========== */
+.timer-badge {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+    padding: 0.375rem 0.75rem;
+}
+
+.timer-running {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* ========== Level Up Animation ========== */
+.level-up-animation {
+    animation: levelUp 0.5s ease-out;
+}
+
+@keyframes levelUp {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* ========== Dashboard Metrics ========== */
+.metric-card {
+    border-left: 4px solid;
+    transition: transform 0.2s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+}
+
+.metric-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.metric-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+/* ========== Responsive Adjustments ========== */
+@media (max-width: 768px) {
+    .badge-card {
+        padding: 1rem;
+    }
+    
+    .badge-icon {
+        font-size: 2.5rem;
+    }
+    
+    .achievement-list {
+        grid-template-columns: 1fr;
+    }
+    
+    .gamification-stats {
+        flex-direction: column;
+    }
+    
+    .stat-item {
+        min-width: 100%;
+    }
+}

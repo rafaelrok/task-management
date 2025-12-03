@@ -81,6 +81,53 @@ public class NotificationServiceImpl implements NotificationService {
         return createNotificationInternal(title, message, type, taskId, user, true);
     }
 
+    @Override
+    @Transactional
+    public void markAllAsRead() {
+        var currentUser = userService.getCurrentUser();
+        if (currentUser == null) {
+            throw new UnauthorizedException("User not authenticated");
+        }
+        notificationRepository.markAllAsRead(currentUser.getId());
+    }
+
+    @Override
+    public SseEmitter subscribe(Long userId) {
+        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
+        emitters.put(userId, emitter);
+        emitter.onCompletion(() -> emitters.remove(userId));
+        emitter.onTimeout(() -> emitters.remove(userId));
+        emitter.onError((e) -> emitters.remove(userId));
+        return emitter;
+    }
+
+    private void sendSseNotification(Long userId, Notification notification) {
+        SseEmitter emitter = emitters.get(userId);
+        if (emitter != null) {
+            try {
+                NotificationResponseDTO dto =
+                        NotificationResponseDTO.builder()
+                                .id(notification.getId())
+                                .title(notification.getTitle())
+                                .message(notification.getMessage())
+                                .type(notification.getType())
+                                .taskId(notification.getTaskId())
+                                .read(notification.isRead())
+                                .sticky(notification.isSticky())
+                                .createdAt(notification.getCreatedAt())
+                                .build();
+                emitter.send(SseEmitter.event().name("notification").data(dto));
+            } catch (IOException e) {
+                emitters.remove(userId);
+                log.warn(
+                        "Failed to send SSE notification {} for user {}: {}",
+                        notification.getId(),
+                        userId,
+                        e.getMessage());
+            }
+        }
+    }
+
     private Notification createNotificationInternal(
             String title,
             String message,
@@ -92,6 +139,22 @@ public class NotificationServiceImpl implements NotificationService {
             log.debug("Skipping notification creation for task {} because user is null", taskId);
             return null; // evita constraint violation
         }
+
+        // Deduplication: Prevent duplicate unread notifications for the same task and
+        // type
+        // Especially for sticky notifications (OVERDUE, PENDING, TODO)
+        if (sticky
+                || type == NotificationType.TASK_OVERDUE
+                || type == NotificationType.TASK_PENDING) {
+            boolean exists =
+                    notificationRepository.existsByUserAndTaskIdAndTypeAndReadFalse(
+                            user, taskId, type);
+            if (exists) {
+                log.debug("Skipping duplicate notification for task {} type {}", taskId, type);
+                return null;
+            }
+        }
+
         var notification =
                 Notification.builder()
                         .title(title)
@@ -185,52 +248,5 @@ public class NotificationServiceImpl implements NotificationService {
         }
         notification.setRead(true);
         notificationRepository.save(notification);
-    }
-
-    @Override
-    @Transactional
-    public void markAllAsRead() {
-        var currentUser = userService.getCurrentUser();
-        if (currentUser == null) {
-            throw new UnauthorizedException("User not authenticated");
-        }
-        notificationRepository.markAllAsRead(currentUser);
-    }
-
-    @Override
-    public SseEmitter subscribe(Long userId) {
-        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
-        emitters.put(userId, emitter);
-        emitter.onCompletion(() -> emitters.remove(userId));
-        emitter.onTimeout(() -> emitters.remove(userId));
-        emitter.onError((e) -> emitters.remove(userId));
-        return emitter;
-    }
-
-    private void sendSseNotification(Long userId, Notification notification) {
-        SseEmitter emitter = emitters.get(userId);
-        if (emitter != null) {
-            try {
-                NotificationResponseDTO dto =
-                        NotificationResponseDTO.builder()
-                                .id(notification.getId())
-                                .title(notification.getTitle())
-                                .message(notification.getMessage())
-                                .type(notification.getType())
-                                .taskId(notification.getTaskId())
-                                .read(notification.isRead())
-                                .sticky(notification.isSticky())
-                                .createdAt(notification.getCreatedAt())
-                                .build();
-                emitter.send(SseEmitter.event().name("notification").data(dto));
-            } catch (IOException e) {
-                emitters.remove(userId);
-                log.warn(
-                        "Failed to send SSE notification {} for user {}: {}",
-                        notification.getId(),
-                        userId,
-                        e.getMessage());
-            }
-        }
     }
 }

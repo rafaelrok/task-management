@@ -68,6 +68,17 @@ public class Task {
     @JoinColumn(name = "assigned_user_id")
     private User assignedUser;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "squad_id")
+    private Squad squad;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_id")
+    private User createdBy;
+
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -83,7 +94,8 @@ public class Task {
     @Column(name = "scheduled_start_at")
     private LocalDateTime scheduledStartAt;
 
-    // Pomodoro duration in minutes for this task when started (nullable -> no pomodoro)
+    // Pomodoro duration in minutes for this task when started (nullable -> no
+    // pomodoro)
     @Column(name = "pomodoro_minutes")
     private Integer pomodoroMinutes;
 

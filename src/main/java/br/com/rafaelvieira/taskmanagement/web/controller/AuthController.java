@@ -64,7 +64,7 @@ public class AuthController {
                         .email(form.getEmail())
                         .fullName(form.getFullName())
                         .password(passwordEncoder.encode(form.getPassword()))
-                        .role("ROLE_USER")
+                        .role(br.com.rafaelvieira.taskmanagement.domain.enums.Role.MEMBER)
                         .build();
         userRepository.save(user);
         redirectAttributes.addFlashAttribute("successMessage", "Cadastro realizado! Faça login.");

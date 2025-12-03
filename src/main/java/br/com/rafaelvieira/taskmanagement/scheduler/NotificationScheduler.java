@@ -67,7 +67,7 @@ public class NotificationScheduler {
     }
 
     @Scheduled(fixedRate = 60000)
-    @Transactional(readOnly = true)
+    @Transactional
     public void checkTasksStartingSoon() {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime fiveMinutesFromNow = now.plusMinutes(5);
@@ -115,7 +115,7 @@ public class NotificationScheduler {
     }
 
     @Scheduled(fixedRate = 300000)
-    @Transactional(readOnly = true)
+    @Transactional
     public void checkTasksDueSoon() {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime twoHoursFromNow = now.plusHours(2);

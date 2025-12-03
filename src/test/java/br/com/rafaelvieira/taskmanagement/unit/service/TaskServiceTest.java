@@ -15,6 +15,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.com.rafaelvieira.taskmanagement.domain.enums.Priority;
+import br.com.rafaelvieira.taskmanagement.domain.enums.Role;
 import br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus;
 import br.com.rafaelvieira.taskmanagement.domain.model.Category;
 import br.com.rafaelvieira.taskmanagement.domain.model.Task;
@@ -24,6 +25,7 @@ import br.com.rafaelvieira.taskmanagement.domain.records.TaskRecord;
 import br.com.rafaelvieira.taskmanagement.exception.ResourceNotFoundException;
 import br.com.rafaelvieira.taskmanagement.repository.CategoryRepository;
 import br.com.rafaelvieira.taskmanagement.repository.PomodoroSessionRepository;
+import br.com.rafaelvieira.taskmanagement.repository.SquadMemberRepository;
 import br.com.rafaelvieira.taskmanagement.repository.TaskRepository;
 import br.com.rafaelvieira.taskmanagement.repository.UserRepository;
 import br.com.rafaelvieira.taskmanagement.service.UserService;
@@ -72,6 +74,8 @@ class TaskServiceTest {
     @Mock private UserService userService; // usado em changeTaskStatus quando IN_PROGRESS
 
     @Mock private PomodoroSessionRepository pomodoroSessionRepository; // usado em pomodoro
+
+    @Mock private SquadMemberRepository squadMemberRepository;
 
     @InjectMocks private TaskServiceImpl taskService;
 
@@ -282,6 +286,9 @@ class TaskServiceTest {
                         null,
                         null);
 
+        User currentUser = User.builder().id(42L).username("admin").role(Role.ADMIN).build();
+
+        when(userService.getCurrentUser()).thenReturn(currentUser);
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(existingTask));
         when(taskRepository.save(any(Task.class))).thenAnswer(i -> i.getArgument(0));
 
@@ -549,6 +556,122 @@ class TaskServiceTest {
             assertThatThrownBy(() -> taskService.createTask(create))
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasMessageContaining("User not found with id: 999");
+        }
+    }
+
+    @Nested
+    @DisplayName("Assign Task Tests")
+    class AssignTaskTests {
+
+        @Test
+        @Order(100)
+        @DisplayName("Should assign task to current user when unassigned")
+        void shouldAssignTaskToCurrentUser() {
+            Long taskId = 50L;
+            User currentUser = User.builder().id(10L).username("dev").role(Role.MEMBER).build();
+            Task task =
+                    Task.builder()
+                            .id(taskId)
+                            .title("Assignable")
+                            .status(TaskStatus.TODO)
+                            .priority(Priority.MEDIUM)
+                            .build();
+
+            when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
+            when(taskRepository.save(any(Task.class))).thenAnswer(i -> i.getArgument(0));
+
+            TaskRecord result = taskService.assignTaskToCurrentUser(taskId, currentUser);
+
+            assertThat(result.assignedUserId())
+                    .as("Assigned user id")
+                    .isEqualTo(currentUser.getId());
+            verify(taskRepository, times(1)).save(any(Task.class));
+        }
+
+        @Test
+        @Order(101)
+        @DisplayName("Should not save when already assigned to same user")
+        void shouldNotSaveWhenAlreadyAssignedToSameUser() {
+            Long taskId = 51L;
+            User currentUser = User.builder().id(11L).username("same").role(Role.MEMBER).build();
+            Task task =
+                    Task.builder()
+                            .id(taskId)
+                            .title("Already Mine")
+                            .assignedUser(currentUser)
+                            .status(TaskStatus.TODO)
+                            .priority(Priority.MEDIUM)
+                            .build();
+
+            when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
+
+            TaskRecord result = taskService.assignTaskToCurrentUser(taskId, currentUser);
+
+            assertThat(result.assignedUserId()).isEqualTo(currentUser.getId());
+            // Não deve chamar save pois não há mudança
+            verify(taskRepository, never()).save(any(Task.class));
+        }
+
+        @Test
+        @Order(102)
+        @DisplayName("Should throw validation when already assigned to another user")
+        void shouldThrowWhenAlreadyAssignedToAnotherUser() {
+            Long taskId = 52L;
+            User otherUser = User.builder().id(12L).username("other").role(Role.MEMBER).build();
+            User currentUser = User.builder().id(13L).username("current").role(Role.MEMBER).build();
+            Task task =
+                    Task.builder()
+                            .id(taskId)
+                            .title("Taken")
+                            .assignedUser(otherUser)
+                            .status(TaskStatus.TODO)
+                            .priority(Priority.MEDIUM)
+                            .build();
+
+            when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
+
+            assertThatThrownBy(() -> taskService.assignTaskToCurrentUser(taskId, currentUser))
+                    .isInstanceOf(
+                            br.com.rafaelvieira.taskmanagement.exception.TaskValidationException
+                                    .class)
+                    .hasMessageContaining("já possui responsável");
+
+            verify(taskRepository, never()).save(any(Task.class));
+        }
+
+        @Test
+        @Order(103)
+        @DisplayName("Should throw unauthorized when user not member/lead/admin of squad task")
+        void shouldThrowUnauthorizedWhenNotMemberOrLeadOrAdmin() {
+            Long taskId = 53L;
+            User lead = User.builder().id(200L).username("lead").role(Role.LEAD).build();
+            br.com.rafaelvieira.taskmanagement.domain.model.Squad squad =
+                    br.com.rafaelvieira.taskmanagement.domain.model.Squad.builder()
+                            .id(300L)
+                            .name("Alpha")
+                            .lead(lead)
+                            .build();
+            User currentUser =
+                    User.builder().id(14L).username("outsider").role(Role.MEMBER).build();
+            Task task =
+                    Task.builder()
+                            .id(taskId)
+                            .title("Squad Task")
+                            .squad(squad)
+                            .status(TaskStatus.TODO)
+                            .priority(Priority.MEDIUM)
+                            .build();
+
+            when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
+            when(squadMemberRepository.existsBySquadAndUser(squad, currentUser)).thenReturn(false);
+
+            assertThatThrownBy(() -> taskService.assignTaskToCurrentUser(taskId, currentUser))
+                    .isInstanceOf(
+                            br.com.rafaelvieira.taskmanagement.exception.UnauthorizedException
+                                    .class)
+                    .hasMessageContaining("not a member");
+
+            verify(taskRepository, never()).save(any(Task.class));
         }
     }
 }

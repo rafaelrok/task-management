@@ -1,0 +1,44 @@
+<!-- Task Cancellation Modal -->
+<div class="modal fade" id="taskCancellationModal" tabindex="-1" aria-labelledby="taskCancellationModalLabel" aria-hidden="true" th:fragment="cancellationModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title" id="taskCancellationModalLabel">
+                    <i class="bi bi-exclamation-triangle"></i> Solicitar Cancelamento
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Você está solicitando o cancelamento da tarefa:</p>
+                <p class="fw-bold" id="cancel-task-title">Nome da Tarefa</p>
+                
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    Este pedido será enviado para o líder da squad para aprovação.
+                </div>
+
+                <div class="mb-3">
+                    <label for="cancel-reason" class="form-label">Motivo do Cancelamento *</label>
+                    <textarea 
+                        class="form-control" 
+                        id="cancel-reason" 
+                        rows="4" 
+                        placeholder="Explique o motivo do cancelamento (mínimo 10 caracteres)"
+                        required
+                        minlength="10"></textarea>
+                    <small class="form-text text-muted">
+                        Seja claro e específico sobre o motivo.
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-warning" onclick="TaskCancellationManager.submitCancellationRequest()">
+                    <i class="bi bi-send"></i> Enviar Pedido
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Detalhes da Squad')}"></head>
+<body class="dashboard-body">
+    <link rel="stylesheet" th:href="@{/css/squads.css}">
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+    <div class="main-content">
+        <div class="top-bar fixed">
+            <h1 class="page-title"><i class="bi bi-people-fill"></i> <span th:text="${squad.name}">Squad</span></h1>
+            <div th:replace="~{fragments/topbar-user-info :: userInfo}"></div>
+        </div>
+        <div class="content-wrapper">
+            <div th:replace="~{fragments/alerts :: alerts}"></div>
+            
+            <div class="details-grid">
+                <!-- Squad Info -->
+                <div class="details-main">
+                    <div class="dashboard-panel">
+                        <div class="panel-header primary">
+                            <h5><i class="bi bi-info-circle"></i> Informações da Squad</h5>
+                            <span class="squad-status-badge" th:classappend="${squad.active ? 'active' : 'inactive'}">
+                                <span class="status-dot"></span>
+                                <span th:text="${squad.active ? 'Ativa' : 'Inativa'}">Status</span>
+                            </span>
+                        </div>
+                        <div class="panel-body">
+                            <p class="squad-description-text" th:text="${squad.description}">Descrição da squad...</p>
+                            
+                            <div class="squad-details-grid">
+                                <div class="detail-item">
+                                    <i class="bi bi-person-badge"></i>
+                                    <div>
+                                        <span class="detail-label">Lead</span>
+                                        <span class="detail-value" th:text="${squad.lead.fullName}">Nome do Lead</span>
+                                    </div>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="bi bi-calendar-event"></i>
+                                    <div>
+                                        <span class="detail-label">Criada em</span>
+                                        <span class="detail-value" th:text="${#temporals.format(squad.createdAt, 'dd/MM/yyyy HH:mm')}">Data</span>
+                                    </div>
+                                </div>
+                                <div class="detail-item" th:if="${squad.type}">
+                                    <i class="bi bi-tag"></i>
+                                    <div>
+                                        <span class="detail-label">Tipo</span>
+                                        <span class="squad-type-badge" 
+                                              th:classappend="${squad.type?.name()?.toLowerCase() ?: 'fullstack'}"
+                                              th:text="${squad.type?.displayName ?: 'Fullstack'}">Tipo</span>
+                                    </div>
+                                </div>
+                                <div class="detail-item" th:if="${squad.businessArea}">
+                                    <i class="bi bi-briefcase"></i>
+                                    <div>
+                                        <span class="detail-label">Área de Negócio</span>
+                                        <span class="detail-value" th:text="${squad.businessArea}">Área</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="squad-tech-stack-display" th:if="${squad.techStack}">
+                                <strong><i class="bi bi-code-slash"></i> Tech Stack:</strong>
+                                <span th:each="tech : ${#strings.arraySplit(squad.techStack, ',')}">
+                                    <span class="tech-pill" th:text="${#strings.trim(tech)}">Tech</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Members List -->
+                    <div class="dashboard-panel members-panel">
+                        <div class="panel-header success">
+                            <h5><i class="bi bi-people"></i> Membros</h5>
+                            <span class="panel-badge" th:text="${#lists.size(members)}">0</span>
+                        </div>
+                        <div class="panel-body p-0">
+                            <div class="members-list">
+                                <div class="member-item" th:each="member : ${members}">
+                                    <div class="member-avatar">
+                                        <i class="bi bi-person-circle"></i>
+                                    </div>
+                                    <div class="member-info">
+                                        <strong th:text="${member.user.fullName}">Nome</strong>
+                                        <small th:text="${member.user.email}">email@example.com</small>
+                                    </div>
+                                    <span class="member-role lead" th:if="${member.user.id == squad.lead.id}">
+                                        <i class="bi bi-star-fill"></i> Lead
+                                    </span>
+                                    <span class="member-role member" th:unless="${member.user.id == squad.lead.id}">
+                                        <i class="bi bi-person"></i> Membro
+                                    </span>
+                                </div>
+                                <div class="empty-state-mini" th:if="${#lists.isEmpty(members)}">
+                                    <i class="bi bi-people"></i>
+                                    <p>Nenhum membro ainda</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="details-sidebar">
+                    <!-- Invite Section -->
+                    <div class="dashboard-panel">
+                        <div class="panel-header warning">
+                            <h5><i class="bi bi-envelope-plus"></i> Convidar Membro</h5>
+                        </div>
+                        <div class="panel-body">
+                            <form th:action="@{/squads/{id}/invite(id=${squad.id})}" method="post" class="squad-form">
+                                <div class="form-group">
+                                    <label for="email" class="form-label">Email do Usuário</label>
+                                    <input type="email" class="form-control" id="email" name="email" 
+                                           placeholder="usuario@email.com" required>
+                                    <small class="form-hint">Digite o email de um usuário cadastrado</small>
+                                </div>
+                                <button type="submit" class="btn-create w-100">
+                                    <i class="bi bi-send"></i> Enviar Convite
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Pending Invites -->
+                    <div class="dashboard-panel">
+                        <div class="panel-header secondary">
+                            <h5><i class="bi bi-hourglass-split"></i> Convites Pendentes</h5>
+                            <span class="panel-badge" th:if="${!#lists.isEmpty(invites)}" 
+                                  th:text="${#lists.size(invites)}">0</span>
+                        </div>
+                        <div class="panel-body p-0">
+                            <div class="invites-list">
+                                <div class="invite-item" th:each="invite : ${invites}">
+                                    <div class="invite-info">
+                                        <strong th:text="${invite.invitedUser.fullName}">Nome</strong>
+                                        <small th:text="${#temporals.format(invite.createdAt, 'dd/MM/yyyy')}">Data</small>
+                                    </div>
+                                    <span class="invite-status pending">
+                                        <i class="bi bi-clock"></i>
+                                    </span>
+                                </div>
+                                <div class="empty-state-mini" th:if="${#lists.isEmpty(invites)}">
+                                    <i class="bi bi-envelope-open"></i>
+                                    <p>Nenhum convite pendente</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="squad-actions-bar">
+                <a th:href="@{/squads}" class="squad-btn squad-btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Voltar
+                </a>
+                <div class="action-group">
+                    <a th:href="@{/squads/{id}/dashboard(id=${squad.id})}" class="squad-btn squad-btn-primary" th:if="${squad.active}">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                    <a th:href="@{/squads/{id}/edit(id=${squad.id})}" class="squad-btn squad-btn-secondary">
+                        <i class="bi bi-pencil"></i> Editar
+                    </a>
+                    <a th:href="@{/ranking/squad/{id}(id=${squad.id})}" class="squad-btn squad-btn-outline">
+                        <i class="bi bi-trophy"></i> Ranking
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/sidebar.js}"></script>
+    <script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>

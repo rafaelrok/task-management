@@ -9,4 +9,6 @@ public interface UserService {
     UserProfileForm loadProfile();
 
     void updateProfile(UserProfileForm form);
+
+    User findByUsername(String username);
 }

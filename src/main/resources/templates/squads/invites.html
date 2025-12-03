@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Convites de Squad - Task Management')}"></head>
+<body class="dashboard-body">
+<!-- Sidebar -->
+<nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+
+<div class="main-content" id="mainContent">
+    <div class="top-bar">
+        <h1 class="page-title">
+            <i class="bi bi-envelope-fill"></i> Convites de Squad
+        </h1>
+        <div class="user-info" style="display: flex; gap: 1.5rem; align-items: center">
+            <div th:replace="~{fragments/topbar-user-info :: userInfo}"></div>
+        </div>
+    </div>
+
+    <div class="content-wrapper">
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mb-4 border-bottom-0" id="inviteTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active px-4 py-2 fw-semibold" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab" aria-controls="pending" aria-selected="true">
+                    <i class="bi bi-inbox-fill me-2"></i>Pendentes
+                    <span class="badge bg-danger rounded-pill ms-2" th:if="${!#lists.isEmpty(invites)}" th:text="${#lists.size(invites)}"></span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link px-4 py-2 fw-semibold" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab" aria-controls="history" aria-selected="false">
+                    <i class="bi bi-clock-history me-2"></i>Histórico
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="inviteTabsContent">
+            <!-- Pending Tab -->
+            <div class="tab-pane fade show active" id="pending" role="tabpanel" aria-labelledby="pending-tab">
+                <!-- Empty State -->
+                <div th:if="${#lists.isEmpty(invites)}" class="invite-empty-state text-center py-5 rounded-4 shadow-sm">
+                    <div class="mb-3">
+                        <i class="bi bi-envelope-open display-4"></i>
+                    </div>
+                    <h4 class="fw-bold">Nenhum convite pendente</h4>
+                    <p class="mb-0">Você não tem novos convites para participar de squads no momento.</p>
+                </div>
+
+                <!-- Invite Cards -->
+                <div class="d-flex flex-column gap-3" th:if="${!#lists.isEmpty(invites)}">
+                    <div class="card invite-card border-0 shadow-sm hover-card rounded-4 overflow-hidden" th:each="invite : ${invites}">
+                        <div class="card-body p-4">
+                            
+                            <!-- Header: Icon + Title + Badge -->
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="invite-icon-square rounded-3 p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
+                                    <i class="bi bi-people-fill fs-4"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h5 class="mb-0 fw-bold" style="color: var(--text-primary);" th:text="${invite.squad.name}">Squad Name</h5>
+                                </div>
+                                <span class="badge bg-warning text-dark rounded-pill px-3 py-2 fw-semibold">Pendente</span>
+                            </div>
+
+                            <!-- Description -->
+                            <p class="mb-3" style="color: var(--text-secondary); line-height: 1.6;" th:text="${invite.squad.description}">Description</p>
+                            
+                            <!-- Meta Info -->
+                            <div class="d-flex flex-wrap align-items-center gap-3 mb-4 pb-3 border-bottom" style="border-color: var(--border-color) !important;">
+                                <div class="d-flex align-items-center small" style="color: var(--text-secondary);">
+                                    <div class="avatar-circle me-2 bg-secondary text-white d-flex align-items-center justify-content-center rounded-circle" style="width: 28px; height: 28px; font-size: 0.7rem;">
+                                        <span th:text="${#strings.substring(invite.invitedBy.fullName, 0, 1)}">A</span>
+                                    </div>
+                                    <span>Convidado por <strong th:text="${invite.invitedBy.fullName}" style="color: var(--text-primary);">User</strong></span>
+                                </div>
+                                <div class="d-flex align-items-center small" style="color: var(--text-secondary);">
+                                    <i class="bi bi-calendar-event me-2"></i>
+                                    <span th:text="${#temporals.format(invite.createdAt, 'dd/MM/yyyy')}"></span>
+                                    <span class="mx-1">às</span>
+                                    <span th:text="${#temporals.format(invite.createdAt, 'HH:mm')}"></span>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="d-flex gap-2">
+                                <form method="post" th:action="@{'/squads/invites/' + ${invite.id} + '/accept'}" class="flex-fill">
+                                    <button type="submit" class="btn btn-success fw-semibold w-100 py-2 d-flex align-items-center justify-content-center gap-2">
+                                        <i class="bi bi-check-circle-fill"></i>
+                                        <span>Aceitar Convite</span>
+                                    </button>
+                                </form>
+                                <form method="post" th:action="@{'/squads/invites/' + ${invite.id} + '/reject'}" class="flex-fill">
+                                    <button type="submit" class="btn btn-outline-danger fw-semibold w-100 py-2 d-flex align-items-center justify-content-center gap-2" style="border-width: 2px;">
+                                        <i class="bi bi-x-circle-fill"></i>
+                                        <span>Recusar</span>
+                                    </button>
+                                </form>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Tab -->
+            <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
+                 <div th:if="${#lists.isEmpty(inviteHistory)}" class="invite-empty-state text-center py-5 rounded-4 shadow-sm">
+                    <div class="mb-3">
+                        <i class="bi bi-clock-history display-4"></i>
+                    </div>
+                    <h4 class="fw-bold">Histórico vazio</h4>
+                    <p class="mb-0">Você ainda não aceitou ou recusou nenhum convite.</p>
+                </div>
+
+                <!-- History Cards -->
+                <div class="d-flex flex-column gap-3" th:if="${!#lists.isEmpty(inviteHistory)}">
+                    <div class="card invite-card border-0 shadow-sm rounded-4 overflow-hidden" th:each="invite : ${inviteHistory}">
+                        <div class="card-body p-4">
+                            <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3">
+                                
+                                <!-- Squad Info -->
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center gap-3 mb-2">
+                                        <div class="invite-icon-square rounded-3 p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                            <i class="bi bi-people-fill fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0 fw-bold" th:text="${invite.squad.name}">Squad Name</h6>
+                                            <small style="color: var(--text-secondary);" th:text="${invite.squad.type}">Type</small>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex flex-wrap gap-4 mt-3 small" style="color: var(--text-secondary);">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-person me-2"></i>
+                                            <span th:text="${invite.invitedBy.fullName}">User</span>
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-calendar-check me-2"></i>
+                                            <span th:text="${#temporals.format(invite.createdAt, 'dd/MM/yyyy HH:mm')}">Date</span>
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-clock me-2"></i>
+                                            <span th:text="${#temporals.format(invite.respondedAt, 'dd/MM/yyyy HH:mm')}">Date</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Status Badge -->
+                                <div class="flex-shrink-0">
+                                    <span th:if="${invite.status.name() == 'ACCEPTED'}" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-4 py-2 fs-6">
+                                        <i class="bi bi-check-circle me-1"></i>Aceito
+                                    </span>
+                                    <span th:if="${invite.status.name() == 'REJECTED'}" class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-4 py-2 fs-6">
+                                        <i class="bi bi-x-circle me-1"></i>Recusado
+                                    </span>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        crossorigin="anonymous"></script>
+<script th:src="@{/js/sidebar.js}"></script>
+<script th:src="@{/js/dashboard.js}"></script>
+<div th:replace="~{fragments/notifications :: notifications}"></div>
+</body>
+</html>

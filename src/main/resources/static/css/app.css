@@ -671,9 +671,12 @@ input:checked+label:before {
 }
 
 @keyframes pending-pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
   }
+
   50% {
     box-shadow: 0 0 0 4px rgba(59, 130, 246, 0);
   }
@@ -1934,10 +1937,13 @@ button.btn-action[disabled]:hover {
 }
 
 @keyframes pulse-pending {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
+
   50% {
     opacity: 0.6;
     transform: scale(1.15);
@@ -2178,13 +2184,19 @@ button.btn-action[disabled]:hover {
 }
 
 @keyframes sticky-attention {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateX(0);
   }
-  2%, 4% {
+
+  2%,
+  4% {
     transform: translateX(-2px);
   }
-  3%, 5% {
+
+  3%,
+  5% {
     transform: translateX(2px);
   }
 }
@@ -2240,9 +2252,215 @@ button.btn-action[disabled]:hover {
 }
 
 @keyframes toast-pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
   }
+
+  50% {
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+  }
+}
+
+/* Dark theme specific overrides for Bootstrap components */
+:root[data-theme="dark"] .toast {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+:root[data-theme="dark"] .toast-header {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  border-bottom-color: var(--border-color);
+}
+
+:root[data-theme="dark"] .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+:root[data-theme="dark"] .dropdown-menu {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+}
+
+:root[data-theme="dark"] .dropdown-item {
+  color: var(--text-primary);
+}
+
+:root[data-theme="dark"] .dropdown-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme="dark"] .text-muted {
+  color: var(--text-secondary) !important;
+}
+
+/* Dark Mode for Notification Page */
+[data-theme="dark"] .card {
+  background-color: var(--bg-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .card-header {
+  background-color: var(--bg-primary) !important;
+  border-bottom-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .card-header h5 {
+  color: #e0e0e0 !important;
+}
+
+[data-theme="dark"] .list-group-item {
+  background-color: var(--bg-primary);
+  border-color: var(--border-color);
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .list-group-item.bg-light {
+  background-color: var(--bg-primary) !important;
+  /* Unread background */
+}
+
+[data-theme="dark"] .list-group-item:hover {
+  background-color: var(--bg-primary);
+}
+
+[data-theme="dark"] .btn-light {
+  background-color: var(--bg-primary);
+  border-color: var(--border-color);
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .btn-light:hover {
+  background-color: var(--bg-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .card-footer {
+  background-color: var(--bg-primary) !important;
+  border-top-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .page-link {
+  background-color: var(--bg-primary);
+  border-color: var(--border-color);
+  color: #e0e0e0;
+}
+
+/* ===== Notification Styles ===== */
+.dropdown-menu {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.dropdown-item {
+  color: var(--text-primary);
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.dropdown-header {
+  color: var(--text-secondary);
+  border-bottom-color: var(--border-color) !important;
+}
+
+.dropdown-item.text-muted {
+  color: var(--text-secondary) !important;
+}
+
+/* ===== Sticky Notification Styles ===== */
+.notification-sticky {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05)) !important;
+  border-left: 4px solid #ef4444 !important;
+  animation: sticky-attention 2s ease-in-out infinite;
+}
+
+.notification-sticky.pending {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05)) !important;
+  border-left: 4px solid #3b82f6 !important;
+}
+
+@keyframes sticky-attention {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  2%,
+  4% {
+    transform: translateX(-2px);
+  }
+
+  3%,
+  5% {
+    transform: translateX(2px);
+  }
+}
+
+.notification-sticky-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  background: #ef4444;
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 600;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.notification-sticky-badge.pending {
+  background: #3b82f6;
+}
+
+.notification-sticky-icon {
+  font-size: 0.875rem;
+}
+
+/* Sticky notification requires manual dismissal indicator */
+.notification-requires-action {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: #dc2626;
+  margin-top: 0.5rem;
+}
+
+.notification-requires-action.pending {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+}
+
+/* Sticky notification toast that stays on screen */
+.toast.notification-toast-sticky {
+  border: 2px solid #ef4444;
+  animation: toast-pulse 2s infinite;
+}
+
+.toast.notification-toast-sticky.pending {
+  border-color: #3b82f6;
+}
+
+@keyframes toast-pulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+
   50% {
     box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
   }
@@ -2343,4 +2561,377 @@ button.btn-action[disabled]:hover {
   background-color: var(--bg-primary);
   border-color: var(--border-color);
   color: #666;
+}
+
+/* ===== Squad Invites Page Styles ===== */
+.invite-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  transition: var(--transition);
+}
+
+.invite-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary);
+}
+
+.invite-card .card-body {
+  background: var(--card-bg);
+}
+
+.invite-empty-state {
+  background: var(--card-bg) !important;
+  border: 1px dashed var(--border-color);
+  color: var(--text-secondary) !important;
+}
+
+.invite-icon-square {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+  color: var(--primary);
+}
+
+/* Tabs Styling for Invites */
+.nav-tabs {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.nav-tabs .nav-link {
+  color: var(--text-secondary);
+  border: none;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  transition: var(--transition);
+  font-weight: 600;
+}
+
+.nav-tabs .nav-link:hover {
+  color: var(--primary);
+  border-color: transparent;
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.nav-tabs .nav-link.active {
+  color: var(--primary);
+  background: transparent;
+  border-bottom: 3px solid var(--primary);
+}
+
+/* Table Dark Mode Support */
+.table {
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.table> :not(caption)>*>* {
+  background-color: transparent;
+  border-bottom-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.table-hover>tbody>tr:hover>* {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.table thead {
+  background-color: var(--bg-primary) !important;
+}
+
+[data-theme="dark"] .table thead {
+  background-color: var(--bg-secondary) !important;
+}
+
+.text-dark {
+  color: var(--text-primary) !important;
+}
+
+/* Badge improvements for dark mode */
+.badge.bg-warning {
+  background-color: #f59e0b !important;
+  color: #000 !important;
+}
+
+[data-theme="dark"] .badge.bg-warning {
+  background-color: #fbbf24 !important;
+  color: #000 !important;
+}
+
+/* Card hover effects */
+.hover-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="dark"] .hover-card:hover {
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Avatar circle */
+.avatar-circle {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Empty state icons */
+.invite-empty-state i {
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+
+.invite-empty-state h4,
+.invite-empty-state p {
+  color: var(--text-secondary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+  .invite-card .card-body {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+}
+
+/* Bootstrap subtle badge styles for dark mode */
+.bg-success-subtle {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+}
+
+.bg-danger-subtle {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+}
+
+.text-success {
+  color: #10b981 !important;
+}
+
+.text-danger {
+  color: #ef4444 !important;
+}
+
+[data-theme="dark"] .bg-success-subtle {
+  background-color: rgba(16, 185, 129, 0.2) !important;
+}
+
+[data-theme="dark"] .bg-danger-subtle {
+  background-color: rgba(239, 68, 68, 0.2) !important;
+}
+
+/* transition: var(--transition);
+} */
+
+.invite-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary);
+}
+
+.invite-card .card-body {
+  background: var(--card-bg);
+}
+
+.invite-empty-state {
+  background: var(--card-bg) !important;
+  border: 1px dashed var(--border-color);
+  color: var(--text-secondary) !important;
+}
+
+.invite-icon-square {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+  color: var(--primary);
+}
+
+/* Tabs Styling for Invites */
+.nav-tabs {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.nav-tabs .nav-link {
+  color: var(--text-secondary);
+  border: none;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  transition: var(--transition);
+  font-weight: 600;
+}
+
+.nav-tabs .nav-link:hover {
+  color: var(--primary);
+  border-color: transparent;
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.nav-tabs .nav-link.active {
+  color: var(--primary);
+  background: transparent;
+  border-bottom: 3px solid var(--primary);
+}
+
+/* Table Dark Mode Support */
+.table {
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.table> :not(caption)>*>* {
+  background-color: transparent;
+  border-bottom-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.table-hover>tbody>tr:hover>* {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.table thead {
+  background-color: var(--bg-primary) !important;
+}
+
+[data-theme="dark"] .table thead {
+  background-color: var(--bg-secondary) !important;
+}
+
+.text-dark {
+  color: var(--text-primary) !important;
+}
+
+/* Badge improvements for dark mode */
+.badge.bg-warning {
+  background-color: #f59e0b !important;
+  color: #000 !important;
+}
+
+[data-theme="dark"] .badge.bg-warning {
+  background-color: #fbbf24 !important;
+  color: #000 !important;
+}
+
+/* Card hover effects */
+.hover-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="dark"] .hover-card:hover {
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Avatar circle */
+.avatar-circle {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Empty state icons */
+.invite-empty-state i {
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+
+.invite-empty-state h4,
+.invite-empty-state p {
+  color: var(--text-secondary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+  .invite-card .card-body {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+}
+
+/* Bootstrap subtle badge styles for dark mode */
+.bg-success-subtle {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+}
+
+.bg-danger-subtle {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+}
+
+.text-success {
+  color: #10b981 !important;
+}
+
+.text-danger {
+  color: #ef4444 !important;
+}
+
+[data-theme="dark"] .bg-success-subtle {
+  background-color: rgba(16, 185, 129, 0.2) !important;
+}
+
+[data-theme="dark"] .bg-danger-subtle {
+  background-color: rgba(239, 68, 68, 0.2) !important;
+}
+
+[data-theme="dark"] .text-success {
+  color: #34d399 !important;
+}
+
+[data-theme="dark"] .text-danger {
+  color: #f87171 !important;
+}
+
+[data-theme="dark"] .border-success-subtle {
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+[data-theme="dark"] .border-danger-subtle {
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+/* Invite card button improvements */
+.invite-card .btn-outline-danger {
+  border-width: 2px !important;
+  border-color: #ef4444 !important;
+  color: #ef4444 !important;
+  transition: all 0.3s ease;
+}
+
+.invite-card .btn-outline-danger:hover {
+  background-color: #ef4444 !important;
+  border-color: #ef4444 !important;
+  color: white !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+[data-theme="dark"] .invite-card .btn-outline-danger {
+  border-color: #f87171 !important;
+  color: #f87171 !important;
+}
+
+[data-theme="dark"] .invite-card .btn-outline-danger:hover {
+  background-color: #ef4444 !important;
+  border-color: #ef4444 !important;
+  color: white !important;
+}
+
+.invite-card .btn-success {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  border: none !important;
+  transition: all 0.3s ease;
+}
+
+.invite-card .btn-success:hover {
+  background: linear-gradient(135deg, #059669, #047857) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+/* Border bottom styling */
+.border-bottom {
+  border-bottom-width: 1px !important;
+  border-bottom-style: solid !important;
 }

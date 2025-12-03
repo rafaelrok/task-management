@@ -19,7 +19,8 @@ public record TaskCreateRecord(
         LocalDateTime scheduledStartAt,
         Integer pomodoroMinutes,
         Integer pomodoroBreakMinutes,
-        Integer executionTimeMinutes) {
+        Integer executionTimeMinutes,
+        Long squadId) {
 
     public TaskCreateRecord(
             String title,
@@ -40,6 +41,34 @@ public record TaskCreateRecord(
                 null,
                 null,
                 null,
+                null,
+                null);
+    }
+
+    public TaskCreateRecord(
+            String title,
+            String description,
+            TaskStatus status,
+            Priority priority,
+            Long categoryId,
+            Long assignedUserId,
+            LocalDateTime dueDate,
+            LocalDateTime scheduledStartAt,
+            Integer pomodoroMinutes,
+            Integer pomodoroBreakMinutes,
+            Integer executionTimeMinutes) {
+        this(
+                title,
+                description,
+                status,
+                priority,
+                categoryId,
+                assignedUserId,
+                dueDate,
+                scheduledStartAt,
+                pomodoroMinutes,
+                pomodoroBreakMinutes,
+                executionTimeMinutes,
                 null);
     }
 }

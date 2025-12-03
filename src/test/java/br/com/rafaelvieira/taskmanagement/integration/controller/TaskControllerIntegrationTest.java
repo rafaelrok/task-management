@@ -21,10 +21,6 @@ import br.com.rafaelvieira.taskmanagement.domain.model.Task;
 import br.com.rafaelvieira.taskmanagement.domain.model.User;
 import br.com.rafaelvieira.taskmanagement.domain.records.TaskCreateRecord;
 import br.com.rafaelvieira.taskmanagement.integration.BaseIntegrationTest;
-import br.com.rafaelvieira.taskmanagement.repository.CategoryRepository;
-import br.com.rafaelvieira.taskmanagement.repository.TaskRepository;
-import br.com.rafaelvieira.taskmanagement.repository.UserRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -32,11 +28,7 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
 /**
  * Testes de Integração do Repositório Estende BaseIntegrationTest para reutilizar configurações
@@ -48,29 +40,11 @@ import org.springframework.web.context.WebApplicationContext;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class TaskControllerIntegrationTest extends BaseIntegrationTest {
 
-    private MockMvc mockMvc;
-
-    @Autowired private ObjectMapper objectMapper;
-
-    @Autowired private WebApplicationContext webApplicationContext;
-
-    @Autowired private TaskRepository taskRepository;
-
-    @Autowired private CategoryRepository categoryRepository;
-
-    @Autowired private UserRepository userRepository;
-
     private Category testCategory;
     private User testUser;
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-
-        taskRepository.deleteAll();
-        categoryRepository.deleteAll();
-        userRepository.deleteAll();
-
         testCategory =
                 categoryRepository.save(
                         Category.builder()
@@ -84,7 +58,7 @@ class TaskControllerIntegrationTest extends BaseIntegrationTest {
                                 .username("developer")
                                 .email("dev@example.com")
                                 .fullName("Developer User")
-                                .password("password123")
+                                .password(passwordEncoder.encode("password123"))
                                 .build());
     }
 
@@ -104,6 +78,7 @@ class TaskControllerIntegrationTest extends BaseIntegrationTest {
 
         mockMvc.perform(
                         post("/api/tasks")
+                                .with(authenticateAdmin())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(create)))
                 .andExpect(status().isCreated())
@@ -126,6 +101,7 @@ class TaskControllerIntegrationTest extends BaseIntegrationTest {
 
         mockMvc.perform(
                         post("/api/tasks")
+                                .with(authenticateAdmin())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(create)))
                 .andExpect(status().isBadRequest())
@@ -358,6 +334,7 @@ class TaskControllerIntegrationTest extends BaseIntegrationTest {
 
         mockMvc.perform(
                         put("/api/tasks/" + task.getId())
+                                .with(authenticateAdmin())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(update)))
                 .andExpect(status().isOk())
@@ -379,7 +356,10 @@ class TaskControllerIntegrationTest extends BaseIntegrationTest {
                                 .priority(Priority.MEDIUM)
                                 .build());
 
-        mockMvc.perform(patch("/api/tasks/" + task.getId() + "/status").param("status", "DONE"))
+        mockMvc.perform(
+                        patch("/api/tasks/" + task.getId() + "/status")
+                                .with(authenticateAdmin())
+                                .param("status", "DONE"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("DONE"));
     }
@@ -396,7 +376,8 @@ class TaskControllerIntegrationTest extends BaseIntegrationTest {
                                 .priority(Priority.LOW)
                                 .build());
 
-        mockMvc.perform(delete("/api/tasks/" + task.getId())).andExpect(status().isNoContent());
+        mockMvc.perform(delete("/api/tasks/" + task.getId()).with(authenticateAdmin()))
+                .andExpect(status().isNoContent());
 
         mockMvc.perform(get("/api/tasks/" + task.getId())).andExpect(status().isNotFound());
     }

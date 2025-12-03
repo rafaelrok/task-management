@@ -36,8 +36,17 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
+            throw new br.com.rafaelvieira.taskmanagement.exception.UnauthorizedException(
+                    "User not authenticated");
+        }
         String username = auth.getName();
-        return userRepository.findByUsername(username).orElseThrow();
+        return userRepository
+                .findByUsername(username)
+                .orElseThrow(
+                        () ->
+                                new br.com.rafaelvieira.taskmanagement.exception
+                                        .ResourceNotFoundException("User not found: " + username));
     }
 
     @Override
@@ -156,5 +165,15 @@ public class UserServiceImpl implements UserService {
         }
 
         userRepository.save(user);
+    }
+
+    @Override
+    public User findByUsername(String username) {
+        return userRepository
+                .findByUsername(username)
+                .orElseThrow(
+                        () ->
+                                new br.com.rafaelvieira.taskmanagement.exception
+                                        .ResourceNotFoundException("User not found"));
     }
 }

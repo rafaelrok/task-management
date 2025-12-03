@@ -2,6 +2,7 @@ package br.com.rafaelvieira.taskmanagement.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import br.com.rafaelvieira.taskmanagement.config.TestAsyncConfig;
 import br.com.rafaelvieira.taskmanagement.domain.enums.Priority;
 import br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus;
 import br.com.rafaelvieira.taskmanagement.domain.model.User;
@@ -15,9 +16,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -27,6 +32,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Tag("integration")
 @Testcontainers
 @Transactional
+@Import(TestAsyncConfig.class)
 @WithMockUser(username = "testuser")
 @SuppressWarnings("resource")
 class TaskServiceAutoFinishTest {
@@ -39,17 +45,26 @@ class TaskServiceAutoFinishTest {
                     .withPassword("test");
 
     @Autowired TaskService taskService;
-
     @Autowired UserRepository userRepository;
+    @Autowired PlatformTransactionManager transactionManager;
 
     @BeforeEach
     void setUp() {
-        User user = new User();
-        user.setUsername("testuser");
-        user.setEmail("testuser@example.com");
-        user.setPassword("password");
-        user.setFullName("Test User");
-        userRepository.save(user);
+        TransactionTemplate template = new TransactionTemplate(transactionManager);
+        template.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        template.execute(
+                status -> {
+                    if (userRepository.existsByUsername("testuser")) {
+                        return null;
+                    }
+                    User user = new User();
+                    user.setUsername("testuser");
+                    user.setEmail("testuser@example.com");
+                    user.setPassword("password");
+                    user.setFullName("Test User");
+                    userRepository.save(user);
+                    return null;
+                });
     }
 
     @Test

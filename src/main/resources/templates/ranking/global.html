@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Ranking Global')}"></head>
+<body class="dashboard-body">
+    <link rel="stylesheet" th:href="@{/css/ranking.css}">
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+    <div class="main-content">
+        <div class="top-bar fixed">
+            <h1 class="page-title"><i class="bi bi-trophy"></i> Ranking Global</h1>
+            <div th:replace="~{fragments/topbar-user-info :: userInfo}"></div>
+        </div>
+        <div class="content-wrapper">
+            <div th:replace="~{fragments/alerts :: alerts}"></div>
+            
+            <!-- Page Header -->
+            <div class="ranking-page-header">
+                <div class="ranking-header-content">
+                    <div class="ranking-header-title">
+                        <div class="ranking-header-icon">
+                            <i class="bi bi-trophy-fill"></i>
+                        </div>
+                        <div>
+                            <h2>Ranking Global</h2>
+                            <p>Competição entre todos os membros da plataforma</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- User Position Card -->
+            <div class="user-position-card">
+                <div class="position-icon-wrapper">
+                    <i class="bi bi-person-badge-fill"></i>
+                </div>
+                <div class="position-content">
+                    <span class="position-label">Sua Posição no Ranking</span>
+                    <div class="position-value" th:text="${userPosition > 0 ? userPosition + 'º' : 'N/A'}">1º</div>
+                    <p class="position-message">Continue completando tarefas de squad para subir no ranking!</p>
+                    <div class="position-stats" th:if="${currentUserScore != null}">
+                        <div class="position-stat">
+                            <i class="bi bi-star-fill"></i>
+                            <span th:text="${currentUserScore.totalPoints + ' pontos'}">0 pontos</span>
+                        </div>
+                        <div class="position-stat">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span th:text="${currentUserScore.totalTasksCompletedInSquads + ' tasks'}">0 tasks</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Podium Section (Top 3) -->
+            <div class="podium-section" th:if="${#lists.size(rankings) >= 3}">
+                <div class="podium-container">
+                    <!-- 2nd Place -->
+                    <div class="podium-place second">
+                        <div class="podium-avatar" th:text="${#strings.substring(rankings[1].user.fullName, 0, 1)}">J</div>
+                        <div class="podium-user-info">
+                            <div class="podium-name" th:text="${rankings[1].user.fullName}">João Silva</div>
+                            <span class="podium-points">
+                                <i class="bi bi-star-fill"></i>
+                                <span th:text="${rankings[1].totalPoints}">850</span>
+                            </span>
+                        </div>
+                        <div class="podium-base">2º</div>
+                    </div>
+                    
+                    <!-- 1st Place -->
+                    <div class="podium-place first">
+                        <div class="podium-avatar" th:text="${#strings.substring(rankings[0].user.fullName, 0, 1)}">M</div>
+                        <div class="podium-user-info">
+                            <div class="podium-name" th:text="${rankings[0].user.fullName}">Maria Santos</div>
+                            <span class="podium-points">
+                                <i class="bi bi-star-fill"></i>
+                                <span th:text="${rankings[0].totalPoints}">1200</span>
+                            </span>
+                        </div>
+                        <div class="podium-base">1º</div>
+                    </div>
+                    
+                    <!-- 3rd Place -->
+                    <div class="podium-place third">
+                        <div class="podium-avatar" th:text="${#strings.substring(rankings[2].user.fullName, 0, 1)}">P</div>
+                        <div class="podium-user-info">
+                            <div class="podium-name" th:text="${rankings[2].user.fullName}">Pedro Costa</div>
+                            <span class="podium-points">
+                                <i class="bi bi-star-fill"></i>
+                                <span th:text="${rankings[2].totalPoints}">720</span>
+                            </span>
+                        </div>
+                        <div class="podium-base">3º</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Ranking Table -->
+            <div class="ranking-table-container">
+                <div class="ranking-table-header">
+                    <h5><i class="bi bi-list-ol"></i> Top Performers</h5>
+                    <span class="header-badge" th:text="${#lists.size(rankings) + ' participantes'}">0 participantes</span>
+                </div>
+                
+                <table class="ranking-table" th:if="${!#lists.isEmpty(rankings)}">
+                    <thead>
+                        <tr>
+                            <th>Posição</th>
+                            <th>Usuário</th>
+                            <th>Pontos</th>
+                            <th>Tasks Concluídas</th>
+                            <th>Tasks Antecipadas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="score, iterStat : ${rankings}" 
+                            th:classappend="${score.user.id == currentUser.id ? 'current-user' : ''}">
+                            <td class="position-cell">
+                                <span class="position-badge gold" th:if="${iterStat.index == 0}">
+                                    <i class="bi bi-trophy-fill"></i>
+                                </span>
+                                <span class="position-badge silver" th:if="${iterStat.index == 1}">
+                                    <i class="bi bi-award-fill"></i>
+                                </span>
+                                <span class="position-badge bronze" th:if="${iterStat.index == 2}">
+                                    <i class="bi bi-award"></i>
+                                </span>
+                                <span class="position-badge regular" th:if="${iterStat.index > 2}" 
+                                      th:text="${iterStat.index + 1}">4</span>
+                            </td>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar" th:text="${#strings.substring(score.user.fullName, 0, 1)}">U</div>
+                                    <div class="user-info">
+                                        <div class="user-name">
+                                            <span th:text="${score.user.fullName}">Nome do Usuário</span>
+                                            <span th:if="${score.user.id == currentUser.id}" class="user-badge">
+                                                <i class="bi bi-person-fill"></i> Você
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="points-cell">
+                                    <span class="points-badge">
+                                        <i class="bi bi-star-fill"></i>
+                                        <span th:text="${score.totalPoints}">0</span>
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="stat-cell">
+                                <span class="stat-value" th:text="${score.totalTasksCompletedInSquads}">0</span>
+                            </td>
+                            <td class="stat-cell">
+                                <span class="stat-value highlight" th:classappend="${score.totalTasksCompletedEarly > 0 ? 'highlight' : ''}" 
+                                      th:text="${score.totalTasksCompletedEarly}">0</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <!-- Empty State -->
+                <div class="ranking-empty-state" th:if="${#lists.isEmpty(rankings)}">
+                    <div class="ranking-empty-icon">
+                        <i class="bi bi-trophy"></i>
+                    </div>
+                    <h4>Nenhum participante ainda</h4>
+                    <p>Complete tarefas de squad para aparecer no ranking!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/sidebar.js}"></script>
+</body>
+</html>

@@ -127,7 +127,8 @@ dependencies {
     // ========== H2 Database (para testes) ==========
     testRuntimeOnly 'com.h2database:h2'
 
-    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+    // Thymeleaf Spring Security integration - versão compatível com Spring Security 6.x/7.x
+    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6:3.1.2.RELEASE'
 }
 
 // ========== Checkstyle Configuration ==========

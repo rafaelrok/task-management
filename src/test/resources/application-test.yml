@@ -1,6 +1,15 @@
 spring:
   application:
     name: task-management-test
+  main:
+    allow-bean-definition-overriding: true
+
+  task:
+    execution:
+      pool:
+        core-size: 1
+      simple:
+        keep-alive: 0
 
   web:
     error:

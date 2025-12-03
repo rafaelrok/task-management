@@ -2,6 +2,7 @@ package br.com.rafaelvieira.taskmanagement.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import br.com.rafaelvieira.taskmanagement.config.TestAsyncConfig;
 import br.com.rafaelvieira.taskmanagement.domain.enums.Priority;
 import br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus;
 import br.com.rafaelvieira.taskmanagement.domain.model.User;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +29,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Tag("integration")
 @Testcontainers
 @Transactional
+@Import(TestAsyncConfig.class)
 @WithMockUser(username = "testuser")
 @SuppressWarnings("resource")
 class TaskServiceStatusChangeTest {

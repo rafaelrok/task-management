@@ -34,4 +34,6 @@ public record TaskRecord(
         Long mainElapsedSeconds,
         LocalDateTime pomodoroUntil,
         Integer extraTimeMinutes,
-        String extensionJustification) {}
+        String extensionJustification,
+        Long squadId,
+        Long squadLeadId) {}

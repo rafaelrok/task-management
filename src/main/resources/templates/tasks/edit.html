@@ -1,6 +1,12 @@
 <!DOCTYPE html>
-<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head :: head('Editar Tarefa - Task Management')}"></head>
+<html
+        lang="pt-BR"
+        xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+        xmlns:th="http://www.thymeleaf.org"
+>
+<head
+        th:replace="~{fragments/head :: head('Editar Tarefa - Task Management')}"
+></head>
 <body class="dashboard-body">
 <!-- Sidebar -->
 <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
@@ -13,6 +19,21 @@
         </h1>
         <div class="user-info" style="display: flex; gap: 1.5rem; align-items: center">
             <div th:replace="~{fragments/topbar-user-info :: userInfo}"></div>
+            <!-- Botão Assumir movido para top-bar -->
+            <form method="post" style="margin:0;" th:action="@{'/tasks/' + ${taskForm.id} + '/assign'}">
+                <button class="btn btn-primary"
+                        id="btnAssignTop"
+                        th:classappend="${task.assignedUserId() != null
+                                      || task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED
+                                      || task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).DONE} ? ' disabled-btn' : ''"
+                        th:disabled="${task.assignedUserId() != null
+                                      || task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED
+                                      || task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).DONE}"
+                        type="submit">
+                    <i class="bi bi-hand-thumbs-up-fill"></i>
+                    <span>Assumir</span>
+                </button>
+            </form>
             <a class="btn btn-secondary" th:href="@{/tasks}">
                 <i class="bi bi-arrow-left"></i> Voltar
             </a>
@@ -24,13 +45,48 @@
 
         <!-- Main Edit Form - Compact Layout -->
         <div class="form-card-modern" data-animate="fade-up">
-            <form method="post" th:action="@{'/tasks/' + ${taskForm.id}}"
-                  th:classappend="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED} ? ' cancelled-form' : ''"
-                  th:object="${taskForm}">
-                <div class="alert alert-warning"
-                     style="margin-bottom:1rem;"
-                     th:if="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED}">
-                    <i class="bi bi-info-circle"></i> Esta tarefa está cancelada. Edição desativada.
+            <form
+                    method="post"
+                    th:action="@{'/tasks/' + ${taskForm.id}}"
+                    th:classappend="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED} ? ' cancelled-form' : ''"
+                    th:object="${taskForm}"
+            >
+                <div
+                        class="alert alert-warning"
+                        style="margin-bottom: 1rem"
+                        th:if="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED}"
+                >
+                    <i class="bi bi-info-circle"></i> Esta tarefa está cancelada.
+                    Edição desativada.
+                </div>
+
+                <div
+                        class="alert alert-info"
+                        style="margin-bottom: 1rem"
+                        th:if="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).DONE}"
+                >
+                    <i class="bi bi-check-circle"></i> Esta tarefa está finalizada.
+                    Edição desativada.
+                </div>
+
+                <!-- Informação do Responsável -->
+                <div
+                        class="alert alert-info"
+                        style="margin-bottom: 1rem"
+                        th:if="${task.assignedUserName() != null}"
+                >
+                    <i class="bi bi-person-check-fill"></i>
+                    <strong>Responsável:</strong>
+                    <span th:text="${task.assignedUserName()}">Nome do Usuário</span>
+                </div>
+
+                <div
+                        class="alert alert-secondary"
+                        style="margin-bottom: 1rem"
+                        th:if="${task.assignedUserName() == null}"
+                >
+                    <i class="bi bi-person-x-fill"></i>
+                    <strong>Esta tarefa não possui responsável atribuído</strong>
                 </div>
 
                 <!-- Title - Full Width -->
@@ -38,10 +94,13 @@
                     <label class="form-label-compact">
                         <i class="bi bi-card-text"></i> Título *
                     </label>
-                    <input class="form-control-modern" placeholder="Nome da tarefa"
-                           th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED}"
-                           th:field="*{title}"
-                           type="text"/>
+                    <input
+                            class="form-control-modern"
+                            placeholder="Nome da tarefa"
+                            th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED || task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).DONE}"
+                            th:field="*{title}"
+                            type="text"
+                    />
                     <div class="form-error" th:if="${#fields.hasErrors('title')}">
                         <i class="bi bi-exclamation-circle"></i>
                         <span th:errors="*{title}"></span>
@@ -51,53 +110,148 @@
                 <!-- Grid 3 columns: Status, Priority, Category -->
                 <div class="form-grid-3">
                     <div class="form-group-compact">
-                        <label class="form-label-compact"><i class="bi bi-circle-fill"></i> Status *</label>
+                        <label class="form-label-compact"
+                        ><i class="bi bi-circle-fill"></i> Status *</label
+                        >
                         <div class="select-wrapper">
-                            <select class="form-control-modern" required
-                                    th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED}"
-                                    th:field="*{status}">
-                                <option th:each="s : ${allStatuses}" th:text="${s}" th:value="${s}"></option>
+                            <select
+                                    class="form-control-modern"
+                                    required
+                                    th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED || task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).DONE}"
+                                    th:field="*{status}"
+                            >
+                                <option
+                                        th:each="s : ${allStatuses}"
+                                        th:text="${s}"
+                                        th:value="${s}"
+                                ></option>
                             </select>
                         </div>
                     </div>
 
                     <div class="form-group-compact">
-                        <label class="form-label-compact"><i class="bi bi-flag-fill"></i> Prioridade *</label>
+                        <label class="form-label-compact"
+                        ><i class="bi bi-flag-fill"></i> Prioridade *</label
+                        >
                         <div class="select-wrapper">
-                            <select class="form-control-modern" required
-                                    th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED}"
-                                    th:field="*{priority}">
-                                <option th:each="p : ${allPriorities}" th:text="${p}" th:value="${p}"></option>
+                            <select
+                                    class="form-control-modern"
+                                    required
+                                    th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED || task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).DONE}"
+                                    th:field="*{priority}"
+                            >
+                                <option
+                                        th:each="p : ${allPriorities}"
+                                        th:text="${p}"
+                                        th:value="${p}"
+                                ></option>
                             </select>
                         </div>
-                        <div class="form-error" th:if="${#fields.hasErrors('priority')}">
+                        <div
+                                class="form-error"
+                                th:if="${#fields.hasErrors('priority')}"
+                        >
                             <i class="bi bi-exclamation-circle"></i>
                             <span th:errors="*{priority}"></span>
                         </div>
                     </div>
 
                     <div class="form-group-compact">
-                        <label class="form-label-compact"><i class="bi bi-folder2"></i> Categoria *</label>
+                        <label class="form-label-compact"
+                        ><i class="bi bi-folder2"></i> Categoria *</label
+                        >
                         <div class="select-wrapper">
-                            <select class="form-control-modern" required
-                                    th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED}"
-                                    th:field="*{categoryId}">
+                            <select
+                                    class="form-control-modern"
+                                    required
+                                    th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED || task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).DONE}"
+                                    th:field="*{categoryId}"
+                            >
                                 <option value="">Selecione...</option>
-                                <option th:each="c : ${allCategories}" th:text="${c.name}" th:value="${c.id}"></option>
+                                <option
+                                        th:each="c : ${allCategories}"
+                                        th:text="${c.name}"
+                                        th:value="${c.id}"
+                                ></option>
                             </select>
                         </div>
-                        <div class="form-error" th:if="${#fields.hasErrors('categoryId')}">
+                        <div
+                                class="form-error"
+                                th:if="${#fields.hasErrors('categoryId')}"
+                        >
                             <i class="bi bi-exclamation-circle"></i>
                             <span th:errors="*{categoryId}"></span>
                         </div>
                     </div>
                 </div>
 
+                <!-- Squad Selection (visible for ADMIN and LEAD roles) -->
+                <div
+                        class="form-group-compact"
+                        sec:authorize="hasAnyRole('ADMIN', 'LEAD')"
+                >
+                    <label class="form-label-compact">
+                        <i class="bi bi-people-fill"></i> Squad (opcional)
+                    </label>
+                    <div class="select-wrapper">
+                        <select
+                                class="form-control-modern"
+                                id="squadSelect"
+                                th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED || task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).DONE}"
+                                th:field="*{squadId}"
+                        >
+                            <option value="">Tarefa pessoal (sem squad)</option>
+                            <option
+                                    th:each="squad : ${allSquads}"
+                                    th:text="${squad.name + ' - ' + squad.type.displayName}"
+                                    th:value="${squad.id}"
+                            ></option>
+                        </select>
+                    </div>
+                    <small class="form-text text-muted">
+                        <i class="bi bi-info-circle"></i>
+                        Selecione uma squad para atribuir esta tarefa ao time
+                    </small>
+                </div>
+
+                <!-- Assigned User (member of selected squad) -->
+                <div
+                        class="form-group-compact"
+                        id="assignedUserContainer"
+                        sec:authorize="hasAnyRole('ADMIN', 'LEAD')"
+                        style="display: none"
+                >
+                    <label class="form-label-compact">
+                        <i class="bi bi-person-fill"></i> Atribuir para (opcional)
+                    </label>
+                    <div class="select-wrapper">
+                        <select
+                                class="form-control-modern"
+                                id="assignedUserSelect"
+                                th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED || task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).DONE}"
+                                th:field="*{assignedUserId}"
+                        >
+                            <option value="">👤 Nenhum - Tarefa sem responsável</option>
+                        </select>
+                    </div>
+                    <small class="form-text text-muted">
+                        <i class="bi bi-info-circle"></i>
+                        Selecione um membro da squad ou deixe "Nenhum" para não atribuir
+                    </small>
+                </div>
+
                 <!-- Description - Full Width -->
                 <div class="form-group-compact">
-                    <label class="form-label-compact"><i class="bi bi-text-paragraph"></i> Descrição *</label>
-                    <div th:replace="~{fragments/rich-editor :: richEditor('taskDescEdit','description', *{description}, '', 'Descreva a tarefa...', '280px')}"></div>
-                    <div class="form-error" th:if="${#fields.hasErrors('description')}">
+                    <label class="form-label-compact"
+                    ><i class="bi bi-text-paragraph"></i> Descrição *</label
+                    >
+                    <div
+                            th:replace="~{fragments/rich-editor :: richEditor('taskDescEdit','description', *{description}, '', 'Descreva a tarefa...', '280px')}"
+                    ></div>
+                    <div
+                            class="form-error"
+                            th:if="${#fields.hasErrors('description')}"
+                    >
                         <i class="bi bi-exclamation-circle"></i>
                         <span th:errors="*{description}"></span>
                     </div>
@@ -106,11 +260,17 @@
                 <!-- Grid 2 columns: Dates -->
                 <div class="form-grid-2">
                     <div class="form-group-compact">
-                        <label class="form-label-compact"><i class="bi bi-calendar-event"></i> Vencimento *</label>
-                        <input class="form-control-modern" id="editDueDateField" required
-                               th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED}"
-                               th:field="*{dueDate}"
-                               type="datetime-local"/>
+                        <label class="form-label-compact"
+                        ><i class="bi bi-calendar-event"></i> Vencimento *</label
+                        >
+                        <input
+                                class="form-control-modern"
+                                id="editDueDateField"
+                                required
+                                th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED || task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).DONE}"
+                                th:field="*{dueDate}"
+                                type="datetime-local"
+                        />
                         <div class="form-error" th:if="${#fields.hasErrors('dueDate')}">
                             <i class="bi bi-exclamation-circle"></i>
                             <span th:errors="*{dueDate}"></span>
@@ -118,12 +278,21 @@
                     </div>
 
                     <div class="form-group-compact">
-                        <label class="form-label-compact"><i class="bi bi-alarm"></i> Agendamento *</label>
-                        <input class="form-control-modern" id="editScheduledStartField" required
-                               th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED}"
-                               th:field="*{scheduledStartAt}"
-                               type="datetime-local"/>
-                        <div class="form-error" th:if="${#fields.hasErrors('scheduledStartAt')}">
+                        <label class="form-label-compact"
+                        ><i class="bi bi-alarm"></i> Agendamento *</label
+                        >
+                        <input
+                                class="form-control-modern"
+                                id="editScheduledStartField"
+                                required
+                                th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED || task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).DONE}"
+                                th:field="*{scheduledStartAt}"
+                                type="datetime-local"
+                        />
+                        <div
+                                class="form-error"
+                                th:if="${#fields.hasErrors('scheduledStartAt')}"
+                        >
                             <i class="bi bi-exclamation-circle"></i>
                             <span th:errors="*{scheduledStartAt}"></span>
                         </div>
@@ -133,36 +302,66 @@
                 <!-- Grid 4 columns: Timers -->
                 <div class="form-grid-4">
                     <div class="form-group-compact">
-                        <label class="form-label-compact"><i class="bi bi-stopwatch"></i> Exec. (min) *</label>
-                        <input class="form-control-modern" min="1" placeholder="120" required
-                               th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED}"
-                               th:field="*{executionTimeMinutes}"
-                               type="number"/>
-                        <div class="form-error" th:if="${#fields.hasErrors('executionTimeMinutes')}">
+                        <label class="form-label-compact"
+                        ><i class="bi bi-stopwatch"></i> Exec. (min) *</label
+                        >
+                        <input
+                                class="form-control-modern"
+                                min="1"
+                                placeholder="120"
+                                required
+                                th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED || task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).DONE}"
+                                th:field="*{executionTimeMinutes}"
+                                type="number"
+                        />
+                        <div
+                                class="form-error"
+                                th:if="${#fields.hasErrors('executionTimeMinutes')}"
+                        >
                             <i class="bi bi-exclamation-circle"></i>
                             <span th:errors="*{executionTimeMinutes}"></span>
                         </div>
                     </div>
 
                     <div class="form-group-compact">
-                        <label class="form-label-compact"><i class="bi bi-hourglass-split"></i> Pomodoro (min) *</label>
-                        <input class="form-control-modern" min="5" placeholder="25" required
-                               th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED}"
-                               th:field="*{pomodoroMinutes}"
-                               type="number"/>
-                        <div class="form-error" th:if="${#fields.hasErrors('pomodoroMinutes')}">
+                        <label class="form-label-compact"
+                        ><i class="bi bi-hourglass-split"></i> Pomodoro (min) *</label
+                        >
+                        <input
+                                class="form-control-modern"
+                                min="5"
+                                placeholder="25"
+                                required
+                                th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED || task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).DONE}"
+                                th:field="*{pomodoroMinutes}"
+                                type="number"
+                        />
+                        <div
+                                class="form-error"
+                                th:if="${#fields.hasErrors('pomodoroMinutes')}"
+                        >
                             <i class="bi bi-exclamation-circle"></i>
                             <span th:errors="*{pomodoroMinutes}"></span>
                         </div>
                     </div>
 
                     <div class="form-group-compact">
-                        <label class="form-label-compact"><i class="bi bi-cup-hot"></i> Pausa (min) *</label>
-                        <input class="form-control-modern" min="1" placeholder="5" required
-                               th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED}"
-                               th:field="*{pomodoroBreakMinutes}"
-                               type="number"/>
-                        <div class="form-error" th:if="${#fields.hasErrors('pomodoroBreakMinutes')}">
+                        <label class="form-label-compact"
+                        ><i class="bi bi-cup-hot"></i> Pausa (min) *</label
+                        >
+                        <input
+                                class="form-control-modern"
+                                min="1"
+                                placeholder="5"
+                                required
+                                th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED || task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).DONE}"
+                                th:field="*{pomodoroBreakMinutes}"
+                                type="number"
+                        />
+                        <div
+                                class="form-error"
+                                th:if="${#fields.hasErrors('pomodoroBreakMinutes')}"
+                        >
                             <i class="bi bi-exclamation-circle"></i>
                             <span th:errors="*{pomodoroBreakMinutes}"></span>
                         </div>
@@ -170,7 +369,10 @@
                 </div>
 
                 <!-- Extra Time and Justification -->
-                <div class="form-grid-2" th:if="${task.extraTimeMinutes() != null and task.extraTimeMinutes() > 0}">
+                <div
+                        class="form-grid-2"
+                        th:if="${task.extraTimeMinutes() != null and task.extraTimeMinutes() > 0}"
+                >
                     <div class="form-group-compact">
                         <label class="form-label-compact">
                             <i class="bi bi-clock-history"></i>
@@ -178,18 +380,25 @@
                         </label>
                         <div class="extra-time-display">
                             <i class="bi bi-plus-circle-fill"></i>
-                            <span th:text="${task.extraTimeMinutes()} + ' minutos adicionados'">30 minutos adicionados</span>
+                            <span
+                                    th:text="${task.extraTimeMinutes()} + ' minutos adicionados'"
+                            >30 minutos adicionados</span
+                            >
                         </div>
                     </div>
 
-                    <div class="form-group-compact"
-                         th:if="${task.extensionJustification() != null and task.extensionJustification() != ''}">
+                    <div
+                            class="form-group-compact"
+                            th:if="${task.extensionJustification() != null and task.extensionJustification() != ''}"
+                    >
                         <label class="form-label-compact">
                             <i class="bi bi-journal-text"></i> Justificativa
                         </label>
                         <div class="justification-display">
                             <i class="bi bi-chat-left-quote-fill"></i>
-                            <span th:text="${task.extensionJustification()}">Justificativa...</span>
+                            <span th:text="${task.extensionJustification()}"
+                            >Justificativa...</span
+                            >
                         </div>
                     </div>
                 </div>
@@ -200,10 +409,12 @@
                         <i class="bi bi-arrow-left"></i>
                         <span>Voltar</span>
                     </a>
-                    <button class="btn-modern btn-primary-modern"
-                            th:classappend="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED} ? ' disabled-btn' : ''"
-                            th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED}"
-                            type="submit">
+                    <button
+                            class="btn-modern btn-primary-modern"
+                            th:classappend="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED || task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).DONE} ? ' disabled-btn' : ''"
+                            th:disabled="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).CANCELLED || task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).DONE}"
+                            type="submit"
+                    >
                         <i class="bi bi-check-circle"></i>
                         <span>Salvar</span>
                     </button>
@@ -218,52 +429,96 @@
             </div>
 
             <div class="quick-actions-grid">
+
                 <!-- Start (Enable if TODO, IN_PAUSE, or PENDING) -->
-                <form method="post" th:action="@{'/tasks/' + ${taskForm.id} + '/status'}">
+                <form
+                        method="post"
+                        th:action="@{'/tasks/' + ${taskForm.id} + '/status'}"
+                >
                     <input name="status" type="hidden" value="IN_PROGRESS"/>
-                    <button class="action-btn action-btn-success" id="btnStart"
+                    <button
+                            class="action-btn action-btn-success"
+                            id="btnStart"
                             th:classappend="${!(task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).TODO
                                             or task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).IN_PAUSE
                                             or task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).PENDING)} ? ' disabled-btn' : ''"
                             th:disabled="${!(task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).TODO
                                             or task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).IN_PAUSE
                                             or task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).PENDING)}"
-                            type="submit">
+                            type="submit"
+                    >
                         <i class="bi bi-play-fill"></i>
-                        <span th:text="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).PENDING} ? 'Retomar' : 'Iniciar'">Iniciar</span>
+                        <span
+                                th:text="${task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).PENDING} ? 'Retomar' : 'Iniciar'"
+                        >Iniciar</span
+                        >
                     </button>
                 </form>
 
                 <!-- Pause (Enable only if IN_PROGRESS) -->
-                <form method="post" th:action="@{'/tasks/' + ${taskForm.id} + '/status'}">
+                <form
+                        method="post"
+                        th:action="@{'/tasks/' + ${taskForm.id} + '/status'}"
+                >
                     <input name="status" type="hidden" value="IN_PAUSE"/>
-                    <button class="action-btn action-btn-warning" id="btnPause"
+                    <button
+                            class="action-btn action-btn-warning"
+                            id="btnPause"
                             th:classappend="${task.status() != T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).IN_PROGRESS} ? ' disabled-btn' : ''"
                             th:disabled="${task.status() != T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).IN_PROGRESS}"
-                            type="submit">
+                            type="submit"
+                    >
                         <i class="bi bi-pause-fill"></i>
                         <span>Pausar</span>
                     </button>
                 </form>
 
                 <!-- Finish (Enable only if IN_PROGRESS or PENDING) -->
-                <form method="post" th:action="@{'/tasks/' + ${taskForm.id} + '/status'}">
+                <form
+                        method="post"
+                        th:action="@{'/tasks/' + ${taskForm.id} + '/status'}"
+                >
                     <input name="status" type="hidden" value="DONE"/>
-                    <button class="action-btn action-btn-info" id="btnFinish"
+                    <button
+                            class="action-btn action-btn-info"
+                            id="btnFinish"
                             th:classappend="${!(task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).IN_PROGRESS
                                             or task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).PENDING)} ? ' disabled-btn' : ''"
                             th:disabled="${!(task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).IN_PROGRESS
                                             or task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).PENDING)}"
-                            type="submit">
+                            type="submit"
+                    >
                         <i class="bi bi-check-circle-fill"></i>
                         <span>Finalizar</span>
                     </button>
                 </form>
 
                 <!-- Cancel (Enable if TODO, DONE, OVERDUE, PENDING) -->
-                <form method="post" th:action="@{'/tasks/' + ${taskForm.id} + '/status'}">
+                <!-- Cancel (Enable if TODO, DONE, OVERDUE, PENDING) -->
+                <!-- Request Cancellation (For Squad Members) -->
+                <button
+                        class="action-btn action-btn-secondary"
+                        data-bs-target="#cancelRequestModal"
+                        data-bs-toggle="modal"
+                        id="btnCancelRequest"
+                        th:data-task-id="${taskForm.id}"
+                        th:if="${task.squadId() != null and task.assignedUserId() == currentUser.id and task.squadLeadId() != currentUser.id}"
+                        type="button"
+                >
+                    <i class="bi bi-x-circle-fill"></i>
+                    <span>Solicitar Cancelamento</span>
+                </button>
+
+                <!-- Direct Cancel (For Personal Tasks or Squad Leads) -->
+                <form
+                        method="post"
+                        th:action="@{'/tasks/' + ${taskForm.id} + '/status'}"
+                        th:if="${task.squadId() == null or task.squadLeadId() == currentUser.id}"
+                >
                     <input name="status" type="hidden" value="CANCELLED"/>
-                    <button class="action-btn action-btn-secondary" id="btnCancel"
+                    <button
+                            class="action-btn action-btn-secondary"
+                            id="btnCancel"
                             th:classappend="${!(task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).TODO
                                             or task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).DONE
                                             or task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).PENDING
@@ -272,21 +527,28 @@
                                             or task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).DONE
                                             or task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).PENDING
                                             or task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).OVERDUE)}"
-                            type="submit">
+                            type="submit"
+                    >
                         <i class="bi bi-x-circle-fill"></i>
                         <span>Cancelar</span>
                     </button>
                 </form>
 
                 <!-- Delete (Enable if TODO, OVERDUE) -->
-                <form method="post" th:action="@{'/tasks/' + ${taskForm.id} + '/delete'}">
-                    <button class="action-btn action-btn-danger" id="btnDelete"
+                <form
+                        method="post"
+                        th:action="@{'/tasks/' + ${taskForm.id} + '/delete'}"
+                >
+                    <button
+                            class="action-btn action-btn-danger"
+                            id="btnDelete"
                             onclick="return confirm('⚠️ Tem certeza que deseja excluir esta tarefa?');"
                             th:classappend="${!(task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).TODO
                                             or task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).OVERDUE)} ? ' disabled-btn' : ''"
                             th:disabled="${!(task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).TODO
                                             or task.status() == T(br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus).OVERDUE)}"
-                            type="submit">
+                            type="submit"
+                    >
                         <i class="bi bi-trash3-fill"></i>
                         <span>Excluir</span>
                     </button>
@@ -299,22 +561,26 @@
             <div class="section-header-compact">
                 <h3><i class="bi bi-stopwatch-fill"></i> Tempo de Execução</h3>
             </div>
-            <div id="execPanel"
-                 th:data-break-min="${task.pomodoroBreakMinutes()}"
-                 th:data-extra-min="${task.extraTimeMinutes()}"
-                 th:data-main-elapsed="${task.mainElapsedSeconds()}"
-                 th:data-main-started="${task.mainStartedAt()}"
-                 th:data-pomo-min="${task.pomodoroMinutes()}"
-                 th:data-pomo-until="${task.pomodoroUntil()}"
-                 th:data-status="${task.status()}"
-                 th:data-target-min="${task.executionTimeMinutes()}">
+            <div
+                    id="execPanel"
+                    th:data-break-min="${task.pomodoroBreakMinutes()}"
+                    th:data-extra-min="${task.extraTimeMinutes()}"
+                    th:data-main-elapsed="${task.mainElapsedSeconds()}"
+                    th:data-main-started="${task.mainStartedAt()}"
+                    th:data-pomo-min="${task.pomodoroMinutes()}"
+                    th:data-pomo-until="${task.pomodoroUntil()}"
+                    th:data-status="${task.status()}"
+                    th:data-target-min="${task.executionTimeMinutes()}"
+            >
                 <div class="timer-display-grid">
                     <div class="timer-display-item">
                         <div class="timer-label">⏱️ Tempo Decorrido</div>
                         <div class="timer-value" id="mainElapsedLabel">00:00:00</div>
                     </div>
                     <div class="timer-display-item">
-                        <div class="timer-label"><span id="pomoLabelText">🍅 Pomodoro</span> Restante</div>
+                        <div class="timer-label">
+                            <span id="pomoLabelText">🍅 Pomodoro</span> Restante
+                        </div>
                         <div class="timer-value" id="pomoRemainingLabel">—</div>
                     </div>
                 </div>
@@ -325,7 +591,11 @@
                         <span class="progress-target" id="targetLabel">—</span>
                     </div>
                     <div class="progress-bar-container">
-                        <div class="progress-bar-fill" id="execProgress" style="width: 0%"></div>
+                        <div
+                                class="progress-bar-fill"
+                                id="execProgress"
+                                style="width: 0%"
+                        ></div>
                     </div>
                 </div>
             </div>
@@ -335,14 +605,27 @@
 
 <link rel="stylesheet" th:href="@{/css/rich-editor.css}"/>
 <link rel="stylesheet" th:href="@{/css/task-edit.css}"/>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        crossorigin="anonymous"></script>
-<script th:src="@{/js/sidebar.js}"></script>
-<script th:src="@{/js/rich-editor.js}"></script>
-<script th:src="@{/js/task-edit.js}"></script>
-<script th:src="@{/js/dashboard.js}"></script>
+<link
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css"
+        rel="stylesheet"
+/>
+<script
+        defer
+        src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"
+></script>
+<script
+        crossorigin="anonymous"
+        defer
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+></script>
+<script defer th:src="@{/js/sidebar.js}"></script>
+<script defer th:src="@{/js/rich-editor.js}"></script>
+<script defer th:src="@{/js/task-edit.js}"></script>
+<script defer th:src="@{/js/dashboard.js}"></script>
+<div
+        th:replace="~{fragments/task-cancellation-modal :: cancellationModal}"
+></div>
+<script th:src="@{/js/task-cancellation.js}"></script>
 <div th:replace="~{fragments/notifications :: notifications}"></div>
 </body>
 </html>

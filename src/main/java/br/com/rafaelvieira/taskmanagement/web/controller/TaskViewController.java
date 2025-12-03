@@ -4,11 +4,16 @@ import static java.util.Collections.emptyList;
 
 import br.com.rafaelvieira.taskmanagement.domain.enums.Priority;
 import br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus;
+import br.com.rafaelvieira.taskmanagement.domain.model.Squad;
+import br.com.rafaelvieira.taskmanagement.domain.model.User;
 import br.com.rafaelvieira.taskmanagement.domain.records.TaskCreateRecord;
 import br.com.rafaelvieira.taskmanagement.domain.records.TaskRecord;
+import br.com.rafaelvieira.taskmanagement.exception.ForbiddenException;
 import br.com.rafaelvieira.taskmanagement.exception.ResourceNotFoundException;
 import br.com.rafaelvieira.taskmanagement.exception.TaskValidationException;
+import br.com.rafaelvieira.taskmanagement.exception.UnauthorizedException;
 import br.com.rafaelvieira.taskmanagement.repository.CategoryRepository;
+import br.com.rafaelvieira.taskmanagement.service.SquadService;
 import br.com.rafaelvieira.taskmanagement.service.TaskService;
 import br.com.rafaelvieira.taskmanagement.web.dto.TaskFilterForm;
 import br.com.rafaelvieira.taskmanagement.web.dto.TaskForm;
@@ -24,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -44,10 +50,18 @@ public class TaskViewController {
     private static final String SUCCESS_MESSAGE = "successMessage";
     private final TaskService taskService;
     private final CategoryRepository categoryRepository;
+    private final SquadService squadService;
+    private final br.com.rafaelvieira.taskmanagement.service.UserService userService;
 
-    public TaskViewController(TaskService taskService, CategoryRepository categoryRepository) {
+    public TaskViewController(
+            TaskService taskService,
+            CategoryRepository categoryRepository,
+            SquadService squadService,
+            br.com.rafaelvieira.taskmanagement.service.UserService userService) {
         this.taskService = taskService;
         this.categoryRepository = categoryRepository;
+        this.squadService = squadService;
+        this.userService = userService;
     }
 
     @ModelAttribute("allStatuses")
@@ -64,6 +78,11 @@ public class TaskViewController {
     public java.util.List<br.com.rafaelvieira.taskmanagement.domain.model.Category>
             allCategories() {
         return categoryRepository.findAll();
+    }
+
+    @ModelAttribute("allSquads")
+    public java.util.List<Squad> allSquads() {
+        return squadService.getAllActiveSquads();
     }
 
     @GetMapping("/")
@@ -394,15 +413,18 @@ public class TaskViewController {
                         form.getScheduledStartAt(),
                         form.getPomodoroMinutes(),
                         form.getPomodoroBreakMinutes(),
-                        form.getExecutionTimeMinutes());
+                        form.getExecutionTimeMinutes(),
+                        form.getSquadId());
         taskService.createTask(taskCreateRecord);
         redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Tarefa criada com sucesso!");
         return REDIRECT_TASKS;
     }
 
     @GetMapping("/tasks/{id}")
-    public String editTaskForm(@PathVariable("id") Long id, Model model) {
+    public String editTaskForm(
+            @PathVariable("id") Long id, Model model, java.security.Principal principal) {
         var task = taskService.getTaskById(id);
+        var currentUser = userService.findByUsername(principal.getName());
         TaskForm form = new TaskForm();
         form.setId(task.id());
         form.setTitle(task.title());
@@ -416,8 +438,10 @@ public class TaskViewController {
         form.setPomodoroMinutes(task.pomodoroMinutes());
         form.setPomodoroBreakMinutes(task.pomodoroBreakMinutes());
         form.setExecutionTimeMinutes(task.executionTimeMinutes());
+        form.setSquadId(task.squadId());
         model.addAttribute("taskForm", form);
         model.addAttribute("task", task);
+        model.addAttribute("currentUser", currentUser);
         return "tasks/edit";
     }
 
@@ -447,7 +471,8 @@ public class TaskViewController {
                             form.getScheduledStartAt(),
                             form.getPomodoroMinutes(),
                             form.getPomodoroBreakMinutes(),
-                            form.getExecutionTimeMinutes());
+                            form.getExecutionTimeMinutes(),
+                            form.getSquadId());
             taskService.updateTask(id, taskCreateRecord);
             redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Tarefa atualizada com sucesso!");
         } catch (TaskValidationException e) {
@@ -479,6 +504,28 @@ public class TaskViewController {
             return "redirect:/tasks/" + id;
         }
         return REDIRECT_TASKS;
+    }
+
+    @PostMapping("/tasks/{id}/assign")
+    public String assignTaskToMe(
+            @PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
+        try {
+            var currentUser =
+                    (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            taskService.assignTaskToCurrentUser(id, currentUser);
+            redirectAttributes.addFlashAttribute(
+                    SUCCESS_MESSAGE, "Você assumiu a responsabilidade desta tarefa!");
+        } catch (UnauthorizedException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        } catch (ResourceNotFoundException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Tarefa não encontrada.");
+        } catch (TaskValidationException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        } catch (ForbiddenException e) {
+            LOG.error("Erro inesperado ao assumir tarefa {}", id, e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Erro interno ao assumir tarefa.");
+        }
+        return "redirect:/tasks/" + id;
     }
 
     @PostMapping("/tasks/{id}/delete")

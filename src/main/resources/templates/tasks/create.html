@@ -1,204 +1,372 @@
 <!DOCTYPE html>
-<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments/head :: head('Nova Tarefa - Task Management')"></head>
-<body class="dashboard-body">
-<!-- Sidebar -->
-<nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+<html
+  lang="pt-BR"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
+  <head
+    th:replace="fragments/head :: head('Nova Tarefa - Task Management')"
+  ></head>
+  <body class="dashboard-body">
+    <!-- Sidebar -->
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
 
-<!-- Main Content -->
-<div class="main-content" id="mainContent">
-    <div class="top-bar">
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+      <div class="top-bar">
         <h1 class="page-title">
-            <i class="bi bi-plus-circle"></i> Nova Tarefa
+          <i class="bi bi-plus-circle"></i> Nova Tarefa
         </h1>
-        <div class="user-info" style="display: flex; gap: 1.5rem; align-items: center">
-            <div th:replace="~{fragments/topbar-user-info :: userInfo}"></div>
-            <a class="btn btn-secondary" th:href="@{/tasks}">
-                <i class="bi bi-arrow-left"></i> Voltar
-            </a>
+        <div
+          class="user-info"
+          style="display: flex; gap: 1.5rem; align-items: center"
+        >
+          <div th:replace="~{fragments/topbar-user-info :: userInfo}"></div>
+          <a class="btn btn-secondary" th:href="@{/tasks}">
+            <i class="bi bi-arrow-left"></i> Voltar
+          </a>
         </div>
-    </div>
+      </div>
 
-    <div class="content-wrapper">
+      <div class="content-wrapper">
         <div th:replace="fragments/alerts :: alerts"></div>
 
         <!-- Main Create Form - Compact Layout (igual ao edit.html) -->
         <div class="form-card-modern" data-animate="fade-up">
-            <form method="post" th:action="@{/tasks}" th:object="${taskForm}">
+          <form method="post" th:action="@{/tasks}" th:object="${taskForm}">
+            <!-- Title - Full Width -->
+            <div class="form-group-compact">
+              <label class="form-label-compact">
+                <i class="bi bi-card-text"></i> Título *
+              </label>
+              <input
+                class="form-control-modern"
+                placeholder="Nome da tarefa"
+                required
+                th:field="*{title}"
+                type="text"
+              />
+              <div class="form-error" th:if="${#fields.hasErrors('title')}">
+                <i class="bi bi-exclamation-circle"></i>
+                <span th:errors="*{title}"></span>
+              </div>
+            </div>
 
-                <!-- Title - Full Width -->
-                <div class="form-group-compact">
-                    <label class="form-label-compact">
-                        <i class="bi bi-card-text"></i> Título *
-                    </label>
-                    <input class="form-control-modern" placeholder="Nome da tarefa" required th:field="*{title}"
-                           type="text"/>
-                    <div class="form-error" th:if="${#fields.hasErrors('title')}">
-                        <i class="bi bi-exclamation-circle"></i>
-                        <span th:errors="*{title}"></span>
-                    </div>
+            <!-- Hidden status field - always TODO -->
+            <input th:field="*{status}" th:value="TODO" type="hidden" />
+
+            <!-- Grid 2 columns: Priority, Category -->
+            <div class="form-grid-2">
+              <div class="form-group-compact">
+                <label class="form-label-compact"
+                  ><i class="bi bi-flag-fill"></i> Prioridade *</label
+                >
+                <div class="select-wrapper">
+                  <select
+                    class="form-control-modern"
+                    required
+                    th:field="*{priority}"
+                  >
+                    <option value="">Selecione...</option>
+                    <option
+                      th:each="p : ${allPriorities}"
+                      th:text="${p}"
+                      th:value="${p}"
+                    ></option>
+                  </select>
                 </div>
-
-                <!-- Hidden status field - always TODO -->
-                <input th:field="*{status}" th:value="TODO" type="hidden"/>
-
-                <!-- Grid 2 columns: Priority, Category -->
-                <div class="form-grid-2">
-                    <div class="form-group-compact">
-                        <label class="form-label-compact"><i class="bi bi-flag-fill"></i> Prioridade *</label>
-                        <div class="select-wrapper">
-                            <select class="form-control-modern" required th:field="*{priority}">
-                                <option value="">Selecione...</option>
-                                <option th:each="p : ${allPriorities}" th:text="${p}" th:value="${p}"></option>
-                            </select>
-                        </div>
-                        <div class="form-error" th:if="${#fields.hasErrors('priority')}">
-                            <i class="bi bi-exclamation-circle"></i>
-                            <span th:errors="*{priority}"></span>
-                        </div>
-                    </div>
-
-                    <div class="form-group-compact">
-                        <label class="form-label-compact"><i class="bi bi-folder2"></i> Categoria *</label>
-                        <div class="select-wrapper">
-                            <select class="form-control-modern" required th:field="*{categoryId}">
-                                <option value="">Selecione...</option>
-                                <option th:each="c : ${allCategories}" th:text="${c.name}" th:value="${c.id}"></option>
-                            </select>
-                        </div>
-                        <div class="form-error" th:if="${#fields.hasErrors('categoryId')}">
-                            <i class="bi bi-exclamation-circle"></i>
-                            <span th:errors="*{categoryId}"></span>
-                        </div>
-                    </div>
+                <div
+                  class="form-error"
+                  th:if="${#fields.hasErrors('priority')}"
+                >
+                  <i class="bi bi-exclamation-circle"></i>
+                  <span th:errors="*{priority}"></span>
                 </div>
+              </div>
 
-                <!-- Description - Full Width -->
-                <div class="form-group-compact">
-                    <label class="form-label-compact"><i class="bi bi-text-paragraph"></i> Descrição *</label>
-                    <div th:replace="~{fragments/rich-editor :: richEditor('taskDescCreate','description', *{description}, '', 'Descreva a tarefa...', '280px')}"></div>
-                    <div class="form-error" th:if="${#fields.hasErrors('description')}">
-                        <i class="bi bi-exclamation-circle"></i>
-                        <span th:errors="*{description}"></span>
-                    </div>
+              <div class="form-group-compact">
+                <label class="form-label-compact"
+                  ><i class="bi bi-folder2"></i> Categoria *</label
+                >
+                <div class="select-wrapper">
+                  <select
+                    class="form-control-modern"
+                    required
+                    th:field="*{categoryId}"
+                  >
+                    <option value="">Selecione...</option>
+                    <option
+                      th:each="c : ${allCategories}"
+                      th:text="${c.name}"
+                      th:value="${c.id}"
+                    ></option>
+                  </select>
                 </div>
-
-                <!-- Grid 2 columns: Dates -->
-                <div class="form-grid-2">
-                    <div class="form-group-compact">
-                        <label class="form-label-compact"><i class="bi bi-calendar-event"></i> Vencimento *</label>
-                        <input class="form-control-modern" id="dueDateField" required th:field="*{dueDate}"
-                               type="datetime-local"/>
-                        <div class="form-error" th:if="${#fields.hasErrors('dueDate')}">
-                            <i class="bi bi-exclamation-circle"></i>
-                            <span th:errors="*{dueDate}"></span>
-                        </div>
-                    </div>
-
-                    <div class="form-group-compact">
-                        <label class="form-label-compact"><i class="bi bi-alarm"></i> Agendamento *</label>
-                        <input class="form-control-modern" id="scheduledStartField" required
-                               th:field="*{scheduledStartAt}" type="datetime-local"/>
-                        <div class="form-error" th:if="${#fields.hasErrors('scheduledStartAt')}">
-                            <i class="bi bi-exclamation-circle"></i>
-                            <span th:errors="*{scheduledStartAt}"></span>
-                        </div>
-                    </div>
+                <div
+                  class="form-error"
+                  th:if="${#fields.hasErrors('categoryId')}"
+                >
+                  <i class="bi bi-exclamation-circle"></i>
+                  <span th:errors="*{categoryId}"></span>
                 </div>
+              </div>
+            </div>
 
-                <!-- Grid 3 columns: Timers -->
-                <div class="form-grid-3">
-                    <div class="form-group-compact">
-                        <label class="form-label-compact"><i class="bi bi-stopwatch"></i> Exec. (min) *</label>
-                        <input class="form-control-modern" min="1" placeholder="120" required
-                               th:field="*{executionTimeMinutes}" type="number"/>
-                        <div class="form-error" th:if="${#fields.hasErrors('executionTimeMinutes')}">
-                            <i class="bi bi-exclamation-circle"></i>
-                            <span th:errors="*{executionTimeMinutes}"></span>
-                        </div>
-                    </div>
+            <!-- Squad Selection (visible for ADMIN and LEAD roles) -->
+            <div
+              class="form-group-compact"
+              sec:authorize="hasAnyRole('ADMIN', 'LEAD')"
+            >
+              <label class="form-label-compact">
+                <i class="bi bi-people-fill"></i> Squad (opcional)
+              </label>
+              <div class="select-wrapper">
+                <select
+                  class="form-control-modern"
+                  id="squadSelect"
+                  th:field="*{squadId}"
+                >
+                  <option value="">Tarefa pessoal (sem squad)</option>
+                  <option
+                    th:each="squad : ${allSquads}"
+                    th:text="${squad.name + ' - ' + squad.type.displayName}"
+                    th:value="${squad.id}"
+                  ></option>
+                </select>
+              </div>
+              <small class="form-text text-muted">
+                <i class="bi bi-info-circle"></i>
+                Selecione uma squad para atribuir esta tarefa ao time
+              </small>
+            </div>
 
-                    <div class="form-group-compact">
-                        <label class="form-label-compact"><i class="bi bi-hourglass-split"></i> Pomodoro (min) *</label>
-                        <input class="form-control-modern" min="5" placeholder="25" required
-                               th:field="*{pomodoroMinutes}" type="number"/>
-                        <div class="form-error" th:if="${#fields.hasErrors('pomodoroMinutes')}">
-                            <i class="bi bi-exclamation-circle"></i>
-                            <span th:errors="*{pomodoroMinutes}"></span>
-                        </div>
-                    </div>
+            <!-- Assigned User (member of selected squad) -->
+            <div
+              class="form-group-compact"
+              id="assignedUserContainer"
+              style="display: none"
+              sec:authorize="hasAnyRole('ADMIN', 'LEAD')"
+            >
+              <label class="form-label-compact">
+                <i class="bi bi-person-fill"></i> Atribuir para (opcional)
+              </label>
+              <div class="select-wrapper">
+                <select
+                  class="form-control-modern"
+                  id="assignedUserSelect"
+                  th:field="*{assignedUserId}"
+                  th:attr="data-selected-user=*{assignedUserId}"
+                >
+                  <option value="">👤 Nenhum - Tarefa sem responsável</option>
+                </select>
+              </div>
+              <small class="form-text text-muted">
+                <i class="bi bi-info-circle"></i>
+                Selecione um membro da squad ou deixe "Nenhum" para não atribuir
+              </small>
+            </div>
 
-                    <div class="form-group-compact">
-                        <label class="form-label-compact"><i class="bi bi-cup-hot"></i> Pausa (min) *</label>
-                        <input class="form-control-modern" min="1" placeholder="5" required
-                               th:field="*{pomodoroBreakMinutes}" type="number"/>
-                        <div class="form-error" th:if="${#fields.hasErrors('pomodoroBreakMinutes')}">
-                            <i class="bi bi-exclamation-circle"></i>
-                            <span th:errors="*{pomodoroBreakMinutes}"></span>
-                        </div>
-                    </div>
+            <!-- Description - Full Width -->
+            <div class="form-group-compact">
+              <label class="form-label-compact"
+                ><i class="bi bi-text-paragraph"></i> Descrição *</label
+              >
+              <div
+                th:replace="~{fragments/rich-editor :: richEditor('taskDescCreate','description', *{description}, '', 'Descreva a tarefa...', '280px')}"
+              ></div>
+              <div
+                class="form-error"
+                th:if="${#fields.hasErrors('description')}"
+              >
+                <i class="bi bi-exclamation-circle"></i>
+                <span th:errors="*{description}"></span>
+              </div>
+            </div>
+
+            <!-- Grid 2 columns: Dates -->
+            <div class="form-grid-2">
+              <div class="form-group-compact">
+                <label class="form-label-compact"
+                  ><i class="bi bi-calendar-event"></i> Vencimento *</label
+                >
+                <input
+                  class="form-control-modern"
+                  id="dueDateField"
+                  required
+                  th:field="*{dueDate}"
+                  type="datetime-local"
+                />
+                <div class="form-error" th:if="${#fields.hasErrors('dueDate')}">
+                  <i class="bi bi-exclamation-circle"></i>
+                  <span th:errors="*{dueDate}"></span>
                 </div>
+              </div>
 
-                <!-- Action Buttons - Modern -->
-                <div class="form-actions-modern">
-                    <a class="btn-modern btn-secondary-modern" th:href="@{/tasks}">
-                        <i class="bi bi-arrow-left"></i>
-                        <span>Voltar</span>
-                    </a>
-                    <button class="btn-modern btn-primary-modern" type="submit">
-                        <i class="bi bi-check-circle"></i>
-                        <span>Salvar</span>
-                    </button>
+              <div class="form-group-compact">
+                <label class="form-label-compact"
+                  ><i class="bi bi-alarm"></i> Agendamento *</label
+                >
+                <input
+                  class="form-control-modern"
+                  id="scheduledStartField"
+                  required
+                  th:field="*{scheduledStartAt}"
+                  type="datetime-local"
+                />
+                <div
+                  class="form-error"
+                  th:if="${#fields.hasErrors('scheduledStartAt')}"
+                >
+                  <i class="bi bi-exclamation-circle"></i>
+                  <span th:errors="*{scheduledStartAt}"></span>
                 </div>
-            </form>
+              </div>
+            </div>
+
+            <!-- Grid 3 columns: Timers -->
+            <div class="form-grid-3">
+              <div class="form-group-compact">
+                <label class="form-label-compact"
+                  ><i class="bi bi-stopwatch"></i> Exec. (min) *</label
+                >
+                <input
+                  class="form-control-modern"
+                  min="1"
+                  placeholder="120"
+                  required
+                  th:field="*{executionTimeMinutes}"
+                  type="number"
+                />
+                <div
+                  class="form-error"
+                  th:if="${#fields.hasErrors('executionTimeMinutes')}"
+                >
+                  <i class="bi bi-exclamation-circle"></i>
+                  <span th:errors="*{executionTimeMinutes}"></span>
+                </div>
+              </div>
+
+              <div class="form-group-compact">
+                <label class="form-label-compact"
+                  ><i class="bi bi-hourglass-split"></i> Pomodoro (min) *</label
+                >
+                <input
+                  class="form-control-modern"
+                  min="5"
+                  placeholder="25"
+                  required
+                  th:field="*{pomodoroMinutes}"
+                  type="number"
+                />
+                <div
+                  class="form-error"
+                  th:if="${#fields.hasErrors('pomodoroMinutes')}"
+                >
+                  <i class="bi bi-exclamation-circle"></i>
+                  <span th:errors="*{pomodoroMinutes}"></span>
+                </div>
+              </div>
+
+              <div class="form-group-compact">
+                <label class="form-label-compact"
+                  ><i class="bi bi-cup-hot"></i> Pausa (min) *</label
+                >
+                <input
+                  class="form-control-modern"
+                  min="1"
+                  placeholder="5"
+                  required
+                  th:field="*{pomodoroBreakMinutes}"
+                  type="number"
+                />
+                <div
+                  class="form-error"
+                  th:if="${#fields.hasErrors('pomodoroBreakMinutes')}"
+                >
+                  <i class="bi bi-exclamation-circle"></i>
+                  <span th:errors="*{pomodoroBreakMinutes}"></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons - Modern -->
+            <div class="form-actions-modern">
+              <a class="btn-modern btn-secondary-modern" th:href="@{/tasks}">
+                <i class="bi bi-arrow-left"></i>
+                <span>Voltar</span>
+              </a>
+              <button class="btn-modern btn-primary-modern" type="submit">
+                <i class="bi bi-check-circle"></i>
+                <span>Salvar</span>
+              </button>
+            </div>
+          </form>
         </div>
 
         <!-- Quick Actions - Disabled for New Tasks -->
         <div class="form-card-modern" data-animate="fade-up" data-delay="100">
-            <div class="section-header-compact">
-                <h3><i class="bi bi-lightning-charge-fill"></i> Ações Rápidas</h3>
-            </div>
-            <div class="alert alert-info"
-                 style="margin-bottom: 1rem; padding: 0.875rem; border-radius: 8px; background: rgba(99, 102, 241, 0.1); border-left: 3px solid var(--info); font-size: 0.875rem;">
-                <i class="bi bi-info-circle"></i> As ações rápidas estarão disponíveis após salvar a tarefa.
-            </div>
-            <div class="quick-actions-grid">
-                <button class="action-btn action-btn-success disabled-btn" disabled>
-                    <i class="bi bi-play-fill"></i>
-                    <span>Iniciar</span>
-                </button>
-                <button class="action-btn action-btn-warning disabled-btn" disabled>
-                    <i class="bi bi-pause-fill"></i>
-                    <span>Pausar</span>
-                </button>
-                <button class="action-btn action-btn-info disabled-btn" disabled>
-                    <i class="bi bi-check-circle-fill"></i>
-                    <span>Finalizar</span>
-                </button>
-                <button class="action-btn action-btn-secondary disabled-btn" disabled>
-                    <i class="bi bi-x-circle-fill"></i>
-                    <span>Cancelar</span>
-                </button>
-                <button class="action-btn action-btn-danger disabled-btn" disabled>
-                    <i class="bi bi-trash3-fill"></i>
-                    <span>Excluir</span>
-                </button>
-            </div>
+          <div class="section-header-compact">
+            <h3><i class="bi bi-lightning-charge-fill"></i> Ações Rápidas</h3>
+          </div>
+          <div
+            class="alert alert-info"
+            style="
+              margin-bottom: 1rem;
+              padding: 0.875rem;
+              border-radius: 8px;
+              background: rgba(99, 102, 241, 0.1);
+              border-left: 3px solid var(--info);
+              font-size: 0.875rem;
+            "
+          >
+            <i class="bi bi-info-circle"></i> As ações rápidas estarão
+            disponíveis após salvar a tarefa.
+          </div>
+          <div class="quick-actions-grid">
+            <button class="action-btn action-btn-success disabled-btn" disabled>
+              <i class="bi bi-play-fill"></i>
+              <span>Iniciar</span>
+            </button>
+            <button class="action-btn action-btn-warning disabled-btn" disabled>
+              <i class="bi bi-pause-fill"></i>
+              <span>Pausar</span>
+            </button>
+            <button class="action-btn action-btn-info disabled-btn" disabled>
+              <i class="bi bi-check-circle-fill"></i>
+              <span>Finalizar</span>
+            </button>
+            <button
+              class="action-btn action-btn-secondary disabled-btn"
+              disabled
+            >
+              <i class="bi bi-x-circle-fill"></i>
+              <span>Cancelar</span>
+            </button>
+            <button class="action-btn action-btn-danger disabled-btn" disabled>
+              <i class="bi bi-trash3-fill"></i>
+              <span>Excluir</span>
+            </button>
+          </div>
         </div>
+      </div>
     </div>
-</div>
 
-<link rel="stylesheet" th:href="@{/css/rich-editor.css}"/>
-<link rel="stylesheet" th:href="@{/css/task-create.css}"/>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        crossorigin="anonymous"></script>
-<script th:src="@{/js/sidebar.js}"></script>
-<script th:src="@{/js/rich-editor.js}"></script>
-<script th:src="@{/js/task-create.js}"></script>
-<script th:src="@{/js/dashboard.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/rich-editor.css}" />
+    <link rel="stylesheet" th:href="@{/css/task-create.css}" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      crossorigin="anonymous"
+    ></script>
+    <script th:src="@{/js/sidebar.js}"></script>
+    <script th:src="@{/js/rich-editor.js}"></script>
+    <script th:src="@{/js/task-create.js}"></script>
+    <script th:src="@{/js/dashboard.js}"></script>
 
-<div th:replace="~{fragments/notifications :: notifications}"></div>
-</body>
+    <div th:replace="~{fragments/notifications :: notifications}"></div>
+  </body>
 </html>

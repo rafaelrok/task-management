@@ -22,7 +22,12 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     long countByUserAndReadFalse(User user);
 
+    boolean existsByUserAndTaskIdAndTypeAndReadFalse(
+            User user,
+            Long taskId,
+            br.com.rafaelvieira.taskmanagement.domain.enums.NotificationType type);
+
     @Modifying
-    @Query("UPDATE Notification n SET n.read = true WHERE n.user = :user")
-    void markAllAsRead(User user);
+    @Query("UPDATE Notification n SET n.read = true WHERE n.user.id = :userId")
+    void markAllAsRead(Long userId);
 }

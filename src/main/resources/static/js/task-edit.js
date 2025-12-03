@@ -1,6 +1,109 @@
-// Task Edit Page JS - Real-time timer updates
+// Task Edit Page JS - Real-time timer updates and Rich Editor initialization
 (function () {
     'use strict';
+
+    // Initialize Rich Editor for edit page
+    function initializeRichEditor() {
+        console.log('Initializing rich editor for edit page...');
+        if (typeof RichEditor === 'function') {
+            RichEditor('taskDescEdit', 'description');
+        } else {
+            console.error('RichEditor function not found!');
+        }
+
+        // Sync rich editor content on form submit
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function (e) {
+                const hiddenField = document.getElementById('taskDescEdit_hidden');
+                const editorArea = document.querySelector('#taskDescEdit .editor-area');
+                if (hiddenField && editorArea) {
+                    hiddenField.value = editorArea.innerHTML;
+                    console.log('Synced description on submit:', hiddenField.value.substring(0, 100));
+                }
+            });
+        }
+    }
+
+    // Initialize Squad Member Selection
+    function initializeSquadMemberSelect() {
+        const squadSelect = document.getElementById('squadSelect');
+        const assignedUserContainer = document.getElementById('assignedUserContainer');
+        const assignedUserSelect = document.getElementById('assignedUserSelect');
+        
+        if (!squadSelect || !assignedUserSelect) {
+            return;
+        }
+
+        // Get the current assigned user ID (if any)
+        const currentAssignedUserId = assignedUserSelect.value;
+
+        // Function to load squad members
+        async function loadSquadMembers(squadId) {
+            if (!squadId) {
+                assignedUserContainer.style.display = 'none';
+                assignedUserSelect.innerHTML = '<option value="">👤 Nenhum - Tarefa sem responsável</option>';
+                return;
+            }
+
+            try {
+                // Show loading state
+                assignedUserSelect.innerHTML = '<option value="">Carregando membros...</option>';
+                assignedUserContainer.style.display = 'block';
+                
+                const response = await fetch(`/api/squads/${squadId}/members`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch squad members');
+                }
+
+                const members = await response.json();
+                
+                // Clear and rebuild options with "Nenhum" as first option
+                assignedUserSelect.innerHTML = '<option value="">👤 Nenhum - Tarefa sem responsável</option>';
+                
+                if (members.length === 0) {
+                    const emptyOption = document.createElement('option');
+                    emptyOption.disabled = true;
+                    emptyOption.textContent = '(Nenhum membro encontrado)';
+                    assignedUserSelect.appendChild(emptyOption);
+                } else {
+                    members.forEach(member => {
+                        const option = document.createElement('option');
+                        option.value = member.id;
+                        const roleIcon = member.role === 'LEAD' ? '👑' : '👤';
+                        option.textContent = `${roleIcon} ${member.name} (@${member.username})`;
+                        assignedUserSelect.appendChild(option);
+                    });
+                }
+
+                // Restore selected value if it exists in the new options
+                if (currentAssignedUserId) {
+                    const optionExists = Array.from(assignedUserSelect.options)
+                        .some(opt => opt.value === currentAssignedUserId);
+                    if (optionExists) {
+                        assignedUserSelect.value = currentAssignedUserId;
+                    }
+                }
+
+                // Show the container
+                assignedUserContainer.style.display = 'block';
+            } catch (error) {
+                console.error('Error loading squad members:', error);
+                assignedUserSelect.innerHTML = '<option value="">👤 Nenhum - Tarefa sem responsável</option>';
+                assignedUserContainer.style.display = 'block';
+            }
+        }
+
+        // Listen for squad changes
+        squadSelect.addEventListener('change', function() {
+            loadSquadMembers(this.value);
+        });
+
+        // Initial load if squad is already selected
+        if (squadSelect.value) {
+            loadSquadMembers(squadSelect.value);
+        }
+    }
 
     // Format seconds to HH:MM:SS
     function formatHMS(totalSec) {
@@ -195,6 +298,13 @@
 
     // Initialize on DOM ready
     document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Rich Editor
+        initializeRichEditor();
+        
+        // Initialize Squad Member Selection
+        initializeSquadMemberSelect();
+        
+        // Initialize timers
         const panel = document.getElementById('execPanel');
         if (panel) {
             startTimers();

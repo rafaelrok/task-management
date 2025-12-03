@@ -1,8 +1,11 @@
 package br.com.rafaelvieira.taskmanagement.domain.model;
 
+import br.com.rafaelvieira.taskmanagement.domain.enums.Role;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -51,9 +54,10 @@ public class User {
     private String password;
 
     // Papel simples (ROLE_USER, ROLE_ADMIN)
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private String role = "ROLE_USER";
+    private Role role = Role.MEMBER;
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "profile_id")
