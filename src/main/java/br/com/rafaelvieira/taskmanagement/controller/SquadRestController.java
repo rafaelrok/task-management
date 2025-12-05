@@ -11,7 +11,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,10 +29,9 @@ public class SquadRestController {
     private final SquadService squadService;
     private final UserService userService;
 
-    /** Get members of a squad for task assignment */
     @GetMapping("/{squadId}/members")
     @Transactional(readOnly = true)
-    public ResponseEntity<@NotNull List<Map<String, Object>>> getSquadMembers(
+    public ResponseEntity<List<Map<String, Object>>> getSquadMembers(
             @PathVariable("squadId") Long squadId) {
         try {
             System.out.println("Fetching members for squad ID: " + squadId);
@@ -118,7 +116,6 @@ public class SquadRestController {
         }
     }
 
-    /** Accept a squad invite */
     @PostMapping("/invites/{id}/accept")
     public ResponseEntity<Void> acceptInvite(@PathVariable("id") Long id, Principal principal) {
         User user = userService.findByUsername(principal.getName());
@@ -126,27 +123,24 @@ public class SquadRestController {
         return ResponseEntity.ok().build();
     }
 
-    /** Reject a squad invite */
     @PostMapping("/invites/{id}/reject")
-    public ResponseEntity<@NotNull Void> rejectInvite(
-            @PathVariable("id") Long id, Principal principal) {
+    public ResponseEntity<Void> rejectInvite(@PathVariable("id") Long id, Principal principal) {
         User user = userService.findByUsername(principal.getName());
         squadService.respondToInvite(id, false, user);
         return ResponseEntity.ok().build();
     }
 
-    /** Get pending invites for current user */
     @GetMapping("/my-invites")
-    public ResponseEntity<@NotNull List<SquadInvite>> getMyInvites(Principal principal) {
+    public ResponseEntity<List<SquadInvite>> getMyInvites(Principal principal) {
         User user = userService.findByUsername(principal.getName());
         List<SquadInvite> invites = squadService.getPendingInvites(user);
         return ResponseEntity.ok(invites);
     }
 
-    /** Remove a member from squad (LEAD or ADMIN only) */
+    /** TODO: Remove a member from squad (LEAD or ADMIN only) */
     @DeleteMapping("/{squadId}/members/{userId}")
     @PreAuthorize("hasAnyRole('LEAD', 'ADMIN')")
-    public ResponseEntity<@NotNull Void> removeMember(
+    public ResponseEntity<Void> removeMember(
             @PathVariable("squadId") Long squadId,
             @PathVariable("userId") Long userId,
             Principal principal) {

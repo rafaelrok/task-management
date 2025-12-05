@@ -104,6 +104,17 @@ public class GamificationWebSocketService {
         sendToTopic("/topic/squad/" + squad.getId() + "/ranking", payload);
     }
 
+    /** Notify squad about task update */
+    public void notifyTaskUpdate(Long squadId, Long taskId, String type, String status) {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("type", type);
+        payload.put("taskId", taskId);
+        payload.put("status", status);
+        payload.put("timestamp", java.time.LocalDateTime.now());
+
+        sendToTopic("/topic/squad/" + squadId + "/tasks", payload);
+    }
+
     /** Send message to specific user */
     private void sendToUser(String username, String destination, Object payload) {
         try {

@@ -21,6 +21,12 @@
      * Initialize and start timer updates for active tasks
      */
     function initTimers() {
+        // Clear existing interval to prevent duplicates/leaks
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+
         const timerBadges = document.querySelectorAll('.timer-badge');
         
         if (timerBadges.length === 0) {
@@ -79,13 +85,17 @@
      */
     function updateTimerColor(badge, totalSeconds) {
         // Get execution time from parent if available
-        const parent = badge.closest('.list-group-item');
+        const parent = badge.closest('.list-group-item') || badge.closest('.timer-item');
         if (!parent) return;
         
-        const execTimeText = parent.querySelector('.small.text-muted');
-        if (!execTimeText) return;
-
-        const match = execTimeText.textContent.match(/(\d+)/);
+        // Try to find the estimated time text
+        // In the fragment it is: <small>Est: <span th:text="...">30</span> min</small>
+        // The text content of small would be "Est: 30 min"
+        const execTimeContainer = parent.querySelector('small');
+        if (!execTimeContainer) return;
+        
+        const execTimeText = execTimeContainer.textContent;
+        const match = execTimeText.match(/(\d+)/);
         if (!match) return;
 
         const estimatedMinutes = parseInt(match[1], 10);
@@ -182,9 +192,31 @@
         
         // Refresh active timers if a task started or stopped
         if (data.type === 'TIMER_STARTED' || data.type === 'TIMER_STOPPED') {
-            // Could refresh active timers section
-            location.reload();
+            refreshActiveTasks();
         }
+    }
+
+    /**
+     * Refresh the active tasks panel
+     */
+    function refreshActiveTasks() {
+        const squadId = getSquadId();
+        if (!squadId) return;
+
+        fetch(`/squads/${squadId}/dashboard/active-tasks`)
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.text();
+            })
+            .then(html => {
+                const container = document.getElementById('active-tasks-wrapper');
+                if (container) {
+                    container.innerHTML = html;
+                    // Re-initialize timers for the new elements
+                    initTimers();
+                }
+            })
+            .catch(error => console.error('Error refreshing active tasks:', error));
     }
 
     /**
@@ -201,8 +233,39 @@
      * Update task row in the table
      */
     function updateTaskRow(taskId, status) {
-        // Implementation depends on how task IDs are stored in the table
-        console.log('Updating task', taskId, 'to status', status);
+        const row = document.getElementById('task-row-' + taskId);
+        if (!row) return;
+
+        const statusCell = row.cells[2];
+        const badge = statusCell.querySelector('.status-badge');
+        if (!badge) return;
+
+        // Update text
+        badge.textContent = status;
+
+        // Update class
+        badge.className = 'status-badge'; // reset
+        if (status === 'DONE') {
+            badge.classList.add('success');
+            badge.textContent = 'Concluída';
+        } else if (status === 'IN_PROGRESS') {
+            badge.classList.add('warning');
+            badge.textContent = 'Em Andamento';
+        } else if (status === 'OVERDUE') {
+            badge.classList.add('danger');
+            badge.textContent = 'Atrasada';
+        } else if (status === 'TODO') {
+            badge.classList.add('secondary');
+            badge.textContent = 'A Fazer';
+        } else if (status === 'IN_PAUSE') {
+            badge.classList.add('warning');
+            badge.textContent = 'Em Pausa';
+        } else if (status === 'CANCELLED') {
+            badge.classList.add('secondary');
+            badge.textContent = 'Cancelada';
+        } else {
+            badge.classList.add('secondary');
+        }
     }
 
     /**

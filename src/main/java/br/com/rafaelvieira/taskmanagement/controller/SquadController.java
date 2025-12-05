@@ -4,14 +4,14 @@ import br.com.rafaelvieira.taskmanagement.domain.enums.Role;
 import br.com.rafaelvieira.taskmanagement.domain.enums.SquadType;
 import br.com.rafaelvieira.taskmanagement.domain.model.Squad;
 import br.com.rafaelvieira.taskmanagement.domain.model.User;
+import br.com.rafaelvieira.taskmanagement.domain.records.SquadCreateDTO;
+import br.com.rafaelvieira.taskmanagement.domain.records.SquadDashboardDTO;
+import br.com.rafaelvieira.taskmanagement.domain.records.SquadUpdateDTO;
 import br.com.rafaelvieira.taskmanagement.exception.ForbiddenException;
 import br.com.rafaelvieira.taskmanagement.exception.ResourceNotFoundException;
 import br.com.rafaelvieira.taskmanagement.exception.SquadValidationException;
 import br.com.rafaelvieira.taskmanagement.exception.UnauthorizedException;
 import br.com.rafaelvieira.taskmanagement.service.SquadService;
-import br.com.rafaelvieira.taskmanagement.service.SquadService.SquadCreateDTO;
-import br.com.rafaelvieira.taskmanagement.service.SquadService.SquadDashboardDTO;
-import br.com.rafaelvieira.taskmanagement.service.SquadService.SquadUpdateDTO;
 import br.com.rafaelvieira.taskmanagement.service.TaskService;
 import br.com.rafaelvieira.taskmanagement.service.UserService;
 import java.security.Principal;
@@ -40,7 +40,6 @@ public class SquadController {
     private final TaskService taskService;
     private final UserService userService;
 
-    /** Lista squads para MEMBER (apenas squads que participa) */
     @GetMapping("/my")
     @PreAuthorize("isAuthenticated()")
     public String mySquads(Model model, Principal principal) {
@@ -89,9 +88,10 @@ public class SquadController {
         }
 
         // Get IDs of squads where the user is a member
-        Set<Long> memberSquadIds = squadService.getSquadsByMember(user).stream()
-                .map(Squad::getId)
-                .collect(Collectors.toSet());
+        Set<Long> memberSquadIds =
+                squadService.getSquadsByMember(user).stream()
+                        .map(Squad::getId)
+                        .collect(Collectors.toSet());
 
         model.addAttribute("squads", squads);
         model.addAttribute("memberCountMap", memberCountMap);
@@ -127,8 +127,9 @@ public class SquadController {
             RedirectAttributes redirectAttributes) {
         try {
             User user = userService.findByUsername(principal.getName());
-            SquadCreateDTO dto = new SquadCreateDTO(
-                    name, description, type, techStack, businessArea, goal, maxMembers);
+            SquadCreateDTO dto =
+                    new SquadCreateDTO(
+                            name, description, type, techStack, businessArea, goal, maxMembers);
             squadService.createSquad(dto, user);
             redirectAttributes.addFlashAttribute("successMessage", "Squad criada com sucesso!");
             return "redirect:/squads";
@@ -187,7 +188,24 @@ public class SquadController {
 
             model.addAttribute("dashboard", dashboard);
             model.addAttribute("squad", dashboard.squad());
-            model.addAttribute("tasks", taskService.getTasksBySquadId(id));
+
+            // Filter tasks based on user role
+            List<br.com.rafaelvieira.taskmanagement.domain.records.TaskRecord> tasks;
+            if (user.getRole() == Role.MEMBER) {
+                // MEMBER: only see their own tasks
+                tasks =
+                        taskService.getTasksBySquadId(id).stream()
+                                .filter(
+                                        t ->
+                                                t.assignedUserId() != null
+                                                        && t.assignedUserId().equals(user.getId()))
+                                .toList();
+            } else {
+                // LEAD/ADMIN: see all squad tasks
+                tasks = taskService.getTasksBySquadId(id);
+            }
+
+            model.addAttribute("tasks", tasks);
             model.addAttribute("currentUser", user);
             model.addAttribute("activePage", "squads");
 
@@ -210,6 +228,18 @@ public class SquadController {
                     "errorMessage", "Erro interno ao carregar dashboard da squad");
             return "redirect:/squads";
         }
+    }
+
+    @GetMapping("/{id}/dashboard/active-tasks")
+    @PreAuthorize("isAuthenticated()")
+    public String getDashboardActiveTasks(
+            @PathVariable(name = "id") Long id, Model model, Principal principal) {
+
+        User user = userService.findByUsername(principal.getName());
+        SquadDashboardDTO dashboard = squadService.getSquadDashboard(id, user);
+        model.addAttribute("dashboard", dashboard);
+
+        return "fragments/squad-active-tasks :: activeTasksPanel";
     }
 
     @GetMapping("/{id}/edit")
@@ -250,8 +280,9 @@ public class SquadController {
             RedirectAttributes redirectAttributes) {
         try {
             User user = userService.findByUsername(principal.getName());
-            SquadUpdateDTO dto = new SquadUpdateDTO(
-                    name, description, type, techStack, businessArea, goal, maxMembers);
+            SquadUpdateDTO dto =
+                    new SquadUpdateDTO(
+                            name, description, type, techStack, businessArea, goal, maxMembers);
             // Validate management access before updating
             validateSquadManagementAccess(id, user);
             squadService.updateSquad(id, dto, user);
@@ -314,7 +345,6 @@ public class SquadController {
             RedirectAttributes redirectAttributes) {
         try {
             User user = userService.findByUsername(principal.getName());
-            // Validate management access before inviting
             validateSquadManagementAccess(id, user);
             squadService.inviteUser(id, email, user);
             redirectAttributes.addFlashAttribute("successMessage", "Convite enviado com sucesso!");
@@ -341,7 +371,6 @@ public class SquadController {
             RedirectAttributes redirectAttributes) {
         try {
             User user = userService.findByUsername(principal.getName());
-            // Validate management access before removing member
             validateSquadManagementAccess(id, user);
             squadService.removeMember(id, userId, user);
             redirectAttributes.addFlashAttribute("successMessage", "Membro removido com sucesso!");
@@ -354,11 +383,11 @@ public class SquadController {
     }
 
     private Squad validateSquadManagementAccess(Long squadId, User user) {
-        Squad squad = squadService
-                .getSquadById(squadId)
-                .orElseThrow(() -> new ResourceNotFoundException("Squad not found"));
+        Squad squad =
+                squadService
+                        .getSquadById(squadId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Squad not found"));
 
-        // Strict check: Only the lead (creator) can manage
         if (!squad.getLead().getId().equals(user.getId())) {
             throw new ForbiddenException("Apenas o criador da squad pode gerenciá-la.");
         }

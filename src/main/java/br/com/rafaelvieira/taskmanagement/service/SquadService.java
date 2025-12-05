@@ -10,6 +10,10 @@ import br.com.rafaelvieira.taskmanagement.domain.model.SquadInvite;
 import br.com.rafaelvieira.taskmanagement.domain.model.SquadMember;
 import br.com.rafaelvieira.taskmanagement.domain.model.Task;
 import br.com.rafaelvieira.taskmanagement.domain.model.User;
+import br.com.rafaelvieira.taskmanagement.domain.records.MemberMetricsDTO;
+import br.com.rafaelvieira.taskmanagement.domain.records.SquadCreateDTO;
+import br.com.rafaelvieira.taskmanagement.domain.records.SquadDashboardDTO;
+import br.com.rafaelvieira.taskmanagement.domain.records.SquadUpdateDTO;
 import br.com.rafaelvieira.taskmanagement.exception.ResourceNotFoundException;
 import br.com.rafaelvieira.taskmanagement.exception.UnauthorizedException;
 import br.com.rafaelvieira.taskmanagement.repository.SquadInviteRepository;
@@ -38,8 +42,6 @@ public class SquadService {
     private final UserRepository userRepository;
     private final GamificationWebSocketService webSocketService;
     private final NotificationService notificationService;
-
-    // ========== CRUD Operations ==========
 
     @Transactional
     public Squad createSquad(String name, String description, User lead) {
@@ -167,6 +169,13 @@ public class SquadService {
         return squadRepository.findByActiveTrue();
     }
 
+    public List<Squad> getSquadsForDropdown(User user) {
+        if (user.getRole() == Role.MEMBER) {
+            return List.of();
+        }
+        return squadRepository.findByLeadAndActiveTrue(user);
+    }
+
     public List<Squad> getSquadsWithFilters(SquadType type, Boolean active, String search) {
         return squadRepository.findWithFilters(type, active, search);
     }
@@ -200,6 +209,9 @@ public class SquadService {
 
     // ========== Dashboard Metrics ==========
 
+    // ========== Dashboard Metrics ==========
+
+    @Transactional(readOnly = true)
     public SquadDashboardDTO getSquadDashboard(Long squadId, User currentUser) {
         Squad squad =
                 squadRepository
@@ -210,7 +222,6 @@ public class SquadService {
 
         LocalDateTime now = LocalDateTime.now();
 
-        // If user is MEMBER, show only their own metrics
         boolean isMember = currentUser.getRole() == Role.MEMBER;
 
         Long totalTasks;
@@ -221,7 +232,6 @@ public class SquadService {
         List<Task> activeTasks;
 
         if (isMember) {
-            // Member sees only their own tasks
             List<Task> memberTasks =
                     taskRepository.findBySquadIdAndAssignedUserId(squadId, currentUser.getId());
             totalTasks = (long) memberTasks.size();
@@ -241,12 +251,10 @@ public class SquadService {
                                                     && t.getStatus() != TaskStatus.DONE
                                                     && t.getStatus() != TaskStatus.CANCELLED)
                             .count();
+            // MEMBER: only see their own active tasks
             activeTasks =
                     memberTasks.stream()
-                            .filter(
-                                    t ->
-                                            t.getMainStartedAt() != null
-                                                    && t.getStatus() == TaskStatus.IN_PROGRESS)
+                            .filter(t -> t.getStatus() == TaskStatus.IN_PROGRESS)
                             .toList();
         } else {
             // LEAD and ADMIN see all squad metrics
@@ -256,17 +264,16 @@ public class SquadService {
             completedTasks = taskRepository.countBySquadIdAndStatus(squadId, TaskStatus.DONE);
             todoTasks = taskRepository.countBySquadIdAndStatus(squadId, TaskStatus.TODO);
             overdueTasks = taskRepository.countOverdueBySquadId(squadId, now);
-            activeTasks = taskRepository.findActiveTimerTasksBySquadId(squadId);
+            activeTasks =
+                    taskRepository.findActiveTimerTasksBySquadId(squadId, TaskStatus.IN_PROGRESS);
         }
 
         Long memberCount = squadRepository.countMembersBySquadId(squadId);
         List<SquadMember> members = squadMemberRepository.findBySquad(squad);
 
-        // Calcular métricas por membro
         List<MemberMetricsDTO> memberMetrics;
 
         if (isMember) {
-            // Member sees only their own metrics
             List<Task> memberTasks =
                     taskRepository.findBySquadIdAndAssignedUserId(squadId, currentUser.getId());
             Long completedByMember =
@@ -293,7 +300,6 @@ public class SquadService {
                                     (int) inProgressByMember,
                                     currentMember != null ? currentMember.getJoinedAt() : null));
         } else {
-            // LEAD and ADMIN see all members' metrics
             memberMetrics =
                     members.stream()
                             .map(
@@ -383,7 +389,6 @@ public class SquadService {
         squadInviteRepository.save(invite);
         webSocketService.notifySquadInvite(invite);
 
-        // Create sticky notification for the invited user
         notificationService.createStickyNotification(
                 "Convite de Squad",
                 "Você foi convidado para participar da squad '"
@@ -467,7 +472,6 @@ public class SquadService {
                         .findById(userId)
                         .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        // Lead cannot be removed
         if (squad.getLead().getId().equals(userId)) {
             throw new IllegalArgumentException("Cannot remove the squad lead");
         }
@@ -496,16 +500,14 @@ public class SquadService {
                     "[SquadAccess] ADMIN {} tem acesso à squad {}",
                     user.getUsername(),
                     squad.getId());
-            return; // Admin has full access
+            return;
         }
 
-        // Check if user is the squad leader
         if (squad.getLead().getId().equals(user.getId())) {
             log.debug("[SquadAccess] LEAD {} lidera a squad {}", user.getUsername(), squad.getId());
             return;
         }
 
-        // Check if user is a member of the squad (robusto e performático)
         boolean isMember = squadMemberRepository.existsBySquadAndUser(squad, user);
         log.debug(
                 "[SquadAccess] MEMBER check userId={} squadId={} exists={} ",
@@ -523,44 +525,4 @@ public class SquadService {
             setter.accept(value);
         }
     }
-
-    // ========== DTOs ==========
-
-    public record SquadCreateDTO(
-            String name,
-            String description,
-            SquadType type,
-            String techStack,
-            String businessArea,
-            String goal,
-            Integer maxMembers) {}
-
-    public record SquadUpdateDTO(
-            String name,
-            String description,
-            SquadType type,
-            String techStack,
-            String businessArea,
-            String goal,
-            Integer maxMembers) {}
-
-    public record SquadDashboardDTO(
-            Squad squad,
-            int totalTasks,
-            int inProgressTasks,
-            int completedTasks,
-            int todoTasks,
-            int overdueTasks,
-            int memberCount,
-            List<Task> activeTimerTasks,
-            List<MemberMetricsDTO> memberMetrics) {}
-
-    public record MemberMetricsDTO(
-            Long userId,
-            String fullName,
-            String username,
-            int totalTasks,
-            int completedTasks,
-            int inProgressTasks,
-            LocalDateTime joinedAt) {}
 }

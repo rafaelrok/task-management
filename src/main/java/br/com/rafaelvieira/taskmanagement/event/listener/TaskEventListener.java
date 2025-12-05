@@ -1,5 +1,6 @@
 package br.com.rafaelvieira.taskmanagement.event.listener;
 
+import br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus;
 import br.com.rafaelvieira.taskmanagement.event.TaskEvent;
 import br.com.rafaelvieira.taskmanagement.service.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -32,8 +33,7 @@ public class TaskEventListener {
                         event.getTask().getStatus(),
                         event.getTask().getPriority());
 
-        if (event.getTask().getStatus()
-                == br.com.rafaelvieira.taskmanagement.domain.enums.TaskStatus.TODO) {
+        if (event.getTask().getStatus() == TaskStatus.TODO) {
             notificationService.createStickyNotification(
                     event.getTask().getTitle(),
                     richMessage,

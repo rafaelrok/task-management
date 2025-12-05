@@ -1,5 +1,6 @@
 package br.com.rafaelvieira.taskmanagement.controller;
 
+import br.com.rafaelvieira.taskmanagement.domain.enums.TaskCancelRequestStatus;
 import br.com.rafaelvieira.taskmanagement.domain.model.TaskCancelRequest;
 import br.com.rafaelvieira.taskmanagement.domain.model.User;
 import br.com.rafaelvieira.taskmanagement.repository.TaskCancelRequestRepository;
@@ -27,9 +28,7 @@ public class TaskCancellationViewController {
         User user = userService.findByUsername(principal.getName());
         List<TaskCancelRequest> pendingRequests =
                 cancelRequestRepository.findByLeadToApproveAndStatusOrderByCreatedAtDesc(
-                        user,
-                        br.com.rafaelvieira.taskmanagement.domain.enums.TaskCancelRequestStatus
-                                .PENDING);
+                        user, TaskCancelRequestStatus.PENDING);
 
         model.addAttribute("requests", pendingRequests);
         model.addAttribute("currentUser", user);

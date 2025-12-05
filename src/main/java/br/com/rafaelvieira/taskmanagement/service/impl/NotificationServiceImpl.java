@@ -200,6 +200,17 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    public Page<@NotNull Notification> findAllUnreadForCurrentUser(Pageable pageable) {
+        var currentUser = userService.getCurrentUser();
+        if (currentUser == null) {
+            log.warn("Attempt to list unread notifications without authentication");
+            throw new UnauthorizedException("User not authenticated");
+        }
+        return notificationRepository.findByUserAndReadFalseOrderByCreatedAtDesc(
+                currentUser, pageable);
+    }
+
+    @Override
     public List<Notification> findUnreadForCurrentUser() {
         var currentUser = userService.getCurrentUser();
         if (currentUser == null) {

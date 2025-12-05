@@ -29,7 +29,7 @@ public class SwaggerConfig {
 
             Desenvolvida com:
             - Java 25
-            - Spring Boot 3.5.7
+            - Spring Boot 4.0.0
             - JUnit 6.0.0
             - PostgresSQL
 

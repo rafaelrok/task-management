@@ -75,31 +75,39 @@ public class TaskViewController {
     }
 
     @ModelAttribute("allCategories")
-    public java.util.List<br.com.rafaelvieira.taskmanagement.domain.model.Category> allCategories() {
+    public java.util.List<br.com.rafaelvieira.taskmanagement.domain.model.Category>
+            allCategories() {
         return categoryRepository.findAll();
     }
 
     @ModelAttribute("allSquads")
     public java.util.List<Squad> allSquads() {
-        return squadService.getAllActiveSquads();
+        User currentUser = userService.getCurrentUser();
+        return squadService.getSquadsForDropdown(currentUser);
     }
 
     @GetMapping("/")
     public String dashboard(Model model) {
         try {
             User currentUser = userService.getCurrentUser();
-            model.addAttribute("totalTodo", taskService.countTasksByStatus(TaskStatus.TODO, currentUser));
             model.addAttribute(
-                    "totalInProgress", taskService.countTasksByStatus(TaskStatus.IN_PROGRESS, currentUser));
-            model.addAttribute("totalDone", taskService.countTasksByStatus(TaskStatus.DONE, currentUser));
+                    "totalTodo", taskService.countTasksByStatus(TaskStatus.TODO, currentUser));
             model.addAttribute(
-                    "totalCancelled", taskService.countTasksByStatus(TaskStatus.CANCELLED, currentUser));
+                    "totalInProgress",
+                    taskService.countTasksByStatus(TaskStatus.IN_PROGRESS, currentUser));
+            model.addAttribute(
+                    "totalDone", taskService.countTasksByStatus(TaskStatus.DONE, currentUser));
+            model.addAttribute(
+                    "totalCancelled",
+                    taskService.countTasksByStatus(TaskStatus.CANCELLED, currentUser));
 
             java.time.LocalDateTime now = java.time.LocalDateTime.now();
             java.time.LocalDate today = now.toLocalDate();
 
-            java.util.List<TaskRecord> todoTasks = taskService.getTasksByStatus(TaskStatus.TODO, currentUser);
-            java.util.List<TaskRecord> overdue = new java.util.ArrayList<>(taskService.getOverdueTasks(currentUser));
+            java.util.List<TaskRecord> todoTasks =
+                    taskService.getTasksByStatus(TaskStatus.TODO, currentUser);
+            java.util.List<TaskRecord> overdue =
+                    new java.util.ArrayList<>(taskService.getOverdueTasks(currentUser));
 
             for (TaskRecord t : todoTasks) {
                 if (t.scheduledStartAt() != null && t.scheduledStartAt().isBefore(now)) {
@@ -113,19 +121,21 @@ public class TaskViewController {
             java.util.List<TaskRecord> dueToday = new java.util.ArrayList<>();
             java.util.List<TaskRecord> allStatuses = taskService.getVisibleTasks(currentUser);
             for (TaskRecord t : allStatuses) {
-                boolean dueDateToday = t.dueDate() != null && t.dueDate().toLocalDate().equals(today);
-                boolean scheduledToday = t.scheduledStartAt() != null
-                        && t.scheduledStartAt().toLocalDate().equals(today);
+                boolean dueDateToday =
+                        t.dueDate() != null && t.dueDate().toLocalDate().equals(today);
+                boolean scheduledToday =
+                        t.scheduledStartAt() != null
+                                && t.scheduledStartAt().toLocalDate().equals(today);
                 if (dueDateToday || scheduledToday) {
                     dueToday.add(t);
                 }
             }
             dueToday.sort(
                     (a, b) -> {
-                        java.time.LocalDateTime aKey = a.scheduledStartAt() != null ? a.scheduledStartAt()
-                                : a.dueDate();
-                        java.time.LocalDateTime bKey = b.scheduledStartAt() != null ? b.scheduledStartAt()
-                                : b.dueDate();
+                        java.time.LocalDateTime aKey =
+                                a.scheduledStartAt() != null ? a.scheduledStartAt() : a.dueDate();
+                        java.time.LocalDateTime bKey =
+                                b.scheduledStartAt() != null ? b.scheduledStartAt() : b.dueDate();
                         if (aKey == null && bKey == null) {
                             return 0;
                         }
@@ -139,10 +149,14 @@ public class TaskViewController {
                     });
             model.addAttribute("dueToday", dueToday);
 
-            model.addAttribute("countLow", taskService.countTasksByPriority(Priority.LOW, currentUser));
-            model.addAttribute("countMedium", taskService.countTasksByPriority(Priority.MEDIUM, currentUser));
-            model.addAttribute("countHigh", taskService.countTasksByPriority(Priority.HIGH, currentUser));
-            model.addAttribute("countUrgent", taskService.countTasksByPriority(Priority.URGENT, currentUser));
+            model.addAttribute(
+                    "countLow", taskService.countTasksByPriority(Priority.LOW, currentUser));
+            model.addAttribute(
+                    "countMedium", taskService.countTasksByPriority(Priority.MEDIUM, currentUser));
+            model.addAttribute(
+                    "countHigh", taskService.countTasksByPriority(Priority.HIGH, currentUser));
+            model.addAttribute(
+                    "countUrgent", taskService.countTasksByPriority(Priority.URGENT, currentUser));
 
             populateActiveTasks(model, todoTasks, now, currentUser);
             populateScheduledTasks(model, todoTasks, now);
@@ -226,17 +240,21 @@ public class TaskViewController {
             List<TaskRecord> allStatuses = taskService.getVisibleTasks(currentUser);
 
             for (TaskRecord t : allStatuses) {
-                boolean dueDateToday = t.dueDate() != null && t.dueDate().toLocalDate().equals(today);
-                boolean scheduledToday = t.scheduledStartAt() != null
-                        && t.scheduledStartAt().toLocalDate().equals(today);
+                boolean dueDateToday =
+                        t.dueDate() != null && t.dueDate().toLocalDate().equals(today);
+                boolean scheduledToday =
+                        t.scheduledStartAt() != null
+                                && t.scheduledStartAt().toLocalDate().equals(today);
                 if (dueDateToday || scheduledToday) {
                     dueToday.add(t);
                 }
             }
             dueToday.sort(
                     (a, b) -> {
-                        LocalDateTime aKey = a.scheduledStartAt() != null ? a.scheduledStartAt() : a.dueDate();
-                        LocalDateTime bKey = b.scheduledStartAt() != null ? b.scheduledStartAt() : b.dueDate();
+                        LocalDateTime aKey =
+                                a.scheduledStartAt() != null ? a.scheduledStartAt() : a.dueDate();
+                        LocalDateTime bKey =
+                                b.scheduledStartAt() != null ? b.scheduledStartAt() : b.dueDate();
                         if (aKey == null && bKey == null) {
                             return 0;
                         }
@@ -257,7 +275,10 @@ public class TaskViewController {
     }
 
     private void populateActiveTasks(
-            Model model, java.util.List<TaskRecord> todoTasks, java.time.LocalDateTime now, User currentUser) {
+            Model model,
+            java.util.List<TaskRecord> todoTasks,
+            java.time.LocalDateTime now,
+            User currentUser) {
         java.util.List<TaskRecord> active = new java.util.ArrayList<>();
         active.addAll(taskService.getTasksByStatus(TaskStatus.IN_PROGRESS, currentUser));
         active.addAll(taskService.getTasksByStatus(TaskStatus.IN_PAUSE, currentUser));
@@ -324,43 +345,46 @@ public class TaskViewController {
             Model model) {
         User currentUser = userService.getCurrentUser();
         Pageable pageable = PageRequest.of(page, size);
-        Page<@NotNull TaskRecord> tasksPage = taskService.searchTasks(filter, pageable, currentUser);
+        Page<@NotNull TaskRecord> tasksPage =
+                taskService.searchTasks(filter, pageable, currentUser);
 
         // Sort tasks: IN_PROGRESS and IN_PAUSE first, then by updatedAt desc
-        java.util.List<TaskRecord> sortedTasks = tasksPage.getContent().stream()
-                .sorted(
-                        (t1, t2) -> {
-                            // Priority 1: IN_PROGRESS status
-                            boolean t1InProgress = t1.status() == TaskStatus.IN_PROGRESS;
-                            boolean t2InProgress = t2.status() == TaskStatus.IN_PROGRESS;
-                            if (t1InProgress != t2InProgress) {
-                                return t1InProgress ? -1 : 1;
-                            }
+        java.util.List<TaskRecord> sortedTasks =
+                tasksPage.getContent().stream()
+                        .sorted(
+                                (t1, t2) -> {
+                                    // Priority 1: IN_PROGRESS status
+                                    boolean t1InProgress = t1.status() == TaskStatus.IN_PROGRESS;
+                                    boolean t2InProgress = t2.status() == TaskStatus.IN_PROGRESS;
+                                    if (t1InProgress != t2InProgress) {
+                                        return t1InProgress ? -1 : 1;
+                                    }
 
-                            // Priority 2: IN_PAUSE status
-                            boolean t1InPause = t1.status() == TaskStatus.IN_PAUSE;
-                            boolean t2InPause = t2.status() == TaskStatus.IN_PAUSE;
-                            if (t1InPause != t2InPause) {
-                                return t1InPause ? -1 : 1;
-                            }
+                                    // Priority 2: IN_PAUSE status
+                                    boolean t1InPause = t1.status() == TaskStatus.IN_PAUSE;
+                                    boolean t2InPause = t2.status() == TaskStatus.IN_PAUSE;
+                                    if (t1InPause != t2InPause) {
+                                        return t1InPause ? -1 : 1;
+                                    }
 
-                            // Priority 3: OVERDUE status
-                            boolean t1Overdue = t1.overdue();
-                            boolean t2Overdue = t2.overdue();
-                            if (t1Overdue != t2Overdue) {
-                                return t1Overdue ? -1 : 1;
-                            }
+                                    // Priority 3: OVERDUE status
+                                    boolean t1Overdue = t1.overdue();
+                                    boolean t2Overdue = t2.overdue();
+                                    if (t1Overdue != t2Overdue) {
+                                        return t1Overdue ? -1 : 1;
+                                    }
 
-                            // Priority 4: Most recently updated
-                            if (t1.updatedAt() != null && t2.updatedAt() != null) {
-                                return t2.updatedAt().compareTo(t1.updatedAt());
-                            }
-                            return 0;
-                        })
-                .toList();
+                                    // Priority 4: Most recently updated
+                                    if (t1.updatedAt() != null && t2.updatedAt() != null) {
+                                        return t2.updatedAt().compareTo(t1.updatedAt());
+                                    }
+                                    return 0;
+                                })
+                        .toList();
 
-        Page<@NotNull TaskRecord> sortedPage = new org.springframework.data.domain.PageImpl<>(
-                sortedTasks, pageable, tasksPage.getTotalElements());
+        Page<@NotNull TaskRecord> sortedPage =
+                new org.springframework.data.domain.PageImpl<>(
+                        sortedTasks, pageable, tasksPage.getTotalElements());
 
         model.addAttribute("tasksPage", sortedPage);
         model.addAttribute("filter", filter);
@@ -397,19 +421,20 @@ public class TaskViewController {
 
         form.setStatus(TaskStatus.TODO);
 
-        TaskCreateRecord taskCreateRecord = new TaskCreateRecord(
-                form.getTitle(),
-                form.getDescription(),
-                TaskStatus.TODO,
-                form.getPriority(),
-                form.getCategoryId(),
-                form.getAssignedUserId(),
-                form.getDueDate(),
-                form.getScheduledStartAt(),
-                form.getPomodoroMinutes(),
-                form.getPomodoroBreakMinutes(),
-                form.getExecutionTimeMinutes(),
-                form.getSquadId());
+        TaskCreateRecord taskCreateRecord =
+                new TaskCreateRecord(
+                        form.getTitle(),
+                        form.getDescription(),
+                        TaskStatus.TODO,
+                        form.getPriority(),
+                        form.getCategoryId(),
+                        form.getAssignedUserId(),
+                        form.getDueDate(),
+                        form.getScheduledStartAt(),
+                        form.getPomodoroMinutes(),
+                        form.getPomodoroBreakMinutes(),
+                        form.getExecutionTimeMinutes(),
+                        form.getSquadId());
         taskService.createTask(taskCreateRecord);
         redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Tarefa criada com sucesso!");
         return REDIRECT_TASKS;
@@ -454,19 +479,20 @@ public class TaskViewController {
             return "tasks/edit";
         }
         try {
-            TaskCreateRecord taskCreateRecord = new TaskCreateRecord(
-                    form.getTitle(),
-                    form.getDescription(),
-                    form.getStatus(),
-                    form.getPriority(),
-                    form.getCategoryId(),
-                    form.getAssignedUserId(),
-                    form.getDueDate(),
-                    form.getScheduledStartAt(),
-                    form.getPomodoroMinutes(),
-                    form.getPomodoroBreakMinutes(),
-                    form.getExecutionTimeMinutes(),
-                    form.getSquadId());
+            TaskCreateRecord taskCreateRecord =
+                    new TaskCreateRecord(
+                            form.getTitle(),
+                            form.getDescription(),
+                            form.getStatus(),
+                            form.getPriority(),
+                            form.getCategoryId(),
+                            form.getAssignedUserId(),
+                            form.getDueDate(),
+                            form.getScheduledStartAt(),
+                            form.getPomodoroMinutes(),
+                            form.getPomodoroBreakMinutes(),
+                            form.getExecutionTimeMinutes(),
+                            form.getSquadId());
             taskService.updateTask(id, taskCreateRecord);
             redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "Tarefa atualizada com sucesso!");
         } catch (TaskValidationException e) {
@@ -504,7 +530,8 @@ public class TaskViewController {
     public String assignTaskToMe(
             @PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
         try {
-            var currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            var currentUser =
+                    (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             taskService.assignTaskToCurrentUser(id, currentUser);
             redirectAttributes.addFlashAttribute(
                     SUCCESS_MESSAGE, "Você assumiu a responsabilidade desta tarefa!");

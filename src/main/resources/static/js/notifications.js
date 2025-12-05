@@ -430,10 +430,26 @@ const NotificationSystem = {
   },
 
   setupBadge: function () {
-    const dropdown = document.getElementById("notificationDropdown");
-    if (dropdown) {
-      dropdown.addEventListener("show.bs.dropdown", () => {
-        this.loadRecentNotifications();
+    const dropdownToggle = document.getElementById("notificationDropdown");
+    if (dropdownToggle) {
+      // Handler function to avoid code duplication
+      const loadHandler = () => {
+          this.loadRecentNotifications();
+      };
+
+      // Listen for Bootstrap event on the toggle
+      dropdownToggle.addEventListener("show.bs.dropdown", loadHandler);
+      
+      // Also listen on the parent, as BS5 events often bubble or fire there
+      const parent = dropdownToggle.closest('.dropdown');
+      if (parent) {
+          parent.addEventListener("show.bs.dropdown", loadHandler);
+      }
+      
+      // Fallback: click on toggle (useful if BS events are swallowed or not firing)
+      dropdownToggle.addEventListener('click', (e) => {
+          // Small delay to ensure UI is ready if needed, though usually not required for fetch
+          setTimeout(loadHandler, 10);
       });
     }
   },
@@ -509,7 +525,7 @@ const NotificationSystem = {
         '<li class="dropdown-item text-center text-muted small empty-notification">Carregando...</li>';
     }
 
-    fetch("/api/notifications?page=0&size=5")
+    fetch("/api/notifications?page=0&size=5&unreadOnly=true")
       .then((response) => {
         if (!response.ok) {
           if (response.status === 401) {
@@ -837,30 +853,34 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Expose handler for WebSocket notifications
+// Expose handler for WebSocket notifications
 window.handleWebSocketNotification = function (data) {
   console.log("[NotificationSystem] Recebida via WebSocket:", data);
-  if (
+  
+  // Prefer NotificationManager for toasts if available (Global consistency)
+  if (typeof NotificationManager !== 'undefined' && typeof NotificationManager.show === 'function') {
+      NotificationManager.show(data);
+      NotificationManager.updateBadgeCount(1, true);
+  } else if (
     NotificationSystem &&
     typeof NotificationSystem.showToast === "function"
   ) {
-    // Show toast notification
+    // Fallback to NotificationSystem toast
     NotificationSystem.showToast(data);
-
-    // Update badge count (increment by 1)
     NotificationSystem.updateBadgeCount(1, true);
-
-    // Add to dropdown
-    NotificationSystem.addNotificationToDropdown(data);
-
-    // Refresh task-related sections
-    if (typeof NotificationSystem.refreshTaskRelatedSections === "function") {
-      NotificationSystem.refreshTaskRelatedSections(data);
-    }
-
-    console.log("[NotificationSystem] ✅ Notificação processada com sucesso");
-  } else {
-    console.error(
-      "[NotificationSystem] Sistema de notificações não disponível"
-    );
   }
+
+  if (NotificationSystem) {
+      // Add to dropdown
+      if (typeof NotificationSystem.addNotificationToDropdown === "function") {
+          NotificationSystem.addNotificationToDropdown(data);
+      }
+
+      // Refresh task-related sections
+      if (typeof NotificationSystem.refreshTaskRelatedSections === "function") {
+          NotificationSystem.refreshTaskRelatedSections(data);
+      }
+  }
+  
+  console.log("[NotificationSystem] ✅ Notificação processada com sucesso");
 };

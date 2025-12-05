@@ -24,7 +24,6 @@ public class TomcatConfig {
                         (Connector connector) -> {
                             if (connector.getProtocolHandler()
                                     instanceof Http11NioProtocol protocol) {
-                                // Permite payloads maiores antes de descartar o corpo
                                 protocol.setMaxSwallowSize(MAX_REQUEST_SIZE);
                             }
                             connector.setMaxPostSize(MAX_REQUEST_SIZE);

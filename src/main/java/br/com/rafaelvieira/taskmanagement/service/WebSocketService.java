@@ -15,7 +15,6 @@ public class WebSocketService {
 
     private final SimpMessagingTemplate messagingTemplate;
 
-    /** Envia atualização de dashboard para todos os clientes conectados */
     public void sendDashboardUpdate(DashboardUpdateMessage message) {
         try {
             messagingTemplate.convertAndSend("/topic/dashboard", message);
@@ -25,7 +24,6 @@ public class WebSocketService {
         }
     }
 
-    /** Envia notificação para um utilizador específico */
     public void sendNotificationToUser(String username, NotificationUpdateMessage message) {
         try {
             messagingTemplate.convertAndSendToUser(username, "/queue/notifications", message);
@@ -35,7 +33,6 @@ public class WebSocketService {
         }
     }
 
-    /** Envia notificação para todos os utilizadores */
     public void sendNotificationBroadcast(NotificationUpdateMessage message) {
         try {
             messagingTemplate.convertAndSend("/topic/notifications", message);

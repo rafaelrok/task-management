@@ -76,7 +76,6 @@ public class RankingController {
                             .findById(squadId)
                             .orElseThrow(() -> new ResourceNotFoundException("Squad not found"));
 
-            // Get squad members
             List<SquadMember> members = squadMemberRepository.findBySquad(squad);
 
             // Get scores for squad members and sort
@@ -91,7 +90,6 @@ public class RankingController {
                             .sorted(Comparator.comparing(UserScore::getTotalPoints).reversed())
                             .collect(Collectors.toList());
 
-            // Find current user position and score in squad
             int userPosition = 0;
             UserScore currentUserScore = null;
             for (int i = 0; i < rankings.size(); i++) {

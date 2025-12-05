@@ -6,12 +6,13 @@ import org.springframework.context.annotation.Configuration;
 /**
  * Multipart configuration to handle file uploads with multiple form fields. Increases Tomcat's
  * default file count limit for multipart requests.
+ *
+ * @author Rafael Vieira
+ * @since 1.0.0
  */
 @Configuration
 public class MultipartConfig {
 
-    // Maximum number of multipart parts allowed (default is very low, causing
-    // FileCountLimitExceededException)
     private static final String FILE_COUNT_MAX_PROPERTY =
             "org.apache.tomcat.util.http.fileupload.impl.FileCountMax";
     private static final String FILE_COUNT_MAX_VALUE = "500";

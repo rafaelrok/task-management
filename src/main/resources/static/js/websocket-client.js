@@ -250,8 +250,8 @@ class WebSocketClient {
             }
 
             // 8. Atualiza badge de notificações
-            if (typeof NotificationSystem !== 'undefined' && NotificationSystem.loadUnreadCount) {
-                NotificationSystem.loadUnreadCount();
+            if (typeof NotificationManager !== 'undefined' && NotificationManager.loadUnreadCount) {
+                NotificationManager.loadUnreadCount();
                 console.log('[WebSocket] ✅ Notification badge updated');
             }
 

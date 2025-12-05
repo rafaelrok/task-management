@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -16,6 +17,8 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     Page<Notification> findByUserOrderByCreatedAtDesc(User user, Pageable pageable);
 
     List<Notification> findByUserAndReadFalseOrderByCreatedAtDesc(User user);
+
+    Page<Notification> findByUserAndReadFalseOrderByCreatedAtDesc(User user, Pageable pageable);
 
     /** Encontra notificações sticky não lidas para um usuário. */
     List<Notification> findByUserAndReadFalseAndStickyTrueOrderByCreatedAtDesc(User user);
@@ -29,5 +32,5 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     @Modifying
     @Query("UPDATE Notification n SET n.read = true WHERE n.user.id = :userId")
-    void markAllAsRead(Long userId);
+    void markAllAsRead(@Param("userId") Long userId);
 }

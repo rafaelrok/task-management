@@ -3,7 +3,9 @@ package br.com.rafaelvieira.taskmanagement.controller;
 import br.com.rafaelvieira.taskmanagement.service.NotificationService;
 import br.com.rafaelvieira.taskmanagement.service.UserService;
 import br.com.rafaelvieira.taskmanagement.web.dto.NotificationResponseDTO;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -28,20 +31,20 @@ public class NotificationController {
     public ResponseEntity<SseEmitter> streamNotifications() {
         var currentUser = userService.getCurrentUser();
         if (currentUser == null) {
-            // Retorna 401 sem body para que o EventSource falhe uma vez e não gere exceção
-            // de media
-            // type
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         return ResponseEntity.ok(notificationService.subscribe(currentUser.getId()));
     }
 
     @GetMapping
-    public ResponseEntity<org.springframework.data.domain.Page<NotificationResponseDTO>>
-            getNotifications(@PageableDefault(size = 20) Pageable pageable) {
+    public ResponseEntity<Page<NotificationResponseDTO>> getNotifications(
+            @PageableDefault(size = 20) Pageable pageable,
+            @RequestParam(name = "unreadOnly", required = false, defaultValue = "false")
+                    boolean unreadOnly) {
         var page =
-                notificationService
-                        .findAllForCurrentUser(pageable)
+                (unreadOnly
+                                ? notificationService.findAllUnreadForCurrentUser(pageable)
+                                : notificationService.findAllForCurrentUser(pageable))
                         .map(
                                 n ->
                                         NotificationResponseDTO.builder()
@@ -58,7 +61,7 @@ public class NotificationController {
     }
 
     @GetMapping("/sticky")
-    public ResponseEntity<java.util.List<NotificationResponseDTO>> getStickyNotifications() {
+    public ResponseEntity<List<NotificationResponseDTO>> getStickyNotifications() {
         var notifications =
                 notificationService.findStickyUnreadForCurrentUser().stream()
                         .map(
